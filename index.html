@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Attendance Tracker</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+  margin: 0;
+  padding: 10px;
+}
+
+h1, h2 {
+  text-align: center;
+}
+
+.card {
+  background: #1e293b;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+
+button {
+  margin: 4px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.present { background: #16a34a; color: white; }
+.absent { background: #dc2626; color: white; }
+.cancelled { background: #6b7280; color: white; }
+.locked { opacity: 0.6; pointer-events: none; }
+
+select {
+  padding: 6px;
+  margin-top: 5px;
+}
+
+.history {
+  font-size: 14px;
+}
+
+.reset-btn {
+  background: #7c2d12;
+  color: white;
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+}
+
+/* ---------- SUMMARY TABLE UI ---------- */
+.summary-table {
+  display: grid;
+  grid-template-columns: 2.5fr 1fr 1fr 1fr;
+  row-gap: 6px;
+  font-size: 14px;
+}
+
+.summary-header {
+  font-weight: bold;
+  color: #cbd5f5;
+  margin-bottom: 6px;
+}
+
+.summary-row {
+  color: #e5e7eb;
+}
+
+.summary-row div {
+  padding: 2px 0;
+}
+
+.overall-box {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #22c55e;
+}
+
+/* ---------- DETAIL VIEW UI ---------- */
+.filter-row {
+  margin-top: 8px;
+}
+
+.detail-list {
+  margin-top: 10px;
+}
+
+.detail-item {
+  padding: 6px 0;
+  border-bottom: 1px solid #334155;
+  font-size: 14px;
+}
+
+.status-Present {
+  color: #22c55e;
+  font-weight: bold;
+}
+
+.status-Absent {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.status-Cancelled {
+  color: #9ca3af;
+  font-weight: bold;
+}
+
+.progress-wrap {
+  margin-top: 4px;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 10px;
+  background: #334155;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.progress-green { background: #22c55e; }
+.progress-yellow { background: #facc15; }
+.progress-red { background: #ef4444; }
+
+/* ===== Attendance Summary Layout ===== */
+
+.summary-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #334155;
+}
+
+.summary-item:last-child {
+  border-bottom: none;
+}
+
+.subject-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.subject-name {
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.subject-stats {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.progress-wrap {
+  margin-top: 6px;
+}
+
+.overall-summary {
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 2px solid #475569;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  color: #22c55e;
+}
+
+/* ===== Overall Attendance Highlight ===== */
+
+.overall-container {
+  margin-top: 22px;
+  padding: 14px;
+  background: linear-gradient(135deg, #020617, #0f172a);
+  border-radius: 12px;
+  border: 1px solid #334155;
+}
+
+.overall-title {
+  text-align: center;
+  font-size: 14px;
+  color: #cbd5f5;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.overall-bar-bg {
+  width: 100%;
+  height: 16px;
+  background: #334155;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.overall-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    #22c55e,
+    #4ade80
+  );
+  transition: width 0.4s ease,
+  background 0.4s ease;
+}
+
+.overall-percent {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #22c55e;
+}
+
+/* Overall bar color states */
+.overall-green {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+.overall-yellow {
+  background: linear-gradient(90deg, #facc15, #fde047);
+}
+
+.overall-red {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.overall-green-text { color: #22c55e; }
+.overall-yellow-text { color: #facc15; }
+.overall-red-text { color: #ef4444; }
+
+/* ===== Lecture Card Visual Feedback ===== */
+
+.lecture-card {
+  position: relative;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.lecture-card.locked {
+  opacity: 0.75;
+}
+
+/* Left status bar */
+.lecture-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 5px;
+  height: 100%;
+  border-radius: 8px 0 0 8px;
+  background: transparent;
+}
+
+.lecture-present::before {
+  background: #22c55e;
+}
+
+.lecture-absent::before {
+  background: #ef4444;
+}
+
+.lecture-cancelled::before {
+  background: #9ca3af;
+}
+
+/* Status label */
+.status-label {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>📊 Smart Attendance Tracker</h1>
+<h2 id="today"></h2>
+<div id="dayStatus" style="text-align:center;margin-bottom:10px;"></div>
+
+<div id="lectures"></div>
+
+<div class="card">
+  <h3>➕ Extra Lecture</h3>
+  <select id="extraSubject"></select>
+  <br>
+  <button class="present" onclick="markExtra('Present')">Present</button>
+  <button class="absent" onclick="markExtra('Absent')">Absent</button>
+  <br>
+  <button class="cancelled" onclick="lockNoExtra()">No Extra Lectures</button>
+  <div id="extraInfo" style="font-size:12px;margin-top:6px;"></div>
+</div>
+
+
+<div class="card">
+  <h3>📈 Attendance Summary</h3>
+  <div id="summary"></div>
+</div>
+
+<div class="card">
+  <h3 onclick="toggleUndo()" style="cursor:pointer;">
+    🕘 Undo Attendance (Today Only) ▼
+  </h3>
+  <div id="undoSection" style="display:none;"></div>
+</div>
+
+
+<div class="card">
+  <h3>🔍 Detailed Attendance View</h3>
+
+  <select id="viewMode" onchange="renderDetailView()">
+    <option value="">Select View</option>
+    <option value="date">Date Wise</option>
+    <option value="subject">Subject Wise</option>
+  </select>
+
+  <div id="filterArea"></div>
+  <div id="detailResult" style="margin-top:10px;font-size:14px;"></div>
+</div>
+
+<div class="card">
+  <h3>🕘 Add Past Attendance</h3>
+
+  <input type="date" id="pastDate" onchange="loadPastTimetable()" />
+
+  <div id="pastLectures"></div>
+
+  <div id="pastExtra" style="margin-top:10px;"></div>
+
+  <button class="present" onclick="savePastAttendance()">Save Attendance</button>
+</div>
+
+
+<button class="reset-btn" onclick="resetAll()">RESET ATTENDANCE</button>
+
+<script>
+const PASSWORD = "Nir@2006";
+
+const timetable = {
+  Monday: [
+    ["11:00-12:00","Introduction to Cyber Law"],
+    ["12:00-01:00","Artificial Intelligence"],
+    ["01:30-03:30","Operating Systems Lab"],
+    ["03:30-04:30","Operating Systems"],
+    ["04:30-05:30","Entrepreneurship and Start-ups"]
+  ],
+  Tuesday: [
+    ["11:00-12:00","Introduction to Cyber Law"],
+    ["12:00-01:00","Theory of Computation"],
+    ["01:30-03:30","Artificial Intelligence Lab"],
+    ["03:30-04:30","Operating Systems"],
+    ["04:30-05:30","Business Communication"]
+  ],
+  Wednesday: [
+    ["11:00-01:00","Computer Skill Lab-1"],
+    ["01:30-02:30","Theory of Computation"],
+    ["02:30-03:30","Introduction to Cyber Law"],
+    ["03:30-04:30","Artificial Intelligence"],
+    ["04:30-05:30","Business Communication"]
+  ],
+  Thursday: [
+    ["11:00-12:00","Software Requirement Engineering"],
+    ["12:00-01:00","Theory of Computation"],
+    ["01:30-02:30","Operating Systems"],
+    ["02:30-03:30","Artificial Intelligence"],
+    ["03:30-04:30","Entrepreneurship and Start-ups"]
+  ],
+  Friday: [
+    ["11:00-01:00","Software Requirement Engineering"],
+    ["01:30-02:30","Theory of Computation"],
+    ["02:30-04:30","Report Writing & Presentation Skill"]
+  ]
+};
+
+const today = new Date();
+const day = today.toLocaleDateString("en-US",{ weekday:"long" });
+
+showWeekendMessage(day);
+
+const dateKey = today.toLocaleDateString();
+
+document.getElementById("today").innerText = `${day} | ${dateKey}`;
+
+let data = JSON.parse(localStorage.getItem("attendance")) || {
+  totals:{}, history:{}, locks:{}
+};
+
+function save(){ localStorage.setItem("attendance",JSON.stringify(data)); }
+
+function loadLectures(){
+  const container = document.getElementById("lectures");
+  container.innerHTML = "";
+
+  (timetable[day] || []).forEach(([time,subject])=>{
+    const lockKey = dateKey+"_"+subject+"_"+time;
+    const locked = data.locks[lockKey];
+
+    const div = document.createElement("div");
+    div.className = "card lecture-card"+(locked?"locked":"");
+    div.innerHTML = `
+      <b>${time}</b><br>${subject}<br>
+      <button class="present">Present</button>
+      <button class="absent">Absent</button>
+      <button class="cancelled">Cancelled</button>
+    `;
+
+    if(locked && data.history[dateKey]){
+  const entry = data.history[dateKey].find(
+    h => h.subject === subject && h.time === time
+  );
+
+  if(entry){
+    if(entry.status === "Present") div.classList.add("lecture-present");
+    if(entry.status === "Absent") div.classList.add("lecture-absent");
+    if(entry.status === "Cancelled") div.classList.add("lecture-cancelled");
+
+    div.innerHTML += `
+      <div class="status-label">
+        ${entry.status === "Present" ? "✔ Present" :
+          entry.status === "Absent" ? "✖ Absent" :
+          "⏸ Cancelled"}
+      </div>
+    `;
+  }
+}
+
+
+    div.querySelectorAll("button").forEach(btn=>{
+      btn.onclick = ()=>markAttendance(subject, time, btn.innerText);
+    });
+
+    container.appendChild(div);
+  });
+}
+
+function markAttendance(subject,time,status){
+  const key = dateKey+"_"+subject+"_"+time;
+  if(data.locks[key]) return;
+
+  data.locks[key] = true;
+  data.history[dateKey] ??= [];
+  data.history[dateKey].push({subject,time,status});
+
+  if(status !== "Cancelled"){
+    data.totals[subject] ??= {p:0,t:0};
+    data.totals[subject].t++;
+    if(status==="Present") data.totals[subject].p++;
+  }
+
+  save();
+  render();
+}
+
+function markExtra(status){
+
+// 🔒 Check if "No Extra Lectures" is already confirmed
+  const noExtraKey = dateKey + "_NO_EXTRA";
+  if(data.locks[noExtraKey]){
+    alert("Extra lectures already locked for today ❌");
+    return;
+  }
+
+  const subject = document.getElementById("extraSubject").value;
+  const key = dateKey+"_EXTRA_"+subject;
+  if(data.locks[key]) return alert("Already added bro 😑");
+
+  data.locks[key]=true;
+  data.history[dateKey] ??= [];
+  data.history[dateKey].push({subject,time:"Extra",status});
+
+  data.totals[subject] ??= {p:0,t:0};
+  data.totals[subject].t++;
+  if(status==="Present") data.totals[subject].p++;
+
+  save(); render();
+}
+
+function renderSummary(){
+  const div = document.getElementById("summary");
+  div.innerHTML = "";
+
+  let tp = 0, tt = 0;
+
+  for(let s in data.totals){
+    const { p, t } = data.totals[s];
+    const percent = t ? Math.round((p / t) * 100) : 0;
+
+    tp += p;
+    tt += t;
+
+    let colorClass = "progress-green";
+    if(percent < 60) colorClass = "progress-red";
+    else if(percent < 75) colorClass = "progress-yellow";
+
+    div.innerHTML += `
+      <div class="summary-item">
+        <div class="subject-row">
+          <div class="subject-name">${s}</div>
+          <div class="subject-stats">${p}/${t} (${percent}%)</div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill ${colorClass}"
+                 style="width:${percent}%">
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  const overall = tt ? Math.round((tp / tt) * 100) : 0;
+let overallBarClass = "overall-green";
+let overallTextClass = "overall-green-text";
+
+if(overall < 60){
+  overallBarClass = "overall-red";
+  overallTextClass = "overall-red-text";
+} else if(overall < 75){
+  overallBarClass = "overall-yellow";
+  overallTextClass = "overall-yellow-text";
+}
+
+
+ div.innerHTML += `
+  <div class="overall-container">
+    <div class="overall-title">OVERALL ATTENDANCE</div>
+
+    <div class="overall-bar-bg">
+      <div class="overall-bar-fill ${overallBarClass}"
+           style="width:${overall}%">
+      </div>
+    </div>
+
+    <div class="overall-percent ${overallTextClass}">
+      ${overall}%
+    </div>
+  </div>
+`;
+
+
+}
+
+
+
+function renderHistory(){
+  const div = document.getElementById("history");
+  div.innerHTML="";
+  for(let d in data.history){
+    data.history[d].forEach((h,i)=>{
+      div.innerHTML+=`${d} - ${h.subject} (${h.status})
+      <button onclick="undo('${d}',${i})">Undo</button><br>`;
+    });
+  }
+}
+
+function undo(d,i){
+  const h = data.history[d][i];
+  const key = d+"_"+h.subject+"_"+h.time;
+  delete data.locks[key];
+
+  if(h.status!=="Cancelled"){
+    data.totals[h.subject].t--;
+    if(h.status==="Present") data.totals[h.subject].p--;
+  }
+  data.history[d].splice(i,1);
+  save(); render();
+}
+
+function resetAll(){
+  const pass = prompt("Enter reset password:");
+  if(pass!==PASSWORD) return alert("Wrong password 😈");
+
+  localStorage.removeItem("attendance");
+  location.reload();
+}
+
+function initExtra(){
+  const set = new Set();
+  Object.values(timetable).flat().forEach(x=>set.add(x[1]));
+  document.getElementById("extraSubject").innerHTML =
+    [...set].map(s=>`<option>${s}</option>`).join("");
+}
+
+function render(){
+  loadLectures();
+  renderSummary();
+  
+
+  // 🔒 Handle "No Extra Lectures" UI lock
+  const noExtraKey = dateKey + "_NO_EXTRA";
+
+  if(data.locks[noExtraKey]){
+    // Disable extra lecture inputs
+    document.getElementById("extraSubject").disabled = true;
+
+    document.querySelectorAll(
+      ".card button"
+    ).forEach(btn=>{
+      if(btn.innerText.includes("Present") ||
+         btn.innerText.includes("Absent") ||
+         btn.innerText.includes("No Extra")){
+        btn.disabled = true;
+      }
+    });
+
+    // Show confirmation text
+    document.getElementById("extraInfo").innerText =
+      "✔ No extra lectures confirmed for today";
+}
+
+
+}
+
+function renderDetailView(){
+  const mode = document.getElementById("viewMode").value;
+  const filter = document.getElementById("filterArea");
+  const result = document.getElementById("detailResult");
+
+  filter.innerHTML = "";
+  result.innerHTML = "";
+
+  if(mode === "date"){
+    const dates = Object.keys(data.history);
+    if(!dates.length){
+      result.innerText = "No data yet 😴";
+      return;
+    }
+
+    filter.innerHTML = `
+      <select id="dateSelect" onchange="showDateWise()">
+        <option value="">Select Date</option>
+        ${dates.map(d=>`<option value="${d}">${formatDateDDMMYYYY(d)}</option>
+`).join("")}
+      </select>
+    `;
+  }
+
+  if(mode === "subject"){
+    const subjects = Object.keys(data.totals);
+    if(!subjects.length){
+      result.innerText = "No data yet 😴";
+      return;
+    }
+
+    filter.innerHTML = `
+      <select id="subjectSelect" onchange="showSubjectWise()">
+        <option value="">Select Subject</option>
+        ${subjects.map(s=>`<option value="${s}">${s}</option>`).join("")}
+      </select>
+    `;
+  }
+}
+
+function showDateWise(){
+  const d = document.getElementById("dateSelect").value;
+  const displayDate = formatDateDDMMYYYY(d);
+  const dayName = getDayName(d);
+  const result = document.getElementById("detailResult");
+  result.innerHTML = "";
+
+  if(!d || !data.history[d]) return;
+
+result.innerHTML = `
+  <div id="dateHeader" style="margin-bottom:6px;font-weight:bold;">
+    Date: ${displayDate} (${dayName})
+  </div>
+  <div class="detail-list">
+`;
+
+  data.history[d].forEach(h=>{
+    result.innerHTML += `
+      <div class="detail-item">
+        <b>${h.subject}</b> | ${h.time} |
+        <span class="status-${h.status}">${h.status}</span>
+      </div>
+    `;
+  });
+
+  result.innerHTML += `</div>`;
+}
+
+
+function showSubjectWise(){
+  const sub = document.getElementById("subjectSelect").value;
+  const result = document.getElementById("detailResult");
+  result.innerHTML = "";
+
+  if(!sub) return;
+
+  result.innerHTML = `<div class="detail-list">`;
+
+  for(let d in data.history){
+    data.history[d].forEach(h=>{
+      if(h.subject === sub){
+        result.innerHTML += `
+          <div class="detail-item">
+            <b>${formatDateDDMMYYYY(d)} (${getDayName(d)})</b>
+ | ${h.time} |
+            <span class="status-${h.status}">${h.status}</span>
+          </div>
+        `;
+      }
+    });
+  }
+
+  result.innerHTML += `</div>`;
+}
+
+let pastBuffer = [];
+let pastDateKey = "";
+let pastDay = "";
+
+function loadPastTimetable(){
+  const input = document.getElementById("pastDate");
+  const selected = new Date(input.value);
+  const today = new Date();
+
+  const container = document.getElementById("pastLectures");
+  const extraDiv = document.getElementById("pastExtra");
+  container.innerHTML = "";
+  extraDiv.innerHTML = "";
+  pastBuffer = [];
+
+  if(!input.value) return;
+
+  if(selected >= new Date(today.toDateString())){
+    alert("Only past dates allowed bro 😑");
+    input.value = "";
+    return;
+  }
+
+  pastDateKey = selected.toLocaleDateString();
+  pastDay = selected.toLocaleDateString("en-US",{weekday:"long"});
+
+  if(data.history[pastDateKey]){
+    container.innerHTML = "Attendance already exists for this date 🚫";
+    return;
+  }
+
+  const lectures = timetable[pastDay];
+  if(!lectures){
+    container.innerHTML = "No lectures scheduled on this day 😴";
+    return;
+  }
+
+  lectures.forEach(([time,subject])=>{
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <b>${subject}</b> (${time})<br>
+      <button class="present">Present</button>
+      <button class="absent">Absent</button>
+      <button class="cancelled">Cancelled</button>
+    `;
+
+    div.querySelectorAll("button").forEach(btn=>{
+      btn.onclick = ()=>{
+        pastBuffer = pastBuffer.filter(x=>!(x.subject===subject && x.time===time));
+        pastBuffer.push({
+          subject, time, status: btn.innerText
+        });
+        div.classList.add("locked");
+      };
+    });
+
+    container.appendChild(div);
+  });
+
+  // Extra lecture
+  extraDiv.innerHTML = `
+    <h4>➕ Extra Lecture</h4>
+    <select id="pastExtraSubject">
+      ${Object.keys(data.totals).map(s=>`<option>${s}</option>`).join("")}
+    </select><br>
+    <button class="present" onclick="addPastExtra('Present')">Present</button>
+    <button class="absent" onclick="addPastExtra('Absent')">Absent</button>
+  `;
+}
+
+function addPastExtra(status){
+  const subject = document.getElementById("pastExtraSubject").value;
+  if(pastBuffer.find(x=>x.subject===subject && x.time==="Extra")){
+    alert("Extra lecture already added 😤");
+    return;
+  }
+  pastBuffer.push({subject, time:"Extra", status});
+}
+
+function savePastAttendance(){
+  if(!pastDateKey || !pastBuffer.length){
+    alert("Nothing to save bro 😶");
+    return;
+  }
+
+  data.history[pastDateKey] = [];
+
+  pastBuffer.forEach(h=>{
+    const lockKey = pastDateKey+"_"+h.subject+"_"+h.time;
+    data.locks[lockKey] = true;
+    data.history[pastDateKey].push(h);
+
+    if(h.status !== "Cancelled"){
+      data.totals[h.subject] ??= {p:0,t:0};
+      data.totals[h.subject].t++;
+      if(h.status==="Present") data.totals[h.subject].p++;
+    }
+  });
+
+  save();
+  alert("Past attendance saved 🔒");
+  location.reload();
+}
+
+function toggleUndo(){
+  const sec = document.getElementById("undoSection");
+  sec.style.display = sec.style.display === "none" ? "block" : "none";
+  renderTodayUndo();
+}
+
+function renderTodayUndo(){
+  const div = document.getElementById("undoSection");
+  div.innerHTML = "";
+
+  if(!data.history[dateKey] || data.history[dateKey].length === 0){
+    div.innerHTML = "<i>No attendance to undo today</i>";
+    return;
+  }
+
+  data.history[dateKey].forEach((h,i)=>{
+    div.innerHTML += `
+      <div class="detail-item">
+        <b>${h.subject}</b> | ${h.time} |
+        <span class="status-${h.status}">${h.status}</span>
+        <button onclick="undo('${dateKey}',${i})">Undo</button>
+      </div>
+    `;
+  });
+
+  div.innerHTML += `
+    <div style="margin-top:6px;font-size:12px;color:#9ca3af;">
+      ⚠ Undo allowed only for today
+    </div>
+  `;
+}
+
+function lockNoExtra(){
+  const key = dateKey + "_NO_EXTRA";
+  if(data.locks[key]) return;
+
+  data.locks[key] = true;
+  save();
+  render();
+}
+
+function getDayName(dateStr){
+  const d = new Date(dateStr);
+  if (isNaN(d)) return "";
+  return d.toLocaleDateString("en-US", { weekday: "long" });
+}
+
+function formatDateDDMMYYYY(dateStr){
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr; // safety fallback
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
+function showWeekendMessage(day){
+  const statusDiv = document.getElementById("dayStatus");
+
+  if(day === "Saturday" || day === "Sunday"){
+    statusDiv.innerHTML = `
+      <span style="
+        background:#facc15;
+        color:#1f2933;
+        padding:4px 10px;
+        border-radius:12px;
+        font-size:13px;
+        font-weight:bold;
+      ">
+        🟡 Weekend
+      </span>
+      <div style="margin-top:6px;color:#9ca3af;">
+        😴 No lectures scheduled for today
+      </div>
+    `;
+  } else {
+    statusDiv.innerHTML = ""; // clear on weekdays
+  }
+}
+
+
+
+initExtra();
+render();
+</script>
+
+</body>
+</html>
