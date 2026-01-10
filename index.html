@@ -125,33 +125,24 @@ body {
 
 /* --- CUSTOM DROPDOWN CSS --- */
 .custom-select-wrapper { position: relative; user-select: none; margin-bottom: 12px; }
-.custom-select-wrapper select { display: none; } /* Hide original */
+.custom-select-wrapper select { display: none; }
 .custom-select-trigger {
-    position: relative;
-    display: flex; align-items: center; justify-content: space-between;
-    width: 100%; padding: 12px 14px;
-    font-size: 14px; font-weight: 400; color: #fff;
-    background: #0f172a; border: 1px solid #334155; border-radius: 8px;
-    cursor: pointer; transition: all 0.2s;
+    position: relative; display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 14px;
+    font-size: 14px; font-weight: 400; color: #fff; background: #0f172a; border: 1px solid #334155; border-radius: 8px; cursor: pointer; transition: all 0.2s;
 }
 .custom-select-trigger:after {
-    content: ''; display: block; width: 6px; height: 6px;
-    border-bottom: 2px solid #94a3b8; border-right: 2px solid #94a3b8;
+    content: ''; display: block; width: 6px; height: 6px; border-bottom: 2px solid #94a3b8; border-right: 2px solid #94a3b8;
     transform: rotate(45deg); transition: all 0.2s; margin-left: 10px; margin-top: -3px;
 }
 .custom-select-wrapper.open .custom-select-trigger:after { transform: rotate(-135deg); margin-top: 3px; }
 .custom-select-wrapper.open .custom-select-trigger { border-color: var(--accent); }
 .custom-options {
-    position: absolute; display: block; top: 100%; left: 0; right: 0;
-    border: 1px solid #334155; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    background: #1e293b; z-index: 200; opacity: 0; visibility: hidden; pointer-events: none;
-    transform: translateY(-10px); transition: all 0.2s ease-in-out;
+    position: absolute; display: block; top: 100%; left: 0; right: 0; border: 1px solid #334155; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    background: #1e293b; z-index: 200; opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-10px); transition: all 0.2s ease-in-out;
     max-height: 250px; overflow-y: auto; margin-top: 6px;
 }
 .custom-select-wrapper.open .custom-options { opacity: 1; visibility: visible; pointer-events: all; transform: translateY(0); }
-.custom-option {
-    padding: 12px 14px; font-size: 14px; color: #cbd5e1; cursor: pointer; transition: 0.1s; border-bottom: 1px solid #334155;
-}
+.custom-option { padding: 12px 14px; font-size: 14px; color: #cbd5e1; cursor: pointer; transition: 0.1s; border-bottom: 1px solid #334155; }
 .custom-option:last-child { border-bottom: none; }
 .custom-option:hover, .custom-option.selected { background: #334155; color: #fff; }
 
@@ -228,9 +219,7 @@ input:focus { border-color: var(--accent); }
             <h3 class="card-title"><span class="icon-slot"></span> Extra Lecture</h3>
         </div>
         <p style="font-size: 12px; color: var(--text-muted); margin-top: -8px; margin-bottom: 12px;">Add a class not in your timetable</p>
-        
         <select id="extraSubject" class="custom-select-source"></select>
-
         <div class="action-row">
             <button class="btn-pill present" onclick="markExtra('Present')">Present</button>
             <button class="btn-pill absent" onclick="markExtra('Absent')">Absent</button>
@@ -267,15 +256,12 @@ input:focus { border-color: var(--accent); }
         <div class="card-header">
             <h3 class="card-title"><span class="icon-list"></span> History Log</h3>
         </div>
-        
         <select id="viewMode" class="custom-select-source" onchange="renderDetailView()">
             <option value="">Select View Mode</option>
             <option value="date">By Date</option>
             <option value="subject">By Subject</option>
         </select>
-        
         <div id="filterArea"></div>
-        
         <div id="detailResult" style="margin-top:12px; font-size:13px; color: var(--text-muted);"></div>
     </div>
 </div>
@@ -373,6 +359,18 @@ input:focus { border-color: var(--accent); }
     </div>
 </div>
 
+<div id="passwordModal" class="confirm-overlay">
+    <div class="confirm-box">
+        <div class="confirm-title">Security Check</div>
+        <div class="confirm-desc">Enter password to reset data.</div>
+        <input type="password" id="resetPasswordInput" placeholder="Enter Password" style="text-align:center;">
+        <div class="confirm-actions">
+            <button class="btn-pill btn-secondary" onclick="closePasswordModal()">Cancel</button>
+            <button class="btn-pill btn-danger" id="submitPasswordBtn">Reset</button>
+        </div>
+    </div>
+</div>
+
 <script>
 // --- ICON LIBRARY (SVG) ---
 const ICONS = {
@@ -413,7 +411,7 @@ document.querySelectorAll('.icon-gear').forEach(e => e.innerHTML = ICONS.gear);
 // --- CUSTOM DROPDOWN ENGINE ---
 function setupCustomSelects() {
     document.querySelectorAll('.custom-select-source').forEach(select => {
-        if(select.nextElementSibling && select.nextElementSibling.classList.contains('custom-select-wrapper')) return; // Already setup
+        if(select.nextElementSibling && select.nextElementSibling.classList.contains('custom-select-wrapper')) return; 
         
         const wrapper = document.createElement('div');
         wrapper.className = 'custom-select-wrapper';
@@ -425,7 +423,6 @@ function setupCustomSelects() {
         const optionsDiv = document.createElement('div');
         optionsDiv.className = 'custom-options';
         
-        // Populate options
         Array.from(select.options).forEach(opt => {
             const optionDiv = document.createElement('div');
             optionDiv.className = 'custom-option' + (opt.selected ? ' selected' : '');
@@ -437,19 +434,15 @@ function setupCustomSelects() {
                 select.value = this.getAttribute('data-value');
                 trigger.innerHTML = `<span>${this.innerText}</span>`;
                 wrapper.classList.remove('open');
-                select.dispatchEvent(new Event('change')); // Trigger change event logic
-                
-                // Update selected visuals
+                select.dispatchEvent(new Event('change'));
                 optionsDiv.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
                 this.classList.add('selected');
             });
             optionsDiv.appendChild(optionDiv);
         });
 
-        // Toggle dropdown
         trigger.addEventListener('click', function(e) {
             e.stopPropagation();
-            // Close others
             document.querySelectorAll('.custom-select-wrapper.open').forEach(el => {
                 if(el !== wrapper) el.classList.remove('open');
             });
@@ -457,12 +450,11 @@ function setupCustomSelects() {
         });
 
         select.parentNode.insertBefore(wrapper, select.nextSibling);
-        wrapper.appendChild(select); // Move select inside to hide it easily
+        wrapper.appendChild(select); 
         wrapper.appendChild(trigger);
         wrapper.appendChild(optionsDiv);
     });
 
-    // Close on outside click
     document.addEventListener('click', function() {
         document.querySelectorAll('.custom-select-wrapper.open').forEach(el => el.classList.remove('open'));
     });
@@ -492,6 +484,10 @@ function showConfirm(title, desc, onConfirm) {
     };
 }
 function closeConfirm() { document.getElementById('confirmModal').style.display = "none"; }
+
+function closePasswordModal() {
+    document.getElementById('passwordModal').style.display = "none";
+}
 
 // --- LOGIC ---
 const PASSWORD = "Nir@2006";
@@ -689,15 +685,32 @@ function undo(d,i){
 }
 
 function triggerReset(){
-  const pass = prompt("Enter reset password:");
-  if(pass!==PASSWORD) return showToast("Wrong Password", "error");
-  showConfirm("Factory Reset?", "All data will be lost.", () => { localStorage.removeItem("attendance"); location.reload(); });
+  // Replaced prompt with custom modal
+  const modal = document.getElementById('passwordModal');
+  const input = document.getElementById('resetPasswordInput');
+  const btn = document.getElementById('submitPasswordBtn');
+  
+  input.value = "";
+  modal.style.display = "flex";
+  input.focus();
+
+  btn.onclick = () => {
+      if(input.value === PASSWORD) {
+          closePasswordModal();
+          showConfirm("Factory Reset?", "All data will be lost permanently.", () => {
+              localStorage.removeItem("attendance"); location.reload();
+          });
+      } else {
+          showToast("Wrong Password", "error");
+          input.value = "";
+          input.focus();
+      }
+  };
 }
 
 function getAllSubjects() { const set = new Set(); Object.values(timetable).flat().forEach(x => set.add(x[1])); return [...set].sort(); }
 function initExtra(){ 
     document.getElementById("extraSubject").innerHTML = getAllSubjects().map(s=>`<option>${s}</option>`).join("");
-    // Re-initialize custom select UI
     setupCustomSelects();
 }
 
@@ -727,9 +740,7 @@ function loadPastTimetable(){
     container.appendChild(div);
   });
   const allSubjects = getAllSubjects();
-  // Here we use class 'custom-select-source' so the function knows to style it
   extraDiv.innerHTML = `<h4 style='margin:10px 0;'>➕ Extra Class</h4><select id="pastExtraSubject" class="custom-select-source">${allSubjects.map(s=>`<option>${s}</option>`).join("")}</select><div class="action-row"><button class="btn-pill present" onclick="addPastExtra('Present')">Present</button><button class="btn-pill absent" onclick="addPastExtra('Absent')">Absent</button></div>`;
-  // Re-run UI setup for this new dropdown
   setupCustomSelects();
 }
 function pastMark(sub, time, stat, div){
@@ -778,15 +789,14 @@ function renderDetailView(){
   if(mode === "date"){
     const dates = Object.keys(data.history).sort().reverse();
     if(!dates.length){ result.innerText = "No data yet"; return; }
-    // Add custom-select-source class to this dynamic dropdown
     filter.innerHTML = `<select id="dateSelect" class="custom-select-source" onchange="showDateWise()"><option value="">Select Date</option>${dates.map(d=>`<option value="${d}">${formatDateDDMMYYYY(d)}</option>`).join("")}</select>`;
-    setupCustomSelects(); // Re-run setup
+    setupCustomSelects(); 
   }
   if(mode === "subject"){
     const subjects = Object.keys(data.totals).sort();
     if(!subjects.length){ result.innerText = "No data yet"; return; }
     filter.innerHTML = `<select id="subjectSelect" class="custom-select-source" onchange="showSubjectWise()"><option value="">Select Subject</option>${subjects.map(s=>`<option value="${s}">${s}</option>`).join("")}</select>`;
-    setupCustomSelects(); // Re-run setup
+    setupCustomSelects(); 
   }
 }
 function showDateWise(){
