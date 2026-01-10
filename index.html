@@ -402,7 +402,7 @@ const day = today.toLocaleDateString("en-US",{ weekday:"long" });
 
 showWeekendMessage(day);
 
-const dateKey = today.toLocaleDateString();
+const dateKey = getDateKeyFromDate(today);
 
 document.getElementById("today").innerText = `${day} | ${dateKey}`;
 
@@ -756,7 +756,7 @@ function loadPastTimetable(){
     return;
   }
 
-  pastDateKey = selected.toLocaleDateString();
+  pastDateKey = getDateKeyFromDate(selected);
   pastDay = selected.toLocaleDateString("en-US",{weekday:"long"});
 
   if(data.history[pastDateKey]){
@@ -818,9 +818,6 @@ function savePastAttendance(){
     alert("Nothing to save bro 😶");
     return;
   }
-
-  // 🔒 NORMALIZE DATE (MOBILE FIX)
-  pastDateKey = normalizeDateKey(pastDateKey);
   
   // 🔒 BLOCK DUPLICATE DATE (CRITICAL FIX)
   if(data.history[pastDateKey]){
