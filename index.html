@@ -714,171 +714,51 @@ function initExtra(){
     setupCustomSelects();
 }
 
-// --- PAST ATTENDANCE ENGINE (UPDATED: EDIT MODE) ---
 let pastBuffer = [], pastDateKey = "", pastDay = "";
-
 function loadPastTimetable(){
   const input = document.getElementById("pastDate");
   const val = input.value;
   const container = document.getElementById("pastLectures");
   const extraDiv = document.getElementById("pastExtra");
-  
-  container.innerHTML = ""; 
-  extraDiv.innerHTML = ""; 
-  pastBuffer = [];
-
+  container.innerHTML = ""; extraDiv.innerHTML = ""; pastBuffer = [];
   if(!val) return;
-
   const selectedDate = new Date(val);
   const todayDate = new Date(today.toDateString());
-  
-  // Prevent selecting future dates
-  if(selectedDate >= todayDate){ 
-      showToast("Cannot edit future/today here", "error"); 
-      input.value = ""; 
-      return; 
-  }
-
+  if(selectedDate >= todayDate){ showToast("Only past dates allowed", "error"); input.value = ""; return; }
   pastDateKey = val;
   pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
-  
-  // 1. CHECK IF DATA EXISTS
-  let existingData = data.history[pastDateKey] || [];
-  let isEditMode = existingData.length > 0;
-
-  if(isEditMode) {
-      showToast("Editing saved record ✏️");
-      // Pre-fill buffer with existing data so we don't lose it if we just click save
-      pastBuffer = [...existingData];
-  }
-
-  // 2. LOAD LECTURES (Standard Timetable)
+  if(data.history[pastDateKey]){ container.innerHTML = "<div style='text-align:center; padding:10px; color:#ef4444;'>Already recorded 🚫</div>"; return; }
   const lectures = timetable[pastDay] || []; 
-  if(lectures.length === 0){ container.innerHTML = "<div style='text-align:center; padding:10px; opacity:0.6;'>No lectures scheduled 😴</div>"; }
-  
+  if(lectures.length === 0){ container.innerHTML = "<div style='text-align:center; padding:10px;'>No lectures 😴</div>"; }
   lectures.forEach(([time,subject])=>{
-    const div = document.createElement("div"); 
-    div.className = "card";
-    
-    // Check if this specific lecture was already marked in history
-    const savedState = existingData.find(h => h.subject === subject && h.time === time);
-    const status = savedState ? savedState.status : "";
-
-    // Highlight the saved button
-    const pClass = status === "Present" ? "present" : (status ? "btn-secondary" : "btn-secondary");
-    const aClass = status === "Absent" ? "absent" : (status ? "btn-secondary" : "btn-secondary");
-    const cClass = status === "Cancelled" ? "cancelled" : (status ? "btn-secondary" : "btn-secondary");
-
-    div.innerHTML = `
-        <div style="font-weight:600; margin-bottom:5px;">${subject}</div>
-        <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">${time}</div>
-        <div class="action-row" id="btns_${subject.replace(/\s/g,'')}">
-            <button class="btn-pill ${status==='Present'?'present':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Present', this)">Present</button>
-            <button class="btn-pill ${status==='Absent'?'absent':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Absent', this)">Absent</button>
-            <button class="btn-pill ${status==='Cancelled'?'cancelled':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Cancelled', this)">Off</button>
-        </div>`;
-    
+    const div = document.createElement("div"); div.className = "card";
+    div.innerHTML = `<b>${subject}</b> (${time})<br><div class="action-row" style="margin-top:10px;"><button class="btn-pill present">Present</button><button class="btn-pill absent">Absent</button><button class="btn-pill cancelled">Off</button></div>`;
+    const btns = div.querySelectorAll("button");
+    btns[0].onclick = ()=>pastMark(subject, time, "Present", div);
+    btns[1].onclick = ()=>pastMark(subject, time, "Absent", div);
+    btns[2].onclick = ()=>pastMark(subject, time, "Cancelled", div);
     container.appendChild(div);
   });
-
-  // 3. LOAD EXTRA CLASSES (If any existed)
-  const existingExtras = existingData.filter(h => h.time === "Extra");
-  let extraHTML = "";
-  if(existingExtras.length > 0) {
-      existingExtras.forEach(ex => {
-          extraHTML += `<div class="task-item" style="margin-bottom:5px;">
-            <span>${ex.subject} (Extra)</span> 
-            <span class="${ex.status==='Present'?'text-green':'text-red'}">${ex.status}</span>
-            <button class="del-task-btn" onclick="removePastExtra('${ex.subject}')">×</button>
-          </div>`;
-      });
-  }
-
   const allSubjects = getAllSubjects();
-  extraDiv.innerHTML = `
-    <hr style="border-color:#334155; margin:15px 0;">
-    <div id="existingExtrasList">${extraHTML}</div>
-    <h4 style='margin:10px 0; font-size:14px;'>➕ Add Extra Class</h4>
-    <select id="pastExtraSubject" class="custom-select-source">${allSubjects.map(s=>`<option>${s}</option>`).join("")}</select>
-    <div class="action-row">
-        <button class="btn-pill btn-secondary" onclick="addPastExtra('Present')">Present</button>
-        <button class="btn-pill btn-secondary" onclick="addPastExtra('Absent')">Absent</button>
-    </div>`;
-    
-  setupCustomSelects(); // Re-init dropdowns
+  extraDiv.innerHTML = `<h4 style='margin:10px 0;'>➕ Extra Class</h4><select id="pastExtraSubject" class="custom-select-source">${allSubjects.map(s=>`<option>${s}</option>`).join("")}</select><div class="action-row"><button class="btn-pill present" onclick="addPastExtra('Present')">Present</button><button class="btn-pill absent" onclick="addPastExtra('Absent')">Absent</button></div>`;
+  setupCustomSelects();
 }
-
-function pastMark(sub, time, stat, btn){
-    // Update Buffer
-    // Remove old entry for this specific subject/time if exists
-    pastBuffer = pastBuffer.filter(x => !(x.subject === sub && x.time === time));
-    // Add new status
+function pastMark(sub, time, stat, div){
+    pastBuffer = pastBuffer.filter(x=>!(x.subject===sub && x.time===time));
     pastBuffer.push({ subject: sub, time: time, status: stat });
-
-    // Update UI (Visual Feedback)
-    const parent = btn.parentElement;
-    parent.querySelectorAll('.btn-pill').forEach(b => {
-        b.className = 'btn-pill btn-secondary'; // Reset all
-    });
-    // Set active class
-    let activeClass = stat === "Present" ? "present" : (stat === "Absent" ? "absent" : "cancelled");
-    btn.className = `btn-pill ${activeClass}`;
+    div.style.opacity = "0.5"; div.style.border = "1px solid var(--accent)";
 }
-
 function addPastExtra(status){
   const subject = document.getElementById("pastExtraSubject").value;
-  // Check if already in buffer
-  if(pastBuffer.find(x=>x.subject===subject && x.time==="Extra")){ showToast("Already in list", "error"); return; }
-  
-  pastBuffer.push({subject, time:"Extra", status});
-  
-  // Add to visual list
-  const list = document.getElementById("existingExtrasList");
-  list.innerHTML += `<div class="task-item" style="margin-bottom:5px;"><span>${subject} (Extra)</span> <span class="${status==='Present'?'text-green':'text-red'}">${status}</span></div>`;
+  if(pastBuffer.find(x=>x.subject===subject && x.time==="Extra")){ showToast("Already added", "error"); return; }
+  pastBuffer.push({subject, time:"Extra", status}); showToast("Extra added to buffer");
 }
-
-function removePastExtra(subject){
-    pastBuffer = pastBuffer.filter(x => !(x.subject === subject && x.time === "Extra"));
-    loadPastTimetable(); // Reload UI
-}
-
 function savePastAttendance(){
-  if(!pastDateKey){ showToast("Select a date", "error"); return; }
-  if(pastBuffer.length === 0){ showToast("No data to save", "error"); return; }
-
-  // 1. REVERSE OLD STATS (If we are editing)
-  if(data.history[pastDateKey]) {
-      data.history[pastDateKey].forEach(oldEntry => {
-          if(oldEntry.status !== "Cancelled" && data.totals[oldEntry.subject]){
-              data.totals[oldEntry.subject].t--;
-              if(oldEntry.status === "Present") data.totals[oldEntry.subject].p--;
-          }
-      });
-  }
-
-  // 2. APPLY NEW STATS
-  data.history[pastDateKey] = pastBuffer; // Overwrite history
-  
-  pastBuffer.forEach(h => {
-      // Re-add to totals
-      if(h.status !== "Cancelled"){ 
-          data.totals[h.subject] ??= {p:0,t:0}; 
-          data.totals[h.subject].t++; 
-          if(h.status === "Present") data.totals[h.subject].p++; 
-      }
-      // Ensure locks exist so main page shows them if we view that date
-      const lockKey = pastDateKey + "_" + h.subject + "_" + h.time;
-      data.locks[lockKey] = true; 
-  });
-
-  save(); 
-  render(); 
-  showToast("History Updated ✅");
-  
-  // Clear inputs
-  document.getElementById("pastDate").value = "";
-  document.getElementById("pastLectures").innerHTML = "";
-  document.getElementById("pastExtra").innerHTML = "";
+  if(!pastDateKey || !pastBuffer.length){ showToast("Nothing to save", "error"); return; }
+  if(data.history[pastDateKey]){ showToast("Date exists", "error"); return; }
+  data.history[pastDateKey] = [];
+  pastBuffer.forEach(h=>{ const lockKey = pastDateKey+"_"+h.subject+"_"+h.time; data.locks[lockKey] = true; data.history[pastDateKey].push(h); if(h.status !== "Cancelled"){ data.totals[h.subject] ??= {p:0,t:0}; data.totals[h.subject].t++; if(h.status==="Present") data.totals[h.subject].p++; } });
+  save(); showToast("Saved successfully"); location.reload();
 }
 function toggleUndo(){
   const sec = document.getElementById("undoSection");
