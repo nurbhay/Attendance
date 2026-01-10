@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Attendance Tracker</title>
+<title>Smart Attendance Tracker (Fixed)</title>
 
 <style>
 body {
@@ -41,6 +41,8 @@ button {
 select {
   padding: 6px;
   margin-top: 5px;
+  width: 100%; /* Better mobile width */
+  max-width: 300px;
 }
 
 .history {
@@ -77,12 +79,6 @@ select {
   padding: 2px 0;
 }
 
-.overall-box {
-  margin-top: 10px;
-  font-weight: bold;
-  color: #22c55e;
-}
-
 /* ---------- DETAIL VIEW UI ---------- */
 .filter-row {
   margin-top: 8px;
@@ -112,28 +108,6 @@ select {
   color: #9ca3af;
   font-weight: bold;
 }
-
-.progress-wrap {
-  margin-top: 4px;
-}
-
-.progress-bar-bg {
-  width: 100%;
-  height: 10px;
-  background: #334155;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  border-radius: 6px;
-  transition: width 0.3s ease;
-}
-
-.progress-green { background: #22c55e; }
-.progress-yellow { background: #facc15; }
-.progress-red { background: #ef4444; }
 
 /* ===== Attendance Summary Layout ===== */
 
@@ -167,15 +141,23 @@ select {
   margin-top: 6px;
 }
 
-.overall-summary {
-  margin-top: 16px;
-  padding-top: 10px;
-  border-top: 2px solid #475569;
-  font-size: 15px;
-  font-weight: bold;
-  text-align: center;
-  color: #22c55e;
+.progress-bar-bg {
+  width: 100%;
+  height: 10px;
+  background: #334155;
+  border-radius: 6px;
+  overflow: hidden;
 }
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.progress-green { background: #22c55e; }
+.progress-yellow { background: #facc15; }
+.progress-red { background: #ef4444; }
 
 /* ===== Overall Attendance Highlight ===== */
 
@@ -206,13 +188,7 @@ select {
 .overall-bar-fill {
   height: 100%;
   border-radius: 10px;
-  background: linear-gradient(
-    90deg,
-    #22c55e,
-    #4ade80
-  );
-  transition: width 0.4s ease,
-  background 0.4s ease;
+  transition: width 0.4s ease, background 0.4s ease;
 }
 
 .overall-percent {
@@ -220,21 +196,12 @@ select {
   text-align: center;
   font-size: 18px;
   font-weight: bold;
-  color: #22c55e;
 }
 
 /* Overall bar color states */
-.overall-green {
-  background: linear-gradient(90deg, #22c55e, #4ade80);
-}
-
-.overall-yellow {
-  background: linear-gradient(90deg, #facc15, #fde047);
-}
-
-.overall-red {
-  background: linear-gradient(90deg, #ef4444, #f87171);
-}
+.overall-green { background: linear-gradient(90deg, #22c55e, #4ade80); }
+.overall-yellow { background: linear-gradient(90deg, #facc15, #fde047); }
+.overall-red { background: linear-gradient(90deg, #ef4444, #f87171); }
 
 .overall-green-text { color: #22c55e; }
 .overall-yellow-text { color: #facc15; }
@@ -263,17 +230,9 @@ select {
   background: transparent;
 }
 
-.lecture-present::before {
-  background: #22c55e;
-}
-
-.lecture-absent::before {
-  background: #ef4444;
-}
-
-.lecture-cancelled::before {
-  background: #9ca3af;
-}
+.lecture-present::before { background: #22c55e; }
+.lecture-absent::before { background: #ef4444; }
+.lecture-cancelled::before { background: #9ca3af; }
 
 /* Status label */
 .status-label {
@@ -354,8 +313,6 @@ select {
   </button>
 </div>
 
-
-
 <button class="reset-btn" onclick="resetAll()">RESET ATTENDANCE</button>
 
 <script>
@@ -397,14 +354,21 @@ const timetable = {
   ]
 };
 
+// --- CORE DATE LOGIC (ISO 8601 STANDARD) ---
+function getStorageDateKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 const today = new Date();
 const day = today.toLocaleDateString("en-US",{ weekday:"long" });
+const dateKey = getStorageDateKey(today); // Standardized Key: YYYY-MM-DD
 
+// Display UI
 showWeekendMessage(day);
-
-const dateKey = today.toLocaleDateString();
-
-document.getElementById("today").innerText = `${day} | ${dateKey}`;
+document.getElementById("today").innerText = `${day} | ${formatDateDDMMYYYY(dateKey)}`;
 
 let data = JSON.parse(localStorage.getItem("attendance")) || {
   totals:{}, history:{}, locks:{}
@@ -430,25 +394,24 @@ function loadLectures(){
     `;
 
     if(locked && data.history[dateKey]){
-  const entry = data.history[dateKey].find(
-    h => h.subject === subject && h.time === time
-  );
+      const entry = data.history[dateKey].find(
+        h => h.subject === subject && h.time === time
+      );
 
-  if(entry){
-    if(entry.status === "Present") div.classList.add("lecture-present");
-    if(entry.status === "Absent") div.classList.add("lecture-absent");
-    if(entry.status === "Cancelled") div.classList.add("lecture-cancelled");
+      if(entry){
+        if(entry.status === "Present") div.classList.add("lecture-present");
+        if(entry.status === "Absent") div.classList.add("lecture-absent");
+        if(entry.status === "Cancelled") div.classList.add("lecture-cancelled");
 
-    div.innerHTML += `
-      <div class="status-label">
-        ${entry.status === "Present" ? "✔ Present" :
-          entry.status === "Absent" ? "✖ Absent" :
-          "⏸ Cancelled"}
-      </div>
-    `;
-  }
-}
-
+        div.innerHTML += `
+          <div class="status-label">
+            ${entry.status === "Present" ? "✔ Present" :
+              entry.status === "Absent" ? "✖ Absent" :
+              "⏸ Cancelled"}
+          </div>
+        `;
+      }
+    }
 
     div.querySelectorAll("button").forEach(btn=>{
       btn.onclick = ()=>markAttendance(subject, time, btn.innerText);
@@ -477,8 +440,6 @@ function markAttendance(subject,time,status){
 }
 
 function markExtra(status){
-
-// 🔒 Check if "No Extra Lectures" is already confirmed
   const noExtraKey = dateKey + "_NO_EXTRA";
   if(data.locks[noExtraKey]){
     alert("Extra lectures already locked for today ❌");
@@ -523,7 +484,6 @@ function renderSummary(){
           <div class="subject-name">${s}</div>
           <div class="subject-stats">${p}/${t} (${percent}%)</div>
         </div>
-
         <div class="progress-wrap">
           <div class="progress-bar-bg">
             <div class="progress-bar-fill ${colorClass}"
@@ -536,48 +496,30 @@ function renderSummary(){
   }
 
   const overall = tt ? Math.round((tp / tt) * 100) : 0;
-let overallBarClass = "overall-green";
-let overallTextClass = "overall-green-text";
+  let overallBarClass = "overall-green";
+  let overallTextClass = "overall-green-text";
 
-if(overall < 60){
-  overallBarClass = "overall-red";
-  overallTextClass = "overall-red-text";
-} else if(overall < 75){
-  overallBarClass = "overall-yellow";
-  overallTextClass = "overall-yellow-text";
-}
+  if(overall < 60){
+    overallBarClass = "overall-red";
+    overallTextClass = "overall-red-text";
+  } else if(overall < 75){
+    overallBarClass = "overall-yellow";
+    overallTextClass = "overall-yellow-text";
+  }
 
-
- div.innerHTML += `
-  <div class="overall-container">
-    <div class="overall-title">OVERALL ATTENDANCE</div>
-
-    <div class="overall-bar-bg">
-      <div class="overall-bar-fill ${overallBarClass}"
-           style="width:${overall}%">
+  div.innerHTML += `
+    <div class="overall-container">
+      <div class="overall-title">OVERALL ATTENDANCE</div>
+      <div class="overall-bar-bg">
+        <div class="overall-bar-fill ${overallBarClass}"
+             style="width:${overall}%">
+        </div>
+      </div>
+      <div class="overall-percent ${overallTextClass}">
+        ${overall}%
       </div>
     </div>
-
-    <div class="overall-percent ${overallTextClass}">
-      ${overall}%
-    </div>
-  </div>
-`;
-
-
-}
-
-
-
-function renderHistory(){
-  const div = document.getElementById("history");
-  div.innerHTML="";
-  for(let d in data.history){
-    data.history[d].forEach((h,i)=>{
-      div.innerHTML+=`${d} - ${h.subject} (${h.status})
-      <button onclick="undo('${d}',${i})">Undo</button><br>`;
-    });
-  }
+  `;
 }
 
 function undo(d,i){
@@ -596,48 +538,43 @@ function undo(d,i){
 function resetAll(){
   const pass = prompt("Enter reset password:");
   if(pass!==PASSWORD) return alert("Wrong password 😈");
-
   localStorage.removeItem("attendance");
   location.reload();
 }
 
-function initExtra(){
+// --- HELPER: Get Unique Subjects from Timetable ---
+// This ensures ALL subjects appear in dropdowns, even if never attended
+function getAllSubjects() {
   const set = new Set();
-  Object.values(timetable).flat().forEach(x=>set.add(x[1]));
+  Object.values(timetable).flat().forEach(x => set.add(x[1]));
+  return [...set].sort();
+}
+
+function initExtra(){
+  const subjects = getAllSubjects();
   document.getElementById("extraSubject").innerHTML =
-    [...set].map(s=>`<option>${s}</option>`).join("");
+    subjects.map(s=>`<option>${s}</option>`).join("");
 }
 
 function render(){
   loadLectures();
   renderSummary();
-  
 
-  // 🔒 Handle "No Extra Lectures" UI lock
   const noExtraKey = dateKey + "_NO_EXTRA";
-
   if(data.locks[noExtraKey]){
-    // Disable extra lecture inputs
     document.getElementById("extraSubject").disabled = true;
-
-    document.querySelectorAll(
-      ".card button"
-    ).forEach(btn=>{
+    document.querySelectorAll(".card button").forEach(btn=>{
       if(btn.innerText.includes("Present") ||
          btn.innerText.includes("Absent") ||
          btn.innerText.includes("No Extra")){
         btn.disabled = true;
       }
     });
-
-    // Show confirmation text
-    document.getElementById("extraInfo").innerText =
-      "✔ No extra lectures confirmed for today";
+    document.getElementById("extraInfo").innerText = "✔ No extra lectures confirmed for today";
+  }
 }
 
-
-}
-
+// --- UPDATED VIEW MODE LOGIC ---
 function renderDetailView(){
   const mode = document.getElementById("viewMode").value;
   const filter = document.getElementById("filterArea");
@@ -647,28 +584,25 @@ function renderDetailView(){
   result.innerHTML = "";
 
   if(mode === "date"){
-    const dates = Object.keys(data.history);
+    const dates = Object.keys(data.history).sort().reverse();
     if(!dates.length){
       result.innerText = "No data yet 😴";
       return;
     }
-
     filter.innerHTML = `
       <select id="dateSelect" onchange="showDateWise()">
         <option value="">Select Date</option>
-        ${dates.map(d=>`<option value="${d}">${formatDateDDMMYYYY(d)}</option>
-`).join("")}
+        ${dates.map(d=>`<option value="${d}">${formatDateDDMMYYYY(d)}</option>`).join("")}
       </select>
     `;
   }
 
   if(mode === "subject"){
-    const subjects = Object.keys(data.totals);
+    const subjects = Object.keys(data.totals).sort();
     if(!subjects.length){
       result.innerText = "No data yet 😴";
       return;
     }
-
     filter.innerHTML = `
       <select id="subjectSelect" onchange="showSubjectWise()">
         <option value="">Select Subject</option>
@@ -680,19 +614,19 @@ function renderDetailView(){
 
 function showDateWise(){
   const d = document.getElementById("dateSelect").value;
-  const displayDate = formatDateDDMMYYYY(d);
+  const displayDate = formatDateDDMMYYYY(d); // Pretty format for display
   const dayName = getDayName(d);
   const result = document.getElementById("detailResult");
   result.innerHTML = "";
 
   if(!d || !data.history[d]) return;
 
-result.innerHTML = `
-  <div id="dateHeader" style="margin-bottom:6px;font-weight:bold;">
-    Date: ${displayDate} (${dayName})
-  </div>
-  <div class="detail-list">
-`;
+  result.innerHTML = `
+    <div id="dateHeader" style="margin-bottom:6px;font-weight:bold;">
+      Date: ${displayDate} (${dayName})
+    </div>
+    <div class="detail-list">
+  `;
 
   data.history[d].forEach(h=>{
     result.innerHTML += `
@@ -702,10 +636,8 @@ result.innerHTML = `
       </div>
     `;
   });
-
   result.innerHTML += `</div>`;
 }
-
 
 function showSubjectWise(){
   const sub = document.getElementById("subjectSelect").value;
@@ -715,49 +647,53 @@ function showSubjectWise(){
   if(!sub) return;
 
   result.innerHTML = `<div class="detail-list">`;
+  const dates = Object.keys(data.history).sort().reverse();
 
-  for(let d in data.history){
+  dates.forEach(d=>{
     data.history[d].forEach(h=>{
       if(h.subject === sub){
         result.innerHTML += `
           <div class="detail-item">
             <b>${formatDateDDMMYYYY(d)} (${getDayName(d)})</b>
- | ${h.time} |
+            | ${h.time} |
             <span class="status-${h.status}">${h.status}</span>
           </div>
         `;
       }
     });
-  }
-
+  });
   result.innerHTML += `</div>`;
 }
 
+// --- PAST ATTENDANCE LOGIC (FIXED) ---
 let pastBuffer = [];
 let pastDateKey = "";
 let pastDay = "";
 
 function loadPastTimetable(){
   const input = document.getElementById("pastDate");
-  const selected = new Date(input.value);
-  const today = new Date();
-
+  const val = input.value; // YYYY-MM-DD from HTML input
   const container = document.getElementById("pastLectures");
   const extraDiv = document.getElementById("pastExtra");
+
   container.innerHTML = "";
   extraDiv.innerHTML = "";
   pastBuffer = [];
 
-  if(!input.value) return;
+  if(!val) return;
 
-  if(selected >= new Date(today.toDateString())){
+  const selectedDate = new Date(val);
+  const todayDate = new Date(today.toDateString());
+
+  if(selectedDate >= todayDate){
     alert("Only past dates allowed bro 😑");
     input.value = "";
     return;
   }
 
-  pastDateKey = selected.toLocaleDateString();
-  pastDay = selected.toLocaleDateString("en-US",{weekday:"long"});
+  // USE THE INPUT VALUE DIRECTLY AS KEY (YYYY-MM-DD)
+  pastDateKey = val;
+  pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
 
   if(data.history[pastDateKey]){
     container.innerHTML = "Attendance already exists for this date 🚫";
@@ -779,25 +715,23 @@ function loadPastTimetable(){
       <button class="absent">Absent</button>
       <button class="cancelled">Cancelled</button>
     `;
-
     div.querySelectorAll("button").forEach(btn=>{
       btn.onclick = ()=>{
         pastBuffer = pastBuffer.filter(x=>!(x.subject===subject && x.time===time));
-        pastBuffer.push({
-          subject, time, status: btn.innerText
-        });
+        pastBuffer.push({ subject, time, status: btn.innerText });
         div.classList.add("locked");
       };
     });
-
     container.appendChild(div);
   });
 
-  // Extra lecture
+  // FIX: LOAD ALL SUBJECTS FROM TIMETABLE, NOT JUST SAVED HISTORY
+  const allSubjects = getAllSubjects();
+  
   extraDiv.innerHTML = `
     <h4>➕ Extra Lecture</h4>
     <select id="pastExtraSubject">
-      ${Object.keys(data.totals).map(s=>`<option>${s}</option>`).join("")}
+      ${allSubjects.map(s=>`<option>${s}</option>`).join("")}
     </select><br>
     <button class="present" onclick="addPastExtra('Present')">Present</button>
     <button class="absent" onclick="addPastExtra('Absent')">Absent</button>
@@ -818,13 +752,9 @@ function savePastAttendance(){
     alert("Nothing to save bro 😶");
     return;
   }
-
-  // 🔒 NORMALIZE DATE (MOBILE FIX)
-  pastDateKey = normalizeDateKey(pastDateKey);
-  
-  // 🔒 BLOCK DUPLICATE DATE (CRITICAL FIX)
+  // Double check existence
   if(data.history[pastDateKey]){
-    alert("Attendance for this date already exists and cannot be added again ❌");
+    alert("Attendance for this date already exists ❌");
     return;
   }
 
@@ -847,7 +777,6 @@ function savePastAttendance(){
   location.reload();
 }
 
-
 function toggleUndo(){
   const sec = document.getElementById("undoSection");
   sec.style.display = sec.style.display === "none" ? "block" : "none";
@@ -857,12 +786,10 @@ function toggleUndo(){
 function renderTodayUndo(){
   const div = document.getElementById("undoSection");
   div.innerHTML = "";
-
   if(!data.history[dateKey] || data.history[dateKey].length === 0){
     div.innerHTML = "<i>No attendance to undo today</i>";
     return;
   }
-
   data.history[dateKey].forEach((h,i)=>{
     div.innerHTML += `
       <div class="detail-item">
@@ -872,7 +799,6 @@ function renderTodayUndo(){
       </div>
     `;
   });
-
   div.innerHTML += `
     <div style="margin-top:6px;font-size:12px;color:#9ca3af;">
       ⚠ Undo allowed only for today
@@ -883,42 +809,30 @@ function renderTodayUndo(){
 function lockNoExtra(){
   const key = dateKey + "_NO_EXTRA";
   if(data.locks[key]) return;
-
   data.locks[key] = true;
-  save();
-  render();
+  save(); render();
 }
 
+// Helper: Get Day Name from YYYY-MM-DD
 function getDayName(dateStr){
-  const d = new Date(dateStr);
+  // Append T00:00:00 to force local time interpretation
+  const d = new Date(dateStr + "T00:00:00");
   if (isNaN(d)) return "";
   return d.toLocaleDateString("en-US", { weekday: "long" });
 }
 
-function formatDateDDMMYYYY(dateStr){
-  const d = new Date(dateStr);
-  if (isNaN(d)) return dateStr; // safety fallback
-
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-
-  return `${day}/${month}/${year}`;
+// Helper: Format YYYY-MM-DD to DD/MM/YYYY for display
+function formatDateDDMMYYYY(isoDate){
+  if(!isoDate) return "";
+  const [y, m, d] = isoDate.split("-");
+  return `${d}/${m}/${y}`;
 }
 
 function showWeekendMessage(day){
   const statusDiv = document.getElementById("dayStatus");
-
   if(day === "Saturday" || day === "Sunday"){
     statusDiv.innerHTML = `
-      <span style="
-        background:#facc15;
-        color:#1f2933;
-        padding:4px 10px;
-        border-radius:12px;
-        font-size:13px;
-        font-weight:bold;
-      ">
+      <span style="background:#facc15;color:#1f2933;padding:4px 10px;border-radius:12px;font-size:13px;font-weight:bold;">
         🟡 Weekend
       </span>
       <div style="margin-top:6px;color:#9ca3af;">
@@ -926,74 +840,44 @@ function showWeekendMessage(day){
       </div>
     `;
   } else {
-    statusDiv.innerHTML = ""; // clear on weekdays
+    statusDiv.innerHTML = "";
   }
 }
 
 function exportBackup(){
   const backup = {
-    version: 1,
+    version: 2, // Bumped version
     timestamp: new Date().toISOString(),
     data: data
   };
-
-  const blob = new Blob(
-    [JSON.stringify(backup, null, 2)],
-    { type: "application/json" }
-  );
-
+  const blob = new Blob([JSON.stringify(backup, null, 2)],{ type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `attendance_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `attendance_backup_${dateKey}.json`;
   a.click();
-
   URL.revokeObjectURL(a.href);
 }
 
 document.getElementById("importFile").addEventListener("change", function(e){
   const file = e.target.files[0];
   if(!file) return;
-
   const reader = new FileReader();
   reader.onload = function(){
     try{
       const backup = JSON.parse(reader.result);
-
       if(!backup.data || !backup.data.totals || !backup.data.history){
         alert("Invalid backup file ❌");
         return;
       }
-
-      if(!confirm("This will REPLACE current attendance data. Continue?")){
-        return;
-      }
-
+      if(!confirm("This will REPLACE current attendance data. Continue?")){ return; }
       data = backup.data;
-      save();
-      render();
-
+      save(); render();
       alert("Backup restored successfully ✅");
-    } catch(err){
-      alert("Failed to import backup ❌");
-    }
+    } catch(err){ alert("Failed to import backup ❌"); }
   };
-
   reader.readAsText(file);
 });
 
-function isDateAlreadyRecorded(dateKey){
-  return !!data.history[dateKey];
-}
-
-function normalizeDateKey(dateStr){
-  const d = new Date(dateStr);
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-  
 initExtra();
 render();
 </script>
