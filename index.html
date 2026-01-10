@@ -55,7 +55,6 @@ body {
 }
 .app-title { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
 .settings-btn { background: none; border: none; color: var(--text-main); cursor: pointer; padding: 8px; border-radius: 50%; }
-.settings-btn:active { background: #334155; }
 
 /* --- NAVIGATION --- */
 .bottom-nav {
@@ -105,105 +104,60 @@ body {
 .card-title { font-size: 16px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px; margin: 0; }
 
 /* --- LECTURE CARDS --- */
-.lecture-card {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    padding-left: 12px;
-}
-.lecture-card::before {
-    content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 4px;
-    background: #475569; border-radius: 4px; transition: background 0.3s;
-}
+.lecture-card { display: flex; flex-direction: column; position: relative; padding-left: 12px; }
+.lecture-card::before { content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 4px; background: #475569; border-radius: 4px; transition: background 0.3s; }
 .lecture-present::before { background: var(--green); }
 .lecture-absent::before { background: var(--red); }
 .lecture-cancelled::before { background: var(--text-muted); }
 .lecture-card.locked { opacity: 0.6; pointer-events: none; }
 
 .lec-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.lec-time { font-size: 11px; color: var(--accent); font-weight: 700; background: rgba(59, 130, 246, 0.1); padding: 3px 8px; border-radius: 6px; letter-spacing: 0.5px; }
+.lec-time { font-size: 11px; color: var(--accent); font-weight: 700; background: rgba(59, 130, 246, 0.1); padding: 3px 8px; border-radius: 6px; }
 .lec-subject { font-size: 15px; font-weight: 600; line-height: 1.4; flex: 1; margin-right: 10px; }
 
 .action-row { display: flex; gap: 8px; margin-top: 8px; }
-.btn-pill {
-    flex: 1;
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
-    font-weight: 600;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.1s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
+.btn-pill { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.1s; display: flex; align-items: center; justify-content: center; gap: 6px; }
 .btn-pill:active { transform: scale(0.97); }
 .present { background: rgba(16, 185, 129, 0.1); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.2); }
 .absent { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.2); }
 .cancelled { background: #334155; color: var(--text-muted); }
-.note-btn { 
-    background: transparent; color: var(--text-muted); border: 1px solid #334155; 
-    width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; 
-}
-.note-btn.has-note { color: var(--yellow); border-color: var(--yellow); }
+.note-btn { background: transparent; color: var(--text-muted); border: 1px solid #334155; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-/* --- SUMMARY --- */
+/* --- TOAST NOTIFICATIONS --- */
+#toastBox { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 3000; display: flex; flex-direction: column; gap: 10px; align-items: center; width: 90%; max-width: 350px; pointer-events: none; }
+.toast { background: #1e293b; color: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; font-size: 14px; animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid #334155; pointer-events: auto; }
+.toast.success { border-left: 4px solid var(--green); }
+.toast.error { border-left: 4px solid var(--red); }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* --- CUSTOM CONFIRM MODAL --- */
+.confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 4000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+.confirm-box { background: #1e293b; width: 85%; max-width: 320px; padding: 24px; border-radius: 16px; text-align: center; border: 1px solid #475569; animation: popIn 0.2s ease-out; }
+.confirm-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.confirm-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+.confirm-actions { display: flex; gap: 12px; }
+@keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* --- SUMMARY & OTHER --- */
 .summary-item { display: flex; flex-direction: column; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #334155; }
-.summary-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.summary-item:last-child { border-bottom: none; }
 .summary-header { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
 .progress-track { width: 100%; height: 6px; background: #334155; border-radius: 10px; overflow: hidden; }
 .progress-fill { height: 100%; border-radius: 10px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
 .status-msg { font-size: 11px; margin-top: 6px; font-weight: 500; opacity: 0.9; display: flex; align-items: center; gap: 4px; }
-
-/* --- OVERALL WIDGET --- */
-.overall-card {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    text-align: center;
-    border: 1px solid #475569;
-    padding: 20px;
-}
+.overall-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); text-align: center; border: 1px solid #475569; padding: 20px; }
 .overall-percent { font-size: 36px; font-weight: 800; margin: 10px 0; letter-spacing: -1px; }
-
-/* --- FORMS & INPUTS --- */
-select, input {
-    width: 100%;
-    padding: 12px 14px;
-    background: #0f172a;
-    border: 1px solid #334155;
-    color: white;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    font-size: 14px;
-    outline: none;
-}
-.btn-block { 
-    width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; 
-    margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; 
-}
+select, input { width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; margin-bottom: 10px; font-size: 14px; outline: none; }
+.btn-block { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
 .btn-primary { background: var(--accent); color: white; }
 .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); }
 .btn-secondary { background: #334155; color: white; }
-
-/* --- SETTINGS MODAL --- */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
-.modal-content { background: #1e293b; width: 90%; max-width: 400px; max-height: 85vh; border-radius: 16px; padding: 24px; overflow-y: auto; border: 1px solid #475569; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-.edit-row { display: flex; gap: 8px; margin-bottom: 8px; }
-
-/* --- TASKS --- */
+.modal-content { background: #1e293b; width: 90%; max-width: 400px; max-height: 85vh; border-radius: 16px; padding: 24px; overflow-y: auto; border: 1px solid #475569; }
 .task-item { background: #0f172a; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-left: 3px solid var(--yellow); }
 .task-done { opacity: 0.5; text-decoration: line-through; border-left-color: var(--green); }
 .del-task-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
-
-/* --- UTILS --- */
-.text-green { color: var(--green); }
-.text-red { color: var(--red); }
-.text-yellow { color: var(--yellow); }
-.bg-green { background: var(--green); }
-.bg-red { background: var(--red); }
-.bg-yellow { background: var(--yellow); }
-.hidden { display: none; }
+.text-green { color: var(--green); } .text-red { color: var(--red); } .text-yellow { color: var(--yellow); } .bg-green { background: var(--green); } .bg-red { background: var(--red); } .bg-yellow { background: var(--yellow); }
 
 </style>
 </head>
@@ -251,7 +205,6 @@ select, input {
 </div>
 
 <div id="tab-stats" class="tab-content">
-    
     <div class="card">
         <div class="card-header">
             <h3 class="card-title"><span class="icon-graph"></span> 30-Day Trend</h3>
@@ -260,14 +213,12 @@ select, input {
             <canvas id="attendanceChart"></canvas>
         </div>
     </div>
-
     <div class="card">
         <div class="card-header">
             <h3 class="card-title"><span class="icon-chart"></span> Subject Summary</h3>
         </div>
         <div id="summary"></div>
     </div>
-
     <div class="card">
         <div class="card-header">
             <h3 class="card-title"><span class="icon-list"></span> History Log</h3>
@@ -280,11 +231,9 @@ select, input {
         <div id="filterArea"></div>
         <div id="detailResult" style="margin-top:12px; font-size:13px; color: var(--text-muted);"></div>
     </div>
-
 </div>
 
 <div id="tab-tools" class="tab-content">
-
     <div class="card">
         <div class="card-header">
             <h3 class="card-title"><span class="icon-calendar"></span> Past Attendance</h3>
@@ -294,7 +243,6 @@ select, input {
         <div id="pastExtra" style="margin-top:10px;"></div>
         <button class="btn-block btn-primary" onclick="savePastAttendance()">Save Past Data</button>
     </div>
-
     <div class="card" onclick="toggleUndo()">
         <div class="card-header" style="margin-bottom:0;">
             <h3 class="card-title" style="font-size:14px; color:var(--text-muted); cursor:pointer;">
@@ -303,7 +251,6 @@ select, input {
         </div>
         <div id="undoSection" style="display:none; margin-top: 15px; border-top:1px solid #334155; padding-top:10px;"></div>
     </div>
-
     <div class="card">
         <div class="card-header">
             <h3 class="card-title"><span class="icon-db"></span> Data & Backup</h3>
@@ -311,12 +258,10 @@ select, input {
         <button class="btn-block btn-secondary" onclick="exportBackup()">Export Backup File</button>
         <input type="file" id="importFile" accept=".json" style="display:none">
         <button class="btn-block btn-secondary" onclick="document.getElementById('importFile').click()">Import Backup File</button>
-        
         <div style="border-top: 1px solid #334155; margin-top: 20px; padding-top: 15px;">
-            <button class="btn-block btn-danger" onclick="resetAll()">Factory Reset App</button>
+            <button class="btn-block btn-danger" onclick="triggerReset()">Factory Reset App</button>
         </div>
     </div>
-
 </div>
 
 <nav class="bottom-nav">
@@ -344,10 +289,8 @@ select, input {
             <span class="icon-close"></span>
         </button>
     </div>
-    
     <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">NOTIFICATIONS</label>
     <button class="btn-block" style="background: #0ea5e9; color: white; margin-bottom: 24px;" onclick="requestNotificationPermission()">Enable Daily Reminders</button>
-
     <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">EDIT TIMETABLE</label>
     <select id="editDaySelect" onchange="renderEditRows()" style="margin-top: 8px;">
       <option value="Monday">Monday</option>
@@ -358,16 +301,26 @@ select, input {
       <option value="Saturday">Saturday</option>
       <option value="Sunday">Sunday</option>
     </select>
-
     <div id="editContainer"></div>
-
     <div style="display:flex; gap:10px; margin-top:15px;">
         <button class="btn-block btn-secondary" onclick="addEditRow()">+ Slot</button>
         <button class="btn-block btn-primary" onclick="saveNewTimetable()">Save</button>
     </div>
-
-    <button class="btn-block" style="background:transparent; border: 1px solid #ef4444; color: #ef4444; margin-top: 24px; font-size:13px;" onclick="restoreDefaultTimetable()">Restore Default Timetable</button>
+    <button class="btn-block" style="background:transparent; border: 1px solid #ef4444; color: #ef4444; margin-top: 24px; font-size:13px;" onclick="triggerRestore()">Restore Default Timetable</button>
   </div>
+</div>
+
+<div id="toastBox"></div>
+
+<div id="confirmModal" class="confirm-overlay">
+    <div class="confirm-box">
+        <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+        <div class="confirm-desc" id="confirmDesc">This action cannot be undone.</div>
+        <div class="confirm-actions">
+            <button class="btn-pill btn-secondary" onclick="closeConfirm()">Cancel</button>
+            <button class="btn-pill btn-primary" id="confirmYesBtn">Confirm</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -392,7 +345,6 @@ const ICONS = {
     slot: '<svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>'
 };
 
-// --- INJECT ICONS ---
 document.getElementById('headerSettingsBtn').innerHTML = ICONS.gear;
 document.getElementById('navHome').innerHTML = ICONS.home;
 document.getElementById('navStats').innerHTML = ICONS.stats;
@@ -408,7 +360,68 @@ document.querySelectorAll('.icon-db').forEach(e => e.innerHTML = ICONS.db);
 document.querySelectorAll('.icon-close').forEach(e => e.innerHTML = ICONS.close);
 document.querySelectorAll('.icon-gear').forEach(e => e.innerHTML = ICONS.gear);
 
-// --- NAVIGATION LOGIC ---
+// --- UI UTILS ---
+function showToast(msg, type = 'success') {
+    const box = document.getElementById('toastBox');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? ICONS.check : ICONS.x;
+    toast.innerHTML = `<span class="icon-sm">${icon}</span> ${msg}`;
+    box.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, 3000);
+}
+
+function showConfirm(title, desc, onConfirm) {
+    const modal = document.getElementById('confirmModal');
+    document.getElementById('confirmTitle').innerText = title;
+    document.getElementById('confirmDesc').innerText = desc;
+    modal.style.display = "flex";
+    
+    const confirmBtn = document.getElementById('confirmYesBtn');
+    confirmBtn.onclick = () => {
+        onConfirm();
+        closeConfirm();
+    };
+}
+function closeConfirm() { document.getElementById('confirmModal').style.display = "none"; }
+
+// --- LOGIC ---
+const PASSWORD = "Nir@2006";
+const MIN_ATTENDANCE = 75; 
+const defaultTimetable = {
+  Monday: [ ["11:00-12:00","Introduction to Cyber Law"], ["12:00-01:00","Artificial Intelligence"], ["01:30-03:30","Operating Systems Lab"], ["03:30-04:30","Operating Systems"], ["04:30-05:30","Entrepreneurship and Start-ups"] ],
+  Tuesday: [ ["11:00-12:00","Introduction to Cyber Law"], ["12:00-01:00","Theory of Computation"], ["01:30-03:30","Artificial Intelligence Lab"], ["03:30-04:30","Operating Systems"], ["04:30-05:30","Business Communication"] ],
+  Wednesday: [ ["11:00-01:00","Computer Skill Lab-1"], ["01:30-02:30","Theory of Computation"], ["02:30-03:30","Introduction to Cyber Law"], ["03:30-04:30","Artificial Intelligence"], ["04:30-05:30","Business Communication"] ],
+  Thursday: [ ["11:00-12:00","Software Requirement Engineering"], ["12:00-01:00","Theory of Computation"], ["01:30-02:30","Operating Systems"], ["02:30-03:30","Artificial Intelligence"], ["03:30-04:30","Entrepreneurship and Start-ups"] ],
+  Friday: [ ["11:00-01:00","Software Requirement Engineering"], ["01:30-02:30","Theory of Computation"], ["02:30-04:30","Report Writing & Presentation Skill"] ]
+};
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js").then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          showConfirm("Update Available", "A new version of the app is ready.", () => window.location.reload());
+        }
+      });
+    });
+  });
+}
+
+function getStorageDateKey(date) {
+  const y = date.getFullYear(); const m = String(date.getMonth() + 1).padStart(2, '0'); const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+const today = new Date();
+const day = today.toLocaleDateString("en-US",{ weekday:"long" });
+const dateKey = getStorageDateKey(today);
+let data = JSON.parse(localStorage.getItem("attendance")) || { totals:{}, history:{}, locks:{}, tasks:[] };
+if(!data.tasks) data.tasks = [];
+let timetable = JSON.parse(localStorage.getItem("custom_timetable")) || JSON.parse(JSON.stringify(defaultTimetable));
+
+function save(){ localStorage.setItem("attendance",JSON.stringify(data)); }
+
 function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -419,94 +432,19 @@ function switchTab(tabId) {
     if(tabId === 'tools') btns[2].classList.add('active');
 }
 
-// --- CONFIGURATION ---
-const PASSWORD = "Nir@2006";
-const MIN_ATTENDANCE = 75; 
-
-// --- DEFAULT TIMETABLE ---
-const defaultTimetable = {
-  Monday: [
-    ["11:00-12:00","Introduction to Cyber Law"],
-    ["12:00-01:00","Artificial Intelligence"],
-    ["01:30-03:30","Operating Systems Lab"],
-    ["03:30-04:30","Operating Systems"],
-    ["04:30-05:30","Entrepreneurship and Start-ups"]
-  ],
-  Tuesday: [
-    ["11:00-12:00","Introduction to Cyber Law"],
-    ["12:00-01:00","Theory of Computation"],
-    ["01:30-03:30","Artificial Intelligence Lab"],
-    ["03:30-04:30","Operating Systems"],
-    ["04:30-05:30","Business Communication"]
-  ],
-  Wednesday: [
-    ["11:00-01:00","Computer Skill Lab-1"],
-    ["01:30-02:30","Theory of Computation"],
-    ["02:30-03:30","Introduction to Cyber Law"],
-    ["03:30-04:30","Artificial Intelligence"],
-    ["04:30-05:30","Business Communication"]
-  ],
-  Thursday: [
-    ["11:00-12:00","Software Requirement Engineering"],
-    ["12:00-01:00","Theory of Computation"],
-    ["01:30-02:30","Operating Systems"],
-    ["02:30-03:30","Artificial Intelligence"],
-    ["03:30-04:30","Entrepreneurship and Start-ups"]
-  ],
-  Friday: [
-    ["11:00-01:00","Software Requirement Engineering"],
-    ["01:30-02:30","Theory of Computation"],
-    ["02:30-04:30","Report Writing & Presentation Skill"]
-  ]
-};
-
-// FORCE UPDATE LOGIC
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").then(reg => {
-    reg.addEventListener('updatefound', () => {
-      const newWorker = reg.installing;
-      newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          if(confirm("New update available! Reload now?")) window.location.reload();
-        }
-      });
-    });
-  });
-}
-
-function getStorageDateKey(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-const today = new Date();
-const day = today.toLocaleDateString("en-US",{ weekday:"long" });
-const dateKey = getStorageDateKey(today);
-
-let data = JSON.parse(localStorage.getItem("attendance")) || { totals:{}, history:{}, locks:{}, tasks:[] };
-if(!data.tasks) data.tasks = [];
-
-let timetable = JSON.parse(localStorage.getItem("custom_timetable")) || JSON.parse(JSON.stringify(defaultTimetable));
-
-function save(){ localStorage.setItem("attendance",JSON.stringify(data)); }
-
-// NOTIFICATIONS
 function requestNotificationPermission() {
-    if (!("Notification" in window)) { alert("Not supported"); return; }
+    if (!("Notification" in window)) { showToast("Not supported", "error"); return; }
     Notification.requestPermission().then((permission) => {
         if (permission === "granted") {
-            alert("Notifications Enabled! 🔔");
+            showToast("Notifications Enabled!");
             sendNotification("Setup Complete", "You will be reminded at 5 PM.");
-        } else { alert("Permission Denied 🚫"); }
+        } else { showToast("Permission Denied", "error"); }
     });
 }
 function sendNotification(title, body) {
     if (Notification.permission === "granted") {
-        if(navigator.serviceWorker.controller){
-            navigator.serviceWorker.ready.then(reg => reg.showNotification(title, { body: body, icon: 'icon.png' }));
-        } else { new Notification(title, { body: body, icon: 'icon.png' }); }
+        if(navigator.serviceWorker.controller){ navigator.serviceWorker.ready.then(reg => reg.showNotification(title, { body: body, icon: 'icon.png' })); } 
+        else { new Notification(title, { body: body, icon: 'icon.png' }); }
     }
 }
 function startBackgroundCheck() {
@@ -517,7 +455,7 @@ function startBackgroundCheck() {
              if(d === "Saturday" || d === "Sunday") return;
              const todaysLocks = Object.keys(data.locks).some(k => k.startsWith(dateKey));
              if(!todaysLocks) {
-                 sendNotification("Attendance Reminder 🔔", "You haven't marked your attendance today!");
+                 sendNotification("Attendance Reminder", "You haven't marked your attendance today!");
                  document.getElementById("reminderAlert").style.display = "block";
              }
         }
@@ -525,7 +463,6 @@ function startBackgroundCheck() {
 }
 startBackgroundCheck();
 
-// LECTURES UI
 function loadLectures(){
   const container = document.getElementById("lectures");
   container.innerHTML = "";
@@ -534,7 +471,6 @@ function loadLectures(){
     const locked = data.locks[lockKey];
     const div = document.createElement("div");
     div.className = "card lecture-card "+(locked?"locked":"");
-    
     let statusHTML = "";
     if(locked && data.history[dateKey]){
       const entry = data.history[dateKey].find(h => h.subject === subject && h.time === time);
@@ -542,26 +478,18 @@ function loadLectures(){
         if(entry.status === "Present") div.classList.add("lecture-present");
         if(entry.status === "Absent") div.classList.add("lecture-absent");
         if(entry.status === "Cancelled") div.classList.add("lecture-cancelled");
-        
         let icon = entry.status === "Present" ? ICONS.check : (entry.status === "Absent" ? ICONS.x : ICONS.close);
         statusHTML = `<div style="font-size:12px; margin-top:5px; font-weight:bold; display:flex; align-items:center; gap:4px;">${icon} ${entry.status}</div>`;
       }
     }
-
     div.innerHTML = `
-        <div class="lec-top">
-            <span class="lec-time">${time}</span>
-            <div class="lec-subject">${subject}</div>
-            <button class="note-btn" onclick="event.stopPropagation(); addNote('${subject}')">${ICONS.note}</button>
-        </div>
+        <div class="lec-top"><span class="lec-time">${time}</span><div class="lec-subject">${subject}</div><button class="note-btn" onclick="event.stopPropagation(); addNote('${subject}')">${ICONS.note}</button></div>
         ${statusHTML}
         <div class="action-row" style="display:${locked ? 'none' : 'flex'}">
             <button class="btn-pill present" onclick="markAttendance('${subject}', '${time}', 'Present')">Present</button>
             <button class="btn-pill absent" onclick="markAttendance('${subject}', '${time}', 'Absent')">Absent</button>
             <button class="btn-pill cancelled" onclick="markAttendance('${subject}', '${time}', 'Cancelled')">Off</button>
-        </div>
-    `;
-    
+        </div>`;
     container.appendChild(div);
   });
 }
@@ -570,7 +498,7 @@ function addNote(subject) {
     const text = prompt(`Add a note for ${subject}:`);
     if(text) {
         data.tasks.push({ id: Date.now(), text: text, subject: subject, date: dateKey, done: false });
-        save(); renderTasks();
+        save(); renderTasks(); showToast("Note Added");
     }
 }
 function renderTasks() {
@@ -592,7 +520,7 @@ function renderTasks() {
     });
 }
 function toggleTask(index) { data.tasks[index].done = !data.tasks[index].done; save(); renderTasks(); }
-function deleteTask(e, index) { e.stopPropagation(); if(confirm("Delete note?")) { data.tasks.splice(index, 1); save(); renderTasks(); } }
+function deleteTask(e, index) { e.stopPropagation(); showConfirm("Delete Note?", "This cannot be undone.", () => { data.tasks.splice(index, 1); save(); renderTasks(); }); }
 
 function markAttendance(subject,time,status){
   const key = dateKey+"_"+subject+"_"+time;
@@ -600,28 +528,20 @@ function markAttendance(subject,time,status){
   data.locks[key] = true;
   data.history[dateKey] ??= [];
   data.history[dateKey].push({subject,time,status});
-  if(status !== "Cancelled"){
-    data.totals[subject] ??= {p:0,t:0};
-    data.totals[subject].t++;
-    if(status==="Present") data.totals[subject].p++;
-  }
-  save(); render();
+  if(status !== "Cancelled"){ data.totals[subject] ??= {p:0,t:0}; data.totals[subject].t++; if(status==="Present") data.totals[subject].p++; }
+  save(); render(); showToast(`Marked ${status}`);
 }
 
 function markExtra(status){
   const noExtraKey = dateKey + "_NO_EXTRA";
-  if(data.locks[noExtraKey]){ alert("Locked for today ❌"); return; }
+  if(data.locks[noExtraKey]){ showToast("Locked for today", "error"); return; }
   const subject = document.getElementById("extraSubject").value;
   if(!subject) return; 
   const key = dateKey+"_EXTRA_"+subject;
-  if(data.locks[key]) return alert("Already added 😑");
-  data.locks[key]=true;
-  data.history[dateKey] ??= [];
-  data.history[dateKey].push({subject,time:"Extra",status});
-  data.totals[subject] ??= {p:0,t:0};
-  data.totals[subject].t++;
-  if(status==="Present") data.totals[subject].p++;
-  save(); render();
+  if(data.locks[key]) return showToast("Already added", "error");
+  data.locks[key]=true; data.history[dateKey] ??= []; data.history[dateKey].push({subject,time:"Extra",status});
+  data.totals[subject] ??= {p:0,t:0}; data.totals[subject].t++; if(status==="Present") data.totals[subject].p++;
+  save(); render(); showToast("Extra Class Added");
 }
 
 function renderSummary(){
@@ -633,61 +553,23 @@ function renderSummary(){
     const { p, t } = data.totals[s];
     const percent = t ? Math.round((p / t) * 100) : 0;
     tp += p; tt += t;
-    let colorClass = "bg-green";
-    if(percent < MIN_ATTENDANCE) colorClass = "bg-red";
-    else if(percent < MIN_ATTENDANCE + 10) colorClass = "bg-yellow";
-    
+    let colorClass = "bg-green"; if(percent < MIN_ATTENDANCE) colorClass = "bg-red"; else if(percent < MIN_ATTENDANCE + 10) colorClass = "bg-yellow";
     let statusMsg = "", statusColor = "text-muted", statusIcon = "";
     if (t > 0) {
         if (percent >= MIN_ATTENDANCE) {
             const bunkable = Math.floor((p / target) - t);
             if(bunkable > 0){ statusMsg = `Safe to bunk <b>${bunkable}</b>`; statusColor = "text-green"; statusIcon = ICONS.check; } 
-            else { 
-               if(percent === 100){ statusMsg = `Perfect record`; statusColor = "text-green"; statusIcon = ICONS.check; }
-               else { statusMsg = `Don't miss next`; statusColor = "text-yellow"; statusIcon = ICONS.x; }
-            }
-        } else {
-            const needed = Math.ceil( (target * t - p) / (1 - target) );
-            statusMsg = `Attend next <b>${needed}</b>`; statusColor = "text-red"; statusIcon = ICONS.x;
-        }
+            else { if(percent === 100){ statusMsg = `Perfect record`; statusColor = "text-green"; statusIcon = ICONS.check; } else { statusMsg = `Don't miss next`; statusColor = "text-yellow"; statusIcon = ICONS.x; } }
+        } else { const needed = Math.ceil( (target * t - p) / (1 - target) ); statusMsg = `Attend next <b>${needed}</b>`; statusColor = "text-red"; statusIcon = ICONS.x; }
     } else { statusMsg = "No data"; }
-
-    div.innerHTML += `
-      <div class="summary-item">
-        <div class="summary-header">
-            <span>${s}</span>
-            <span style="color:#94a3b8">${p}/${t} (${percent}%)</span>
-        </div>
-        <div class="progress-track">
-            <div class="progress-fill ${colorClass}" style="width:${percent}%"></div>
-        </div>
-        <div class="status-msg ${statusColor}">
-            <span class="icon-sm" style="display:inline-block; vertical-align:middle;">${statusIcon}</span>
-            ${statusMsg}
-        </div>
-      </div>`;
+    div.innerHTML += `<div class="summary-item"><div class="summary-header"><span>${s}</span><span style="color:#94a3b8">${p}/${t} (${percent}%)</span></div><div class="progress-track"><div class="progress-fill ${colorClass}" style="width:${percent}%"></div></div><div class="status-msg ${statusColor}"><span class="icon-sm" style="display:inline-block; vertical-align:middle;">${statusIcon}</span>${statusMsg}</div></div>`;
   }
   const overall = tt ? Math.round((tp / tt) * 100) : 0;
-  let overallColor = "text-green";
-  if(overall < MIN_ATTENDANCE) overallColor = "text-red";
-  else if(overall < MIN_ATTENDANCE + 10) overallColor = "text-yellow";
-
+  let overallColor = "text-green"; if(overall < MIN_ATTENDANCE) overallColor = "text-red"; else if(overall < MIN_ATTENDANCE + 10) overallColor = "text-yellow";
   let overallMsg = "";
-  if(tt>0 && overall < MIN_ATTENDANCE){
-      const overallNeeded = Math.ceil( (target * tt - tp) / (1 - target) );
-      overallMsg = `Attend next ${overallNeeded} to hit 75%`;
-  } else if (tt>0) {
-      const overallBunk = Math.floor((tp / target) - tt);
-      if(overallBunk > 0) overallMsg = `Can bunk ${overallBunk} in total`;
-  }
-
-  div.innerHTML = `
-    <div class="overall-card card">
-        <div style="font-size:12px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Overall Attendance</div>
-        <div class="overall-percent ${overallColor}">${overall}%</div>
-        <div style="font-size:13px; color:#94a3b8;">${overallMsg}</div>
-    </div>
-  ` + div.innerHTML;
+  if(tt>0 && overall < MIN_ATTENDANCE){ const overallNeeded = Math.ceil( (target * tt - tp) / (1 - target) ); overallMsg = `Attend next ${overallNeeded} to hit 75%`; } 
+  else if (tt>0) { const overallBunk = Math.floor((tp / target) - tt); if(overallBunk > 0) overallMsg = `Can bunk ${overallBunk} in total`; }
+  div.innerHTML = `<div class="overall-card card"><div style="font-size:12px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Overall Attendance</div><div class="overall-percent ${overallColor}">${overall}%</div><div style="font-size:13px; color:#94a3b8;">${overallMsg}</div></div>` + div.innerHTML;
 }
 
 function undo(d,i){
@@ -695,26 +577,18 @@ function undo(d,i){
   const key = d+"_"+h.subject+"_"+h.time;
   delete data.locks[key];
   if(h.status!=="Cancelled"){ data.totals[h.subject].t--; if(h.status==="Present") data.totals[h.subject].p--; }
-  data.history[d].splice(i,1); save(); render();
+  data.history[d].splice(i,1); save(); render(); showToast("Entry Undone");
 }
 
-function resetAll(){
+function triggerReset(){
   const pass = prompt("Enter reset password:");
-  if(pass!==PASSWORD) return alert("Wrong password 😈");
-  localStorage.removeItem("attendance"); location.reload();
+  if(pass!==PASSWORD) return showToast("Wrong Password", "error");
+  showConfirm("Factory Reset?", "All data will be lost.", () => { localStorage.removeItem("attendance"); location.reload(); });
 }
 
-function getAllSubjects() {
-  const set = new Set();
-  Object.values(timetable).flat().forEach(x => set.add(x[1]));
-  return [...set].sort();
-}
-function initExtra(){
-  const subjects = getAllSubjects();
-  document.getElementById("extraSubject").innerHTML = subjects.map(s=>`<option>${s}</option>`).join("");
-}
+function getAllSubjects() { const set = new Set(); Object.values(timetable).flat().forEach(x => set.add(x[1])); return [...set].sort(); }
+function initExtra(){ document.getElementById("extraSubject").innerHTML = getAllSubjects().map(s=>`<option>${s}</option>`).join(""); }
 
-// PAST ATTENDANCE
 let pastBuffer = [], pastDateKey = "", pastDay = "";
 function loadPastTimetable(){
   const input = document.getElementById("pastDate");
@@ -725,21 +599,15 @@ function loadPastTimetable(){
   if(!val) return;
   const selectedDate = new Date(val);
   const todayDate = new Date(today.toDateString());
-  if(selectedDate >= todayDate){ alert("Only past dates allowed"); input.value = ""; return; }
+  if(selectedDate >= todayDate){ showToast("Only past dates allowed", "error"); input.value = ""; return; }
   pastDateKey = val;
   pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
   if(data.history[pastDateKey]){ container.innerHTML = "<div style='text-align:center; padding:10px; color:#ef4444;'>Already recorded 🚫</div>"; return; }
   const lectures = timetable[pastDay] || []; 
   if(lectures.length === 0){ container.innerHTML = "<div style='text-align:center; padding:10px;'>No lectures 😴</div>"; }
   lectures.forEach(([time,subject])=>{
-    const div = document.createElement("div");
-    div.className = "card";
-    div.innerHTML = `<b>${subject}</b> (${time})<br>
-      <div class="action-row" style="margin-top:10px;">
-        <button class="btn-pill present">Present</button>
-        <button class="btn-pill absent">Absent</button>
-        <button class="btn-pill cancelled">Off</button>
-      </div>`;
+    const div = document.createElement("div"); div.className = "card";
+    div.innerHTML = `<b>${subject}</b> (${time})<br><div class="action-row" style="margin-top:10px;"><button class="btn-pill present">Present</button><button class="btn-pill absent">Absent</button><button class="btn-pill cancelled">Off</button></div>`;
     const btns = div.querySelectorAll("button");
     btns[0].onclick = ()=>pastMark(subject, time, "Present", div);
     btns[1].onclick = ()=>pastMark(subject, time, "Absent", div);
@@ -747,51 +615,38 @@ function loadPastTimetable(){
     container.appendChild(div);
   });
   const allSubjects = getAllSubjects();
-  extraDiv.innerHTML = `<h4 style='margin:10px 0;'>➕ Extra Class</h4>
-    <select id="pastExtraSubject">${allSubjects.map(s=>`<option>${s}</option>`).join("")}</select>
-    <div class="action-row"><button class="btn-pill present" onclick="addPastExtra('Present')">Present</button><button class="btn-pill absent" onclick="addPastExtra('Absent')">Absent</button></div>`;
+  extraDiv.innerHTML = `<h4 style='margin:10px 0;'>➕ Extra Class</h4><select id="pastExtraSubject">${allSubjects.map(s=>`<option>${s}</option>`).join("")}</select><div class="action-row"><button class="btn-pill present" onclick="addPastExtra('Present')">Present</button><button class="btn-pill absent" onclick="addPastExtra('Absent')">Absent</button></div>`;
 }
 function pastMark(sub, time, stat, div){
     pastBuffer = pastBuffer.filter(x=>!(x.subject===sub && x.time===time));
     pastBuffer.push({ subject: sub, time: time, status: stat });
-    div.style.opacity = "0.5";
-    div.style.border = "1px solid var(--accent)";
+    div.style.opacity = "0.5"; div.style.border = "1px solid var(--accent)";
 }
 function addPastExtra(status){
   const subject = document.getElementById("pastExtraSubject").value;
-  if(pastBuffer.find(x=>x.subject===subject && x.time==="Extra")){ alert("Already added"); return; }
-  pastBuffer.push({subject, time:"Extra", status});
-  alert("Extra added to buffer");
+  if(pastBuffer.find(x=>x.subject===subject && x.time==="Extra")){ showToast("Already added", "error"); return; }
+  pastBuffer.push({subject, time:"Extra", status}); showToast("Extra added to buffer");
 }
 function savePastAttendance(){
-  if(!pastDateKey || !pastBuffer.length){ alert("Nothing to save"); return; }
-  if(data.history[pastDateKey]){ alert("Date exists"); return; }
+  if(!pastDateKey || !pastBuffer.length){ showToast("Nothing to save", "error"); return; }
+  if(data.history[pastDateKey]){ showToast("Date exists", "error"); return; }
   data.history[pastDateKey] = [];
-  pastBuffer.forEach(h=>{
-    const lockKey = pastDateKey+"_"+h.subject+"_"+h.time;
-    data.locks[lockKey] = true;
-    data.history[pastDateKey].push(h);
-    if(h.status !== "Cancelled"){ data.totals[h.subject] ??= {p:0,t:0}; data.totals[h.subject].t++; if(h.status==="Present") data.totals[h.subject].p++; }
-  });
-  save(); alert("Saved successfully 🔒"); location.reload();
+  pastBuffer.forEach(h=>{ const lockKey = pastDateKey+"_"+h.subject+"_"+h.time; data.locks[lockKey] = true; data.history[pastDateKey].push(h); if(h.status !== "Cancelled"){ data.totals[h.subject] ??= {p:0,t:0}; data.totals[h.subject].t++; if(h.status==="Present") data.totals[h.subject].p++; } });
+  save(); showToast("Saved successfully"); location.reload();
 }
 function toggleUndo(){
   const sec = document.getElementById("undoSection");
   sec.style.display = sec.style.display === "none" ? "block" : "none";
-  const div = document.getElementById("undoSection");
-  div.innerHTML = "";
+  const div = document.getElementById("undoSection"); div.innerHTML = "";
   if(!data.history[dateKey] || data.history[dateKey].length === 0){ div.innerHTML = "<div style='text-align:center; color:#94a3b8;'>Nothing to undo today</div>"; return; }
-  data.history[dateKey].forEach((h,i)=>{
-    div.innerHTML += `<div class="task-item"><span>${h.subject} (${h.status})</span> <button class="del-task-btn" onclick="undo('${dateKey}',${i})">${ICONS.undo}</button></div>`;
-  });
+  data.history[dateKey].forEach((h,i)=>{ div.innerHTML += `<div class="task-item"><span>${h.subject} (${h.status})</span> <button class="del-task-btn" onclick="undo('${dateKey}',${i})">${ICONS.undo}</button></div>`; });
 }
-function lockNoExtra(){ const key = dateKey + "_NO_EXTRA"; if(data.locks[key]) return; data.locks[key] = true; save(); render(); }
+function lockNoExtra(){ const key = dateKey + "_NO_EXTRA"; if(data.locks[key]) return; data.locks[key] = true; save(); render(); showToast("Locked for today"); }
 function getDayName(dateStr){ const d = new Date(dateStr + "T00:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("en-US", { weekday: "long" }); }
 function formatDateDDMMYYYY(isoDate){ if(!isoDate) return ""; const [y, m, d] = isoDate.split("-"); return `${d}/${m}/${y}`; }
 function showWeekendMessage(day){
   const statusDiv = document.getElementById("dayStatus");
-  if(day === "Saturday" || day === "Sunday"){ statusDiv.innerHTML = `<span style="background:var(--yellow);color:#1f2933;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">WEEKEND MODE</span>`; } 
-  else { statusDiv.innerHTML = ""; }
+  if(day === "Saturday" || day === "Sunday"){ statusDiv.innerHTML = `<span style="background:var(--yellow);color:#1f2933;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">WEEKEND MODE</span>`; } else { statusDiv.innerHTML = ""; }
 }
 function renderDetailView(){
   const mode = document.getElementById("viewMode").value;
@@ -827,20 +682,21 @@ function showSubjectWise(){
   result.innerHTML += `</div>`;
 }
 function exportBackup(){
-  const backup = { version: 12, timestamp: new Date().toISOString(), data: data };
+  const backup = { version: 13, timestamp: new Date().toISOString(), data: data };
   const blob = new Blob([JSON.stringify(backup, null, 2)],{ type: "application/json" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `attendance_backup_${dateKey}.json`; a.click(); URL.revokeObjectURL(a.href);
+  showToast("Backup Downloaded");
 }
 document.getElementById("importFile").addEventListener("change", function(e){
   const file = e.target.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = function(){
-    try{ const backup = JSON.parse(reader.result); if(!backup.data){ alert("Invalid file"); return; }
-      if(!confirm("Replace current data?")){ e.target.value = ''; return; } 
-      data = backup.data; 
-      if(!data.tasks) data.tasks = []; if(!data.history) data.history = {}; if(!data.totals) data.totals = {}; if(!data.locks) data.locks = {};
-      save(); render(); alert("Restored ✅");
-    } catch(err){ console.error(err); alert("Error importing"); }
+    try{ const backup = JSON.parse(reader.result); if(!backup.data){ showToast("Invalid file", "error"); return; }
+      showConfirm("Overwrite Data?", "This will replace all current data.", () => {
+          data = backup.data; if(!data.tasks) data.tasks = []; if(!data.history) data.history = {}; if(!data.totals) data.totals = {}; if(!data.locks) data.locks = {};
+          save(); render(); showToast("Restored successfully");
+      });
+    } catch(err){ console.error(err); showToast("Error importing", "error"); }
     e.target.value = '';
   }; reader.readAsText(file);
 });
@@ -872,14 +728,14 @@ function saveNewTimetable() {
   });
   timetable[selectedDay] = newDaySchedule;
   localStorage.setItem("custom_timetable", JSON.stringify(timetable));
-  alert(`Saved timetable for ${selectedDay}`); initExtra(); render();
+  showToast(`Saved ${selectedDay}`); initExtra(); render();
 }
-function restoreDefaultTimetable() {
-  if(confirm("Reset to default timetable?")){
+function triggerRestore() {
+  showConfirm("Reset Timetable?", "This reverts all schedule edits.", () => {
     localStorage.removeItem("custom_timetable");
     timetable = JSON.parse(JSON.stringify(defaultTimetable));
-    alert("Restored"); location.reload();
-  }
+    showToast("Restored Default"); location.reload();
+  });
 }
 
 // CHART
