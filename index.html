@@ -17,6 +17,7 @@ button { margin: 4px; padding: 6px 10px; border: none; border-radius: 5px; curso
 .present { background: #16a34a; color: white; }
 .absent { background: #dc2626; color: white; }
 .cancelled { background: #6b7280; color: white; }
+.note-btn { background: #f59e0b; color: #1e293b; font-weight: bold; } /* New Note Button */
 .locked { opacity: 0.6; pointer-events: none; }
 select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .reset-btn { background: #7c2d12; color: white; width: 100%; padding: 10px; margin-top: 20px; }
@@ -38,6 +39,13 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .add-row-btn { background: #2563eb; color: white; width: 100%; padding: 8px; margin-top: 10px; }
 .save-btn { background: #16a34a; color: white; width: 100%; padding: 10px; margin-top: 10px; font-weight: bold; }
 .restore-btn { background: #64748b; color: white; width: 100%; padding: 8px; margin-top: 20px; font-size: 12px; }
+
+/* TASK LIST STYLES */
+.task-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 8px; margin-bottom: 6px; border-radius: 6px; border-left: 4px solid #f59e0b; }
+.task-text { font-size: 14px; flex-grow: 1; margin-right: 10px; }
+.task-sub { font-size: 11px; color: #9ca3af; display: block; margin-top: 2px; }
+.task-done { opacity: 0.5; text-decoration: line-through; border-left-color: #16a34a; }
+.del-task-btn { background: none; color: #ef4444; font-size: 16px; padding: 0 5px; }
 
 /* SUMMARY & BARS */
 .summary-item { padding: 12px 0; border-bottom: 1px solid #334155; }
@@ -99,6 +107,11 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 
 <div id="lectures"></div>
 
+<div class="card" id="taskCard" style="display:none;">
+  <h3>📝 Homework & Notes</h3>
+  <div id="taskList"></div>
+</div>
+
 <div class="card">
   <h3>➕ Extra Lecture</h3>
   <select id="extraSubject"></select>
@@ -154,7 +167,6 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
       <h3>⚙️ Edit Timetable</h3>
       <button class="close-modal" onclick="closeSettings()">✖</button>
     </div>
-    
     <label>Select Day to Edit:</label>
     <select id="editDaySelect" onchange="renderEditRows()">
       <option value="Monday">Monday</option>
@@ -165,12 +177,9 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
       <option value="Saturday">Saturday</option>
       <option value="Sunday">Sunday</option>
     </select>
-
     <div id="editContainer" style="margin-top:15px;"></div>
-
     <button class="add-row-btn" onclick="addEditRow()">+ Add Lecture Slot</button>
     <button class="save-btn" onclick="saveNewTimetable()">💾 Save Changes</button>
-    
     <hr style="border-color:#334155; margin:20px 0;">
     <button class="restore-btn" onclick="restoreDefaultTimetable()">⚠ Restore Default Timetable</button>
   </div>
@@ -181,7 +190,7 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 const PASSWORD = "Nir@2006";
 const MIN_ATTENDANCE = 75; 
 
-// --- DEFAULT TIMETABLE (Hardcoded Fallback) ---
+// --- DEFAULT TIMETABLE ---
 const defaultTimetable = {
   Monday: [
     ["11:00-12:00","Introduction to Cyber Law"],
@@ -235,9 +244,11 @@ const today = new Date();
 const day = today.toLocaleDateString("en-US",{ weekday:"long" });
 const dateKey = getStorageDateKey(today);
 
-let data = JSON.parse(localStorage.getItem("attendance")) || { totals:{}, history:{}, locks:{} };
+// Data now includes 'tasks'
+let data = JSON.parse(localStorage.getItem("attendance")) || { totals:{}, history:{}, locks:{}, tasks:[] };
+// Ensure tasks array exists for old users
+if(!data.tasks) data.tasks = [];
 
-// LOAD TIMETABLE (Custom or Default)
 let timetable = JSON.parse(localStorage.getItem("custom_timetable")) || JSON.parse(JSON.stringify(defaultTimetable));
 
 // --- CORE FUNCTIONS ---
@@ -251,10 +262,12 @@ function loadLectures(){
     const locked = data.locks[lockKey];
     const div = document.createElement("div");
     div.className = "card lecture-card"+(locked?"locked":"");
+    // Added Note Button
     div.innerHTML = `<b>${time}</b><br>${subject}<br>
       <button class="present">Present</button>
       <button class="absent">Absent</button>
-      <button class="cancelled">Cancelled</button>`;
+      <button class="cancelled">Cancelled</button>
+      <button class="note-btn">📝</button>`;
 
     if(locked && data.history[dateKey]){
       const entry = data.history[dateKey].find(h => h.subject === subject && h.time === time);
@@ -265,9 +278,77 @@ function loadLectures(){
         div.innerHTML += `<div class="status-label">${entry.status === "Present" ? "✔ Present" : entry.status === "Absent" ? "✖ Absent" : "⏸ Cancelled"}</div>`;
       }
     }
-    div.querySelectorAll("button").forEach(btn=>{ btn.onclick = ()=>markAttendance(subject, time, btn.innerText); });
+    
+    // Add Event Listeners
+    const btns = div.querySelectorAll("button");
+    btns[0].onclick = ()=>markAttendance(subject, time, "Present");
+    btns[1].onclick = ()=>markAttendance(subject, time, "Absent");
+    btns[2].onclick = ()=>markAttendance(subject, time, "Cancelled");
+    btns[3].onclick = (e)=>{ 
+        e.stopPropagation(); // Prevent triggering other things
+        addNote(subject); 
+    };
+
     container.appendChild(div);
   });
+}
+
+// --- NEW NOTE FUNCTIONS ---
+function addNote(subject) {
+    const text = prompt(`Add a note for ${subject}:\n(e.g., "Assignment due Monday")`);
+    if(text) {
+        data.tasks.push({
+            id: Date.now(),
+            text: text,
+            subject: subject,
+            date: dateKey,
+            done: false
+        });
+        save();
+        renderTasks();
+    }
+}
+
+function renderTasks() {
+    const container = document.getElementById("taskList");
+    const card = document.getElementById("taskCard");
+    container.innerHTML = "";
+    
+    // Filter out deleted tasks
+    const activeTasks = data.tasks; 
+
+    if(activeTasks.length === 0) {
+        card.style.display = "none";
+        return;
+    }
+    
+    card.style.display = "block";
+    activeTasks.forEach((task, index) => {
+        container.innerHTML += `
+            <div class="task-item ${task.done ? 'task-done' : ''}" onclick="toggleTask(${index})">
+                <div class="task-text">
+                    ${task.text}
+                    <span class="task-sub">${task.subject} • ${formatDateDDMMYYYY(task.date)}</span>
+                </div>
+                <button class="del-task-btn" onclick="deleteTask(event, ${index})">✖</button>
+            </div>
+        `;
+    });
+}
+
+function toggleTask(index) {
+    data.tasks[index].done = !data.tasks[index].done;
+    save();
+    renderTasks();
+}
+
+function deleteTask(e, index) {
+    e.stopPropagation(); // Prevent toggling
+    if(confirm("Delete this note?")) {
+        data.tasks.splice(index, 1);
+        save();
+        renderTasks();
+    }
 }
 
 function markAttendance(subject,time,status){
@@ -383,7 +464,6 @@ function resetAll(){
 
 function getAllSubjects() {
   const set = new Set();
-  // Get from dynamic timetable
   Object.values(timetable).flat().forEach(x => set.add(x[1]));
   return [...set].sort();
 }
@@ -409,7 +489,7 @@ function loadPastTimetable(){
   pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
   if(data.history[pastDateKey]){ container.innerHTML = "Attendance already exists for this date 🚫"; return; }
   
-  const lectures = timetable[pastDay] || []; // Use dynamic timetable
+  const lectures = timetable[pastDay] || []; 
   if(lectures.length === 0){ container.innerHTML = "No lectures scheduled on this day 😴"; }
   
   lectures.forEach(([time,subject])=>{
@@ -502,7 +582,7 @@ function showSubjectWise(){
   result.innerHTML += `</div>`;
 }
 function exportBackup(){
-  const backup = { version: 6, timestamp: new Date().toISOString(), data: data };
+  const backup = { version: 7, timestamp: new Date().toISOString(), data: data };
   const blob = new Blob([JSON.stringify(backup, null, 2)],{ type: "application/json" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `attendance_backup_${dateKey}.json`; a.click(); URL.revokeObjectURL(a.href);
 }
@@ -520,7 +600,7 @@ document.getElementById("importFile").addEventListener("change", function(e){
 const modal = document.getElementById("settingsModal");
 function openSettings() {
   modal.style.display = "flex";
-  document.getElementById("editDaySelect").value = day; // Default to today
+  document.getElementById("editDaySelect").value = day;
   renderEditRows();
 }
 function closeSettings() { modal.style.display = "none"; }
@@ -529,7 +609,6 @@ function renderEditRows() {
   const selectedDay = document.getElementById("editDaySelect").value;
   const container = document.getElementById("editContainer");
   container.innerHTML = "";
-  
   const lectures = timetable[selectedDay] || [];
   lectures.forEach((lec, index) => {
     container.innerHTML += `
@@ -541,44 +620,34 @@ function renderEditRows() {
     `;
   });
 }
-
 function addEditRow() {
   const selectedDay = document.getElementById("editDaySelect").value;
   timetable[selectedDay] ??= [];
   timetable[selectedDay].push(["00:00-00:00", "New Subject"]);
   renderEditRows();
 }
-
 function delEditRow(index) {
   const selectedDay = document.getElementById("editDaySelect").value;
   timetable[selectedDay].splice(index, 1);
   renderEditRows();
 }
-
 function saveNewTimetable() {
   const selectedDay = document.getElementById("editDaySelect").value;
   const container = document.getElementById("editContainer");
   const rows = container.querySelectorAll(".edit-row");
   const newDaySchedule = [];
-
   rows.forEach((row, index) => {
     const t = document.getElementById(`time_${index}`).value;
     const s = document.getElementById(`sub_${index}`).value;
     if(t && s) newDaySchedule.push([t, s]);
   });
-
   timetable[selectedDay] = newDaySchedule;
   localStorage.setItem("custom_timetable", JSON.stringify(timetable));
   alert(`Saved timetable for ${selectedDay} ✅`);
-  
-  // Re-render main app with changes
-  initExtra(); // Update dropdowns
-  render();
-  // Don't close modal so user can edit other days
+  initExtra(); render();
 }
-
 function restoreDefaultTimetable() {
-  if(confirm("⚠ Are you sure? This will reset all timetable edits to the original default.")){
+  if(confirm("⚠ Are you sure? This will reset all timetable edits.")){
     localStorage.removeItem("custom_timetable");
     timetable = JSON.parse(JSON.stringify(defaultTimetable));
     alert("Timetable restored to default 🔄");
@@ -589,16 +658,23 @@ function restoreDefaultTimetable() {
 function render(){
   showWeekendMessage(day);
   document.getElementById("today").innerText = `${day} | ${formatDateDDMMYYYY(dateKey)}`;
-  loadLectures(); renderSummary();
+  loadLectures(); 
+  renderSummary();
+  renderTasks(); // Render pending tasks
+
   const noExtraKey = dateKey + "_NO_EXTRA";
   if(data.locks[noExtraKey]){
     document.getElementById("extraSubject").disabled = true;
-    document.querySelectorAll(".card button").forEach(btn=>{ if(btn.innerText.includes("Present") || btn.innerText.includes("Absent") || btn.innerText.includes("No Extra")){ btn.disabled = true; } });
+    document.querySelectorAll(".card button").forEach(btn=>{ 
+        // Keep note button enabled, disable others
+        if(btn.innerText.includes("Present") || btn.innerText.includes("Absent") || btn.innerText.includes("No Extra")){ 
+            btn.disabled = true; 
+        } 
+    });
     document.getElementById("extraInfo").innerText = "✔ No extra lectures confirmed for today";
   }
 }
 
-// APP START
 initExtra();
 render();
 </script>
