@@ -23,7 +23,7 @@ button { margin: 4px; padding: 6px 10px; border: none; border-radius: 5px; curso
 select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .reset-btn { background: #7c2d12; color: white; width: 100%; padding: 10px; margin-top: 20px; }
 
-/* HEADER & SETTINGS BTN */
+/* HEADER */
 .header-container { display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 10px; }
 .settings-btn { position: absolute; right: 0; top: 0; background: none; font-size: 24px; cursor: pointer; padding: 5px; }
 
@@ -40,8 +40,9 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .add-row-btn { background: #2563eb; color: white; width: 100%; padding: 8px; margin-top: 10px; }
 .save-btn { background: #16a34a; color: white; width: 100%; padding: 10px; margin-top: 10px; font-weight: bold; }
 .restore-btn { background: #64748b; color: white; width: 100%; padding: 8px; margin-top: 20px; font-size: 12px; }
+.notify-btn { background: #0ea5e9; color: white; width: 100%; padding: 10px; margin-top: 10px; font-weight: bold; }
 
-/* TASK LIST STYLES */
+/* TASK LIST */
 .task-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 8px; margin-bottom: 6px; border-radius: 6px; border-left: 4px solid #f59e0b; }
 .task-text { font-size: 14px; flex-grow: 1; margin-right: 10px; }
 .task-sub { font-size: 11px; color: #9ca3af; display: block; margin-top: 2px; }
@@ -61,14 +62,12 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .progress-yellow { background: #facc15; }
 .progress-red { background: #ef4444; }
 
-/* STATUS MESSAGES */
 .status-msg { font-size: 12px; margin-top: 5px; font-weight: 600; letter-spacing: 0.3px; }
 .msg-safe { color: #4ade80; } 
 .msg-danger { color: #f87171; } 
 .msg-warning { color: #facc15; }
 .msg-cancelled { color: #9ca3af; }
 
-/* OVERALL BAR */
 .overall-container { margin-top: 22px; padding: 14px; background: linear-gradient(135deg, #020617, #0f172a); border-radius: 12px; border: 1px solid #334155; }
 .overall-title { text-align: center; font-size: 14px; color: #cbd5f5; margin-bottom: 8px; letter-spacing: 0.5px; }
 .overall-bar-bg { width: 100%; height: 16px; background: #334155; border-radius: 10px; overflow: hidden; }
@@ -81,7 +80,6 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .overall-yellow-text { color: #facc15; }
 .overall-red-text { color: #ef4444; }
 
-/* CARDS */
 .lecture-card { position: relative; transition: background 0.2s ease, opacity 0.2s ease; }
 .lecture-card.locked { opacity: 0.75; }
 .lecture-card::before { content: ""; position: absolute; left: 0; top: 0; width: 5px; height: 100%; border-radius: 8px 0 0 8px; background: transparent; }
@@ -93,6 +91,7 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .status-Present { color: #22c55e; font-weight: bold; }
 .status-Absent { color: #ef4444; font-weight: bold; }
 .status-Cancelled { color: #9ca3af; font-weight: bold; }
+
 </style>
 </head>
 
@@ -172,10 +171,19 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 <div id="settingsModal" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>⚙️ Edit Timetable</h3>
+      <h3>⚙️ Settings</h3>
       <button class="close-modal" onclick="closeSettings()">✖</button>
     </div>
-    <label>Select Day to Edit:</label>
+    
+    <label><b>🔔 Notifications:</b></label>
+    <button class="notify-btn" onclick="requestNotificationPermission()">Enable App Notifications</button>
+    <div style="font-size:11px; color:#9ca3af; margin-bottom:15px; margin-top:5px;">
+      *Checks at 5 PM. Works best if app is running in background.
+    </div>
+
+    <hr style="border-color:#334155; margin:15px 0;">
+
+    <label><b>Select Day to Edit:</b></label>
     <select id="editDaySelect" onchange="renderEditRows()">
       <option value="Monday">Monday</option>
       <option value="Tuesday">Tuesday</option>
@@ -194,7 +202,6 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 </div>
 
 <script>
-// --- CONFIGURATION ---
 const PASSWORD = "Nir@2006";
 const MIN_ATTENDANCE = 75; 
 
@@ -256,6 +263,62 @@ let timetable = JSON.parse(localStorage.getItem("custom_timetable")) || JSON.par
 
 function save(){ localStorage.setItem("attendance",JSON.stringify(data)); }
 
+// --- NOTIFICATION LOGIC ---
+function requestNotificationPermission() {
+    if (!("Notification" in window)) {
+        alert("This browser does not support desktop notifications");
+        return;
+    }
+    Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+            alert("Notifications Enabled! 🔔\n\nThe app will check at 5 PM if you have marked attendance.");
+            // Send a test notification
+            sendNotification("Notifications Setup", "Great! You will be reminded to mark attendance.");
+        } else {
+            alert("Permission Denied 🚫");
+        }
+    });
+}
+
+function sendNotification(title, body) {
+    if (Notification.permission === "granted") {
+        if(navigator.serviceWorker.controller){
+            navigator.serviceWorker.ready.then(function(registration) {
+                registration.showNotification(title, {
+                    body: body,
+                    icon: 'icon.png',
+                    vibrate: [200, 100, 200]
+                });
+            });
+        } else {
+            new Notification(title, { body: body, icon: 'icon.png' });
+        }
+    }
+}
+
+function startBackgroundCheck() {
+    // Check every minute
+    setInterval(() => {
+        const now = new Date();
+        // Check if it's 5:00 PM (17:00)
+        if(now.getHours() === 17 && now.getMinutes() === 0) {
+             // Check if weekend
+             const d = now.toLocaleDateString("en-US",{ weekday:"long" });
+             if(d === "Saturday" || d === "Sunday") return;
+
+             // Check if attendance marked
+             const todaysLocks = Object.keys(data.locks).some(k => k.startsWith(dateKey));
+             
+             // If not marked, send notification
+             if(!todaysLocks) {
+                 sendNotification("Attendance Reminder 🔔", "You haven't marked your attendance today!");
+             }
+        }
+    }, 60000); // 60 seconds interval
+}
+// Start the timer when app loads
+startBackgroundCheck();
+
 function loadLectures(){
   const container = document.getElementById("lectures");
   container.innerHTML = "";
@@ -279,7 +342,6 @@ function loadLectures(){
         div.innerHTML += `<div class="status-label">${entry.status === "Present" ? "✔ Present" : entry.status === "Absent" ? "✖ Absent" : "⏸ Cancelled"}</div>`;
       }
     }
-    
     const btns = div.querySelectorAll("button");
     btns[0].onclick = ()=>markAttendance(subject, time, "Present");
     btns[1].onclick = ()=>markAttendance(subject, time, "Absent");
@@ -349,7 +411,6 @@ function renderSummary(){
   div.innerHTML = "";
   let tp = 0, tt = 0;
   const target = MIN_ATTENDANCE / 100;
-
   for(let s in data.totals){
     const { p, t } = data.totals[s];
     const percent = t ? Math.round((p / t) * 100) : 0;
@@ -357,7 +418,6 @@ function renderSummary(){
     let colorClass = "progress-green";
     if(percent < MIN_ATTENDANCE) colorClass = "progress-red";
     else if(percent < MIN_ATTENDANCE + 10) colorClass = "progress-yellow";
-
     let statusMsg = "", statusClass = "";
     if (t > 0) {
         if (percent >= MIN_ATTENDANCE) {
@@ -372,7 +432,6 @@ function renderSummary(){
             statusMsg = `🚨 Attend next <b>${needed}</b> classes to hit ${MIN_ATTENDANCE}%.`; statusClass = "msg-danger";
         }
     } else { statusMsg = "No classes yet."; statusClass = "msg-cancelled"; }
-
     div.innerHTML += `
       <div class="summary-item">
         <div class="subject-row"><div class="subject-name">${s}</div><div class="subject-stats">${p}/${t} (${percent}%)</div></div>
@@ -380,13 +439,11 @@ function renderSummary(){
         <div class="status-msg ${statusClass}">${statusMsg}</div>
       </div>`;
   }
-
   const overall = tt ? Math.round((tp / tt) * 100) : 0;
   let overallBarClass = "overall-green";
   let overallTextClass = "overall-green-text";
   if(overall < MIN_ATTENDANCE){ overallBarClass = "overall-red"; overallTextClass = "overall-red-text"; }
   else if(overall < MIN_ATTENDANCE + 10){ overallBarClass = "overall-yellow"; overallTextClass = "overall-yellow-text"; }
-
   let overallStatusMsg = "", overallStatusClass = "";
   if(tt > 0){
       if(overall >= MIN_ATTENDANCE){
@@ -401,7 +458,6 @@ function renderSummary(){
           overallStatusMsg = `🚨 Attend next <b>${overallNeeded}</b> classes to hit ${MIN_ATTENDANCE}% aggregate.`; overallStatusClass = "msg-danger";
       }
   } else { overallStatusMsg = "Start marking attendance to see predictions."; overallStatusClass = "msg-cancelled"; }
-
   div.innerHTML += `
     <div class="overall-container">
       <div class="overall-title">OVERALL ATTENDANCE</div>
@@ -541,7 +597,7 @@ function showSubjectWise(){
   result.innerHTML += `</div>`;
 }
 function exportBackup(){
-  const backup = { version: 8, timestamp: new Date().toISOString(), data: data };
+  const backup = { version: 10, timestamp: new Date().toISOString(), data: data };
   const blob = new Blob([JSON.stringify(backup, null, 2)],{ type: "application/json" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `attendance_backup_${dateKey}.json`; a.click(); URL.revokeObjectURL(a.href);
 }
@@ -597,60 +653,26 @@ function restoreDefaultTimetable() {
   }
 }
 
-// --- CHART LOGIC ---
+// CHART
 let chartInstance = null;
 function renderChart() {
-  // Reconstruct history
   const dates = Object.keys(data.history).sort();
-  // We need current total P and T
   let currentP = 0, currentT = 0;
   for(let s in data.totals){ currentP += data.totals[s].p; currentT += data.totals[s].t; }
-
-  // We will build the chart backwards from today
-  const chartData = [];
-  const chartLabels = [];
-  
-  // Create a copy to manipulate
-  let tempP = currentP;
-  let tempT = currentT;
-
-  // Add Today (Snapshot)
-  if(tempT > 0) {
-      chartData.push(Math.round((tempP/tempT)*100));
-      chartLabels.push(formatDateDDMMYYYY(dateKey).slice(0,5)); // DD/MM
-  }
-
-  // Go backwards through history keys to find previous percentages
-  // Limiting to last 30 entries for readability
+  const chartData = []; const chartLabels = [];
+  let tempP = currentP; let tempT = currentT;
+  if(tempT > 0) { chartData.push(Math.round((tempP/tempT)*100)); chartLabels.push(formatDateDDMMYYYY(dateKey).slice(0,5)); }
   const relevantDates = dates.filter(d => d !== dateKey).reverse().slice(0, 30);
-
   relevantDates.forEach(d => {
-      // Calculate what P and T were *before* this day happened
-      // So we subtract this day's events from the totals
       const dayEvents = data.history[d];
       dayEvents.forEach(evt => {
-          if(evt.status !== "Cancelled"){
-              tempT--;
-              if(evt.status === "Present") tempP--;
-          }
+          if(evt.status !== "Cancelled"){ tempT--; if(evt.status === "Present") tempP--; }
       });
-      
-      // Calculate % at end of that day
-      if(tempT > 0) {
-          chartData.push(Math.round((tempP/tempT)*100));
-          chartLabels.push(formatDateDDMMYYYY(d).slice(0,5));
-      }
+      if(tempT > 0) { chartData.push(Math.round((tempP/tempT)*100)); chartLabels.push(formatDateDDMMYYYY(d).slice(0,5)); }
   });
-
-  // Since we processed backwards, reverse to show chronological order
-  chartData.reverse();
-  chartLabels.reverse();
-
-  const ctx = document.getElementById('attendanceChart');
-  if(!ctx) return;
-
+  chartData.reverse(); chartLabels.reverse();
+  const ctx = document.getElementById('attendanceChart'); if(!ctx) return;
   if(chartInstance) chartInstance.destroy();
-
   chartInstance = new Chart(ctx, {
     type: 'line',
     data: {
@@ -668,21 +690,10 @@ function renderChart() {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        y: { 
-            beginAtZero: false, 
-            min: 50, 
-            max: 100,
-            grid: { color: '#334155' },
-            ticks: { color: '#9ca3af' }
-        },
-        x: {
-            grid: { display: false },
-            ticks: { color: '#9ca3af' }
-        }
+        y: { beginAtZero: false, min: 50, max: 100, grid: { color: '#334155' }, ticks: { color: '#9ca3af' } },
+        x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
       },
-      plugins: {
-          legend: { display: false }
-      }
+      plugins: { legend: { display: false } }
     }
   });
 }
@@ -690,11 +701,7 @@ function renderChart() {
 function render(){
   showWeekendMessage(day);
   document.getElementById("today").innerText = `${day} | ${formatDateDDMMYYYY(dateKey)}`;
-  loadLectures(); 
-  renderSummary();
-  renderTasks(); 
-  renderChart(); // Draw graph
-
+  loadLectures(); renderSummary(); renderTasks(); renderChart(); 
   const noExtraKey = dateKey + "_NO_EXTRA";
   if(data.locks[noExtraKey]){
     document.getElementById("extraSubject").disabled = true;
