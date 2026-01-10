@@ -324,9 +324,7 @@ input:focus { border-color: var(--accent); }
     </div>
     <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">NOTIFICATIONS</label>
     <button class="btn-block" style="background: #0ea5e9; color: white; margin-bottom: 24px;" onclick="requestNotificationPermission()">Enable Daily Reminders</button>
-    
     <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">EDIT TIMETABLE</label>
-    
     <select id="editDaySelect" class="custom-select-source" onchange="renderEditRows()" style="margin-top: 8px;">
       <option value="Monday">Monday</option>
       <option value="Tuesday">Tuesday</option>
@@ -336,7 +334,6 @@ input:focus { border-color: var(--accent); }
       <option value="Saturday">Saturday</option>
       <option value="Sunday">Sunday</option>
     </select>
-
     <div id="editContainer"></div>
     <div style="display:flex; gap:10px; margin-top:15px;">
         <button class="btn-block btn-secondary" onclick="addEditRow()">+ Slot</button>
@@ -720,157 +717,137 @@ function loadPastTimetable(){
   const val = input.value;
   const container = document.getElementById("pastLectures");
   const extraDiv = document.getElementById("pastExtra");
-  container.innerHTML = ""; extraDiv.innerHTML = ""; pastBuffer = [];
+  
+  container.innerHTML = ""; 
+  extraDiv.innerHTML = ""; 
+  pastBuffer = [];
+
   if(!val) return;
+
   const selectedDate = new Date(val);
   const todayDate = new Date(today.toDateString());
-  if(selectedDate >= todayDate){ showToast("Only past dates allowed", "error"); input.value = ""; return; }
+  
+  if(selectedDate >= todayDate){ 
+      showToast("Cannot edit future/today here", "error"); 
+      input.value = ""; 
+      return; 
+  }
+
   pastDateKey = val;
   pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
-  if(data.history[pastDateKey]){ container.innerHTML = "<div style='text-align:center; padding:10px; color:#ef4444;'>Already recorded 🚫</div>"; return; }
+  
+  let existingData = data.history[pastDateKey] || [];
+  let isEditMode = existingData.length > 0;
+
+  if(isEditMode) {
+      showToast("Editing saved record ✏️");
+      pastBuffer = [...existingData];
+  }
+
   const lectures = timetable[pastDay] || []; 
-  if(lectures.length === 0){ container.innerHTML = "<div style='text-align:center; padding:10px;'>No lectures 😴</div>"; }
+  if(lectures.length === 0){ container.innerHTML = "<div style='text-align:center; padding:10px; opacity:0.6;'>No lectures scheduled 😴</div>"; }
+  
   lectures.forEach(([time,subject])=>{
-    const div = document.createElement("div"); div.className = "card";
-    div.innerHTML = `<b>${subject}</b> (${time})<br><div class="action-row" style="margin-top:10px;"><button class="btn-pill present">Present</button><button class="btn-pill absent">Absent</button><button class="btn-pill cancelled">Off</button></div>`;
-    const btns = div.querySelectorAll("button");
-    btns[0].onclick = ()=>pastMark(subject, time, "Present", div);
-    btns[1].onclick = ()=>pastMark(subject, time, "Absent", div);
-    btns[2].onclick = ()=>pastMark(subject, time, "Cancelled", div);
+    const div = document.createElement("div"); 
+    div.className = "card";
+    
+    const savedState = existingData.find(h => h.subject === subject && h.time === time);
+    const status = savedState ? savedState.status : "";
+
+    div.innerHTML = `
+        <div style="font-weight:600; margin-bottom:5px;">${subject}</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">${time}</div>
+        <div class="action-row" id="btns_${subject.replace(/\s/g,'')}">
+            <button class="btn-pill ${status==='Present'?'present':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Present', this)">Present</button>
+            <button class="btn-pill ${status==='Absent'?'absent':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Absent', this)">Absent</button>
+            <button class="btn-pill ${status==='Cancelled'?'cancelled':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Cancelled', this)">Off</button>
+        </div>`;
+    
     container.appendChild(div);
   });
+
+  const existingExtras = existingData.filter(h => h.time === "Extra");
+  let extraHTML = "";
+  if(existingExtras.length > 0) {
+      existingExtras.forEach(ex => {
+          extraHTML += `<div class="task-item" style="margin-bottom:5px;">
+            <span>${ex.subject} (Extra)</span> 
+            <span class="${ex.status==='Present'?'text-green':'text-red'}">${ex.status}</span>
+            <button class="del-task-btn" onclick="removePastExtra('${ex.subject}')">×</button>
+          </div>`;
+      });
+  }
+
   const allSubjects = getAllSubjects();
-  extraDiv.innerHTML = `<h4 style='margin:10px 0;'>➕ Extra Class</h4><select id="pastExtraSubject" class="custom-select-source">${allSubjects.map(s=>`<option>${s}</option>`).join("")}</select><div class="action-row"><button class="btn-pill present" onclick="addPastExtra('Present')">Present</button><button class="btn-pill absent" onclick="addPastExtra('Absent')">Absent</button></div>`;
-  setupCustomSelects();
+  extraDiv.innerHTML = `
+    <hr style="border-color:#334155; margin:15px 0;">
+    <div id="existingExtrasList">${extraHTML}</div>
+    <h4 style='margin:10px 0; font-size:14px;'>➕ Add Extra Class</h4>
+    <select id="pastExtraSubject" class="custom-select-source">${allSubjects.map(s=>`<option>${s}</option>`).join("")}</select>
+    <div class="action-row">
+        <button class="btn-pill btn-secondary" onclick="addPastExtra('Present')">Present</button>
+        <button class="btn-pill btn-secondary" onclick="addPastExtra('Absent')">Absent</button>
+    </div>`;
+    
+  setupCustomSelects(); 
 }
-function pastMark(sub, time, stat, div){
-    pastBuffer = pastBuffer.filter(x=>!(x.subject===sub && x.time===time));
+
+function pastMark(sub, time, stat, btn){
+    pastBuffer = pastBuffer.filter(x => !(x.subject === sub && x.time === time));
     pastBuffer.push({ subject: sub, time: time, status: stat });
-    div.style.opacity = "0.5"; div.style.border = "1px solid var(--accent)";
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.btn-pill').forEach(b => {
+        b.className = 'btn-pill btn-secondary'; 
+    });
+    let activeClass = stat === "Present" ? "present" : (stat === "Absent" ? "absent" : "cancelled");
+    btn.className = `btn-pill ${activeClass}`;
 }
+
 function addPastExtra(status){
   const subject = document.getElementById("pastExtraSubject").value;
-  if(pastBuffer.find(x=>x.subject===subject && x.time==="Extra")){ showToast("Already added", "error"); return; }
-  pastBuffer.push({subject, time:"Extra", status}); showToast("Extra added to buffer");
+  if(pastBuffer.find(x=>x.subject===subject && x.time==="Extra")){ showToast("Already in list", "error"); return; }
+  pastBuffer.push({subject, time:"Extra", status});
+  const list = document.getElementById("existingExtrasList");
+  list.innerHTML += `<div class="task-item" style="margin-bottom:5px;"><span>${subject} (Extra)</span> <span class="${status==='Present'?'text-green':'text-red'}">${status}</span></div>`;
 }
-function savePastAttendance(){
-  if(!pastDateKey || !pastBuffer.length){ showToast("Nothing to save", "error"); return; }
-  if(data.history[pastDateKey]){ showToast("Date exists", "error"); return; }
-  data.history[pastDateKey] = [];
-  pastBuffer.forEach(h=>{ const lockKey = pastDateKey+"_"+h.subject+"_"+h.time; data.locks[lockKey] = true; data.history[pastDateKey].push(h); if(h.status !== "Cancelled"){ data.totals[h.subject] ??= {p:0,t:0}; data.totals[h.subject].t++; if(h.status==="Present") data.totals[h.subject].p++; } });
-  save(); showToast("Saved successfully"); location.reload();
-}
-function toggleUndo(){
-  const sec = document.getElementById("undoSection");
-  sec.style.display = sec.style.display === "none" ? "block" : "none";
-  const div = document.getElementById("undoSection"); div.innerHTML = "";
-  if(!data.history[dateKey] || data.history[dateKey].length === 0){ div.innerHTML = "<div style='text-align:center; color:#94a3b8;'>Nothing to undo today</div>"; return; }
-  data.history[dateKey].forEach((h,i)=>{ div.innerHTML += `<div class="task-item"><span>${h.subject} (${h.status})</span> <button class="del-task-btn" onclick="undo('${dateKey}',${i})">${ICONS.undo}</button></div>`; });
-}
-function lockNoExtra(){ const key = dateKey + "_NO_EXTRA"; if(data.locks[key]) return; data.locks[key] = true; save(); render(); showToast("Locked for today"); }
-function getDayName(dateStr){ const d = new Date(dateStr + "T00:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("en-US", { weekday: "long" }); }
-function formatDateDDMMYYYY(isoDate){ if(!isoDate) return ""; const [y, m, d] = isoDate.split("-"); return `${d}/${m}/${y}`; }
-function showWeekendMessage(day){
-  const statusDiv = document.getElementById("dayStatus");
-  if(day === "Saturday" || day === "Sunday"){ 
-      statusDiv.innerHTML = `
-      <div class="weekend-card">
-        <div class="weekend-icon">☕</div>
-        <div class="weekend-title">No lectures today</div>
-        <div style="font-size:13px; opacity:0.8;">Enjoy your weekend!</div>
-      </div>`; 
-  } else { statusDiv.innerHTML = ""; }
-}
-function renderDetailView(){
-  const mode = document.getElementById("viewMode").value;
-  const filter = document.getElementById("filterArea");
-  const result = document.getElementById("detailResult");
-  filter.innerHTML = ""; result.innerHTML = "";
-  if(mode === "date"){
-    const dates = Object.keys(data.history).sort().reverse();
-    if(!dates.length){ result.innerText = "No data yet"; return; }
-    filter.innerHTML = `<select id="dateSelect" class="custom-select-source" onchange="showDateWise()"><option value="">Select Date</option>${dates.map(d=>`<option value="${d}">${formatDateDDMMYYYY(d)}</option>`).join("")}</select>`;
-    setupCustomSelects(); 
-  }
-  if(mode === "subject"){
-    const subjects = Object.keys(data.totals).sort();
-    if(!subjects.length){ result.innerText = "No data yet"; return; }
-    filter.innerHTML = `<select id="subjectSelect" class="custom-select-source" onchange="showSubjectWise()"><option value="">Select Subject</option>${subjects.map(s=>`<option value="${s}">${s}</option>`).join("")}</select>`;
-    setupCustomSelects(); 
-  }
-}
-function showDateWise(){
-  const d = document.getElementById("dateSelect").value;
-  if(!d || !data.history[d]) return;
-  const result = document.getElementById("detailResult");
-  result.innerHTML = `<div style="margin-bottom:10px; font-weight:bold;">${formatDateDDMMYYYY(d)} (${getDayName(d)})</div>`;
-  data.history[d].forEach(h=>{ result.innerHTML += `<div class="task-item" style="border-left:none;"><span>${h.subject} | ${h.time}</span> <span class="${h.status === 'Present' ? 'text-green' : 'text-red'}">${h.status}</span></div>`; });
-}
-function showSubjectWise(){
-  const sub = document.getElementById("subjectSelect").value;
-  if(!sub) return;
-  const result = document.getElementById("detailResult");
-  result.innerHTML = "";
-  Object.keys(data.history).sort().reverse().forEach(d=>{
-    data.history[d].forEach(h=>{ if(h.subject === sub){ result.innerHTML += `<div class="task-item" style="border-left:none;"><span>${formatDateDDMMYYYY(d)}</span> <span class="${h.status === 'Present' ? 'text-green' : 'text-red'}">${h.status}</span></div>`; } });
-  });
-  result.innerHTML += `</div>`;
-}
-function exportBackup(){
-  const backup = { version: 14, timestamp: new Date().toISOString(), data: data };
-  const blob = new Blob([JSON.stringify(backup, null, 2)],{ type: "application/json" });
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `attendance_backup_${dateKey}.json`; a.click(); URL.revokeObjectURL(a.href);
-  showToast("Backup Downloaded");
-}
-document.getElementById("importFile").addEventListener("change", function(e){
-  const file = e.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(){
-    try{ const backup = JSON.parse(reader.result); if(!backup.data){ showToast("Invalid file", "error"); return; }
-      showConfirm("Overwrite Data?", "This will replace all current data.", () => {
-          data = backup.data; if(!data.tasks) data.tasks = []; if(!data.history) data.history = {}; if(!data.totals) data.totals = {}; if(!data.locks) data.locks = {};
-          save(); render(); showToast("Restored successfully");
-      });
-    } catch(err){ console.error(err); showToast("Error importing", "error"); }
-    e.target.value = '';
-  }; reader.readAsText(file);
-});
 
-// SETTINGS & CHART
-const modal = document.getElementById("settingsModal");
-function openSettings() { modal.style.display = "flex"; document.getElementById("editDaySelect").value = day; renderEditRows(); setupCustomSelects(); }
-function closeSettings() { modal.style.display = "none"; }
-function renderEditRows() {
-  const selectedDay = document.getElementById("editDaySelect").value;
-  const container = document.getElementById("editContainer");
-  container.innerHTML = "";
-  const lectures = timetable[selectedDay] || [];
-  lectures.forEach((lec, index) => {
-    container.innerHTML += `<div class="edit-row"><input type="text" class="edit-input" style="width:30%" value="${lec[0]}" id="time_${index}"><input type="text" class="edit-input" style="width:70%" value="${lec[1]}" id="sub_${index}"><button style="background:var(--red); color:white; border:none; border-radius:4px; padding:0 8px;" onclick="delEditRow(${index})">${ICONS.trash}</button></div>`;
-  });
+function removePastExtra(subject){
+    pastBuffer = pastBuffer.filter(x => !(x.subject === subject && x.time === "Extra"));
+    loadPastTimetable(); 
 }
-function addEditRow() { const selectedDay = document.getElementById("editDaySelect").value; timetable[selectedDay] ??= []; timetable[selectedDay].push(["00:00-00:00", "New Subject"]); renderEditRows(); }
-function delEditRow(index) { const selectedDay = document.getElementById("editDaySelect").value; timetable[selectedDay].splice(index, 1); renderEditRows(); }
-function saveNewTimetable() {
-  const selectedDay = document.getElementById("editDaySelect").value;
-  const container = document.getElementById("editContainer");
-  const rows = container.querySelectorAll(".edit-row");
-  const newDaySchedule = [];
-  rows.forEach((row, index) => {
-    const t = document.getElementById(`time_${index}`).value;
-    const s = document.getElementById(`sub_${index}`).value;
-    if(t && s) newDaySchedule.push([t, s]);
+
+function savePastAttendance(){
+  if(!pastDateKey){ showToast("Select a date", "error"); return; }
+  if(pastBuffer.length === 0){ showToast("No data to save", "error"); return; }
+
+  if(data.history[pastDateKey]) {
+      data.history[pastDateKey].forEach(oldEntry => {
+          if(oldEntry.status !== "Cancelled" && data.totals[oldEntry.subject]){
+              data.totals[oldEntry.subject].t--;
+              if(oldEntry.status === "Present") data.totals[oldEntry.subject].p--;
+          }
+      });
+  }
+
+  data.history[pastDateKey] = pastBuffer; 
+  
+  pastBuffer.forEach(h => {
+      if(h.status !== "Cancelled"){ 
+          data.totals[h.subject] ??= {p:0,t:0}; 
+          data.totals[h.subject].t++; 
+          if(h.status === "Present") data.totals[h.subject].p++; 
+      }
+      const lockKey = pastDateKey + "_" + h.subject + "_" + h.time;
+      data.locks[lockKey] = true; 
   });
-  timetable[selectedDay] = newDaySchedule;
-  localStorage.setItem("custom_timetable", JSON.stringify(timetable));
-  showToast(`Saved ${selectedDay}`); initExtra(); render();
-}
-function triggerRestore() {
-  showConfirm("Reset Timetable?", "This reverts all schedule edits.", () => {
-    localStorage.removeItem("custom_timetable");
-    timetable = JSON.parse(JSON.stringify(defaultTimetable));
-    showToast("Restored Default"); location.reload();
-  });
+
+  save(); 
+  render(); 
+  showToast("History Updated ✅");
+  
+  document.getElementById("pastDate").value = "";
+  document.getElementById("pastLectures").innerHTML = "";
+  document.getElementById("pastExtra").innerHTML = "";
 }
 
 // CHART
