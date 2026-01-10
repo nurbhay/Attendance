@@ -819,6 +819,12 @@ function savePastAttendance(){
     return;
   }
 
+  // 🔒 BLOCK DUPLICATE DATE (CRITICAL FIX)
+  if(data.history[pastDateKey]){
+    alert("Attendance for this date already exists and cannot be added again ❌");
+    return;
+  }
+
   data.history[pastDateKey] = [];
 
   pastBuffer.forEach(h=>{
@@ -837,6 +843,7 @@ function savePastAttendance(){
   alert("Past attendance saved 🔒");
   location.reload();
 }
+
 
 function toggleUndo(){
   const sec = document.getElementById("undoSection");
@@ -970,6 +977,10 @@ document.getElementById("importFile").addEventListener("change", function(e){
 
   reader.readAsText(file);
 });
+
+function isDateAlreadyRecorded(dateKey){
+  return !!data.history[dateKey];
+}
 
 
 initExtra();
