@@ -359,6 +359,14 @@ select {
 <button class="reset-btn" onclick="resetAll()">RESET ATTENDANCE</button>
 
 <script>
+
+function getDateKeyFromDate(d){
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 const PASSWORD = "Nir@2006";
 
 const timetable = {
@@ -639,6 +647,7 @@ function render(){
 }
 
 function renderDetailView(){
+  const date = document.getElementById("dateSelect").value;
   const mode = document.getElementById("viewMode").value;
   const filter = document.getElementById("filterArea");
   const result = document.getElementById("detailResult");
@@ -733,8 +742,9 @@ function showSubjectWise(){
   result.innerHTML += `</div>`;
 }
 
-let pastBuffer = [];
+
 let pastDateKey = "";
+let pastBuffer = [];
 let pastDay = "";
 
 function loadPastTimetable(){
