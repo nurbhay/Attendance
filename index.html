@@ -10,7 +10,6 @@
 <link rel="apple-touch-icon" href="icon.png">
 
 <style>
-/* ... SAME STYLES AS BEFORE ... */
 body { font-family: Arial, sans-serif; background: #0f172a; color: #e5e7eb; margin: 0; padding: 10px; }
 h1, h2 { text-align: center; }
 .card { background: #1e293b; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
@@ -21,6 +20,26 @@ button { margin: 4px; padding: 6px 10px; border: none; border-radius: 5px; curso
 .locked { opacity: 0.6; pointer-events: none; }
 select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .reset-btn { background: #7c2d12; color: white; width: 100%; padding: 10px; margin-top: 20px; }
+
+/* HEADER & SETTINGS BTN */
+.header-container { display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 10px; }
+.settings-btn { position: absolute; right: 0; top: 0; background: none; font-size: 24px; cursor: pointer; padding: 5px; }
+
+/* MODAL STYLES */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+.modal-content { background: #1e293b; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; max-height: 85vh; overflow-y: auto; border: 1px solid #334155; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.close-modal { background: none; font-size: 24px; color: #ef4444; cursor: pointer; }
+.edit-row { display: flex; gap: 5px; margin-bottom: 8px; align-items: center; }
+.edit-input { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px; border-radius: 5px; width: 100%; }
+.time-input { width: 35%; }
+.sub-input { width: 65%; }
+.del-row-btn { background: #ef4444; color: white; padding: 5px 10px; font-size: 12px; }
+.add-row-btn { background: #2563eb; color: white; width: 100%; padding: 8px; margin-top: 10px; }
+.save-btn { background: #16a34a; color: white; width: 100%; padding: 10px; margin-top: 10px; font-weight: bold; }
+.restore-btn { background: #64748b; color: white; width: 100%; padding: 8px; margin-top: 20px; font-size: 12px; }
+
+/* SUMMARY & BARS */
 .summary-item { padding: 12px 0; border-bottom: 1px solid #334155; }
 .summary-item:last-child { border-bottom: none; }
 .subject-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
@@ -32,11 +51,15 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .progress-green { background: #22c55e; }
 .progress-yellow { background: #facc15; }
 .progress-red { background: #ef4444; }
+
+/* STATUS MESSAGES */
 .status-msg { font-size: 12px; margin-top: 5px; font-weight: 600; letter-spacing: 0.3px; }
 .msg-safe { color: #4ade80; } 
 .msg-danger { color: #f87171; } 
 .msg-warning { color: #facc15; }
 .msg-cancelled { color: #9ca3af; }
+
+/* OVERALL BAR */
 .overall-container { margin-top: 22px; padding: 14px; background: linear-gradient(135deg, #020617, #0f172a); border-radius: 12px; border: 1px solid #334155; }
 .overall-title { text-align: center; font-size: 14px; color: #cbd5f5; margin-bottom: 8px; letter-spacing: 0.5px; }
 .overall-bar-bg { width: 100%; height: 16px; background: #334155; border-radius: 10px; overflow: hidden; }
@@ -48,6 +71,8 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .overall-green-text { color: #22c55e; }
 .overall-yellow-text { color: #facc15; }
 .overall-red-text { color: #ef4444; }
+
+/* CARDS */
 .lecture-card { position: relative; transition: background 0.2s ease, opacity 0.2s ease; }
 .lecture-card.locked { opacity: 0.75; }
 .lecture-card::before { content: ""; position: absolute; left: 0; top: 0; width: 5px; height: 100%; border-radius: 8px 0 0 8px; background: transparent; }
@@ -64,7 +89,11 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 
 <body>
 
-<h1>📊 Smart Attendance Tracker</h1>
+<div class="header-container">
+  <h1>📊 Attendance</h1>
+  <button class="settings-btn" onclick="openSettings()">⚙️</button>
+</div>
+
 <h2 id="today"></h2>
 <div id="dayStatus" style="text-align:center;margin-bottom:10px;"></div>
 
@@ -92,7 +121,7 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 </div>
 
 <div class="card">
-  <h3>🔍 Detailed Attendance View</h3>
+  <h3>🔍 Detailed View</h3>
   <select id="viewMode" onchange="renderDetailView()">
     <option value="">Select View</option>
     <option value="date">Date Wise</option>
@@ -117,14 +146,43 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
   <button onclick="document.getElementById('importFile').click()">⬆ Import Backup</button>
 </div>
 
-<button class="reset-btn" onclick="resetAll()">RESET ATTENDANCE</button>
+<button class="reset-btn" onclick="resetAll()">RESET ALL DATA</button>
+
+<div id="settingsModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>⚙️ Edit Timetable</h3>
+      <button class="close-modal" onclick="closeSettings()">✖</button>
+    </div>
+    
+    <label>Select Day to Edit:</label>
+    <select id="editDaySelect" onchange="renderEditRows()">
+      <option value="Monday">Monday</option>
+      <option value="Tuesday">Tuesday</option>
+      <option value="Wednesday">Wednesday</option>
+      <option value="Thursday">Thursday</option>
+      <option value="Friday">Friday</option>
+      <option value="Saturday">Saturday</option>
+      <option value="Sunday">Sunday</option>
+    </select>
+
+    <div id="editContainer" style="margin-top:15px;"></div>
+
+    <button class="add-row-btn" onclick="addEditRow()">+ Add Lecture Slot</button>
+    <button class="save-btn" onclick="saveNewTimetable()">💾 Save Changes</button>
+    
+    <hr style="border-color:#334155; margin:20px 0;">
+    <button class="restore-btn" onclick="restoreDefaultTimetable()">⚠ Restore Default Timetable</button>
+  </div>
+</div>
 
 <script>
 // --- CONFIGURATION ---
 const PASSWORD = "Nir@2006";
 const MIN_ATTENDANCE = 75; 
 
-const timetable = {
+// --- DEFAULT TIMETABLE (Hardcoded Fallback) ---
+const defaultTimetable = {
   Monday: [
     ["11:00-12:00","Introduction to Cyber Law"],
     ["12:00-01:00","Artificial Intelligence"],
@@ -160,14 +218,12 @@ const timetable = {
   ]
 };
 
-// --- PWA SERVICE WORKER REGISTRATION ---
+// --- PWA INIT ---
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js")
-    .then(() => console.log("App Installed Ready!"))
-    .catch((err) => console.log("SW Fail", err));
+  navigator.serviceWorker.register("./sw.js").catch(e=>console.log(e));
 }
 
-// --- DATA INITIALIZATION ---
+// --- LOAD DATA ---
 function getStorageDateKey(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -180,6 +236,9 @@ const day = today.toLocaleDateString("en-US",{ weekday:"long" });
 const dateKey = getStorageDateKey(today);
 
 let data = JSON.parse(localStorage.getItem("attendance")) || { totals:{}, history:{}, locks:{} };
+
+// LOAD TIMETABLE (Custom or Default)
+let timetable = JSON.parse(localStorage.getItem("custom_timetable")) || JSON.parse(JSON.stringify(defaultTimetable));
 
 // --- CORE FUNCTIONS ---
 function save(){ localStorage.setItem("attendance",JSON.stringify(data)); }
@@ -324,14 +383,17 @@ function resetAll(){
 
 function getAllSubjects() {
   const set = new Set();
+  // Get from dynamic timetable
   Object.values(timetable).flat().forEach(x => set.add(x[1]));
   return [...set].sort();
 }
+
 function initExtra(){
   const subjects = getAllSubjects();
   document.getElementById("extraSubject").innerHTML = subjects.map(s=>`<option>${s}</option>`).join("");
 }
 
+// --- PAST ATTENDANCE ---
 let pastBuffer = [], pastDateKey = "", pastDay = "";
 function loadPastTimetable(){
   const input = document.getElementById("pastDate");
@@ -347,7 +409,7 @@ function loadPastTimetable(){
   pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
   if(data.history[pastDateKey]){ container.innerHTML = "Attendance already exists for this date 🚫"; return; }
   
-  const lectures = timetable[pastDay] || []; 
+  const lectures = timetable[pastDay] || []; // Use dynamic timetable
   if(lectures.length === 0){ container.innerHTML = "No lectures scheduled on this day 😴"; }
   
   lectures.forEach(([time,subject])=>{
@@ -440,7 +502,7 @@ function showSubjectWise(){
   result.innerHTML += `</div>`;
 }
 function exportBackup(){
-  const backup = { version: 5, timestamp: new Date().toISOString(), data: data };
+  const backup = { version: 6, timestamp: new Date().toISOString(), data: data };
   const blob = new Blob([JSON.stringify(backup, null, 2)],{ type: "application/json" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `attendance_backup_${dateKey}.json`; a.click(); URL.revokeObjectURL(a.href);
 }
@@ -453,6 +515,77 @@ document.getElementById("importFile").addEventListener("change", function(e){
     } catch(err){ alert("Error importing ❌"); }
   }; reader.readAsText(file);
 });
+
+// --- SETTINGS MODAL LOGIC ---
+const modal = document.getElementById("settingsModal");
+function openSettings() {
+  modal.style.display = "flex";
+  document.getElementById("editDaySelect").value = day; // Default to today
+  renderEditRows();
+}
+function closeSettings() { modal.style.display = "none"; }
+
+function renderEditRows() {
+  const selectedDay = document.getElementById("editDaySelect").value;
+  const container = document.getElementById("editContainer");
+  container.innerHTML = "";
+  
+  const lectures = timetable[selectedDay] || [];
+  lectures.forEach((lec, index) => {
+    container.innerHTML += `
+      <div class="edit-row">
+        <input type="text" class="edit-input time-input" value="${lec[0]}" id="time_${index}">
+        <input type="text" class="edit-input sub-input" value="${lec[1]}" id="sub_${index}">
+        <button class="del-row-btn" onclick="delEditRow(${index})">🗑</button>
+      </div>
+    `;
+  });
+}
+
+function addEditRow() {
+  const selectedDay = document.getElementById("editDaySelect").value;
+  timetable[selectedDay] ??= [];
+  timetable[selectedDay].push(["00:00-00:00", "New Subject"]);
+  renderEditRows();
+}
+
+function delEditRow(index) {
+  const selectedDay = document.getElementById("editDaySelect").value;
+  timetable[selectedDay].splice(index, 1);
+  renderEditRows();
+}
+
+function saveNewTimetable() {
+  const selectedDay = document.getElementById("editDaySelect").value;
+  const container = document.getElementById("editContainer");
+  const rows = container.querySelectorAll(".edit-row");
+  const newDaySchedule = [];
+
+  rows.forEach((row, index) => {
+    const t = document.getElementById(`time_${index}`).value;
+    const s = document.getElementById(`sub_${index}`).value;
+    if(t && s) newDaySchedule.push([t, s]);
+  });
+
+  timetable[selectedDay] = newDaySchedule;
+  localStorage.setItem("custom_timetable", JSON.stringify(timetable));
+  alert(`Saved timetable for ${selectedDay} ✅`);
+  
+  // Re-render main app with changes
+  initExtra(); // Update dropdowns
+  render();
+  // Don't close modal so user can edit other days
+}
+
+function restoreDefaultTimetable() {
+  if(confirm("⚠ Are you sure? This will reset all timetable edits to the original default.")){
+    localStorage.removeItem("custom_timetable");
+    timetable = JSON.parse(JSON.stringify(defaultTimetable));
+    alert("Timetable restored to default 🔄");
+    location.reload();
+  }
+}
+
 function render(){
   showWeekendMessage(day);
   document.getElementById("today").innerText = `${day} | ${formatDateDDMMYYYY(dateKey)}`;
@@ -465,6 +598,7 @@ function render(){
   }
 }
 
+// APP START
 initExtra();
 render();
 </script>
