@@ -123,14 +123,50 @@ body {
 .cancelled { background: #334155; color: var(--text-muted); }
 .note-btn { background: transparent; color: var(--text-muted); border: 1px solid #334155; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-/* --- TOAST NOTIFICATIONS --- */
+/* --- FORM ELEMENTS (New Professional Dropdowns) --- */
+select, input {
+    width: 100%;
+    padding: 12px 14px;
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    color: white;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    /* Custom Dropdown Arrow */
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 0.7em auto;
+    padding-right: 2.5rem;
+}
+select:focus, input:focus {
+    border-color: var(--accent);
+}
+input[type="date"] {
+    /* Fix for date picker icon on some browsers */
+    background-image: none; 
+}
+/* Remove default arrow for Inputs that aren't select (if needed) */
+input { background-image: none; }
+
+
+.btn-block { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
+.btn-primary { background: var(--accent); color: white; }
+.btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); }
+.btn-secondary { background: #334155; color: white; }
+
+/* --- TOAST & MODALS --- */
 #toastBox { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 3000; display: flex; flex-direction: column; gap: 10px; align-items: center; width: 90%; max-width: 350px; pointer-events: none; }
 .toast { background: #1e293b; color: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; font-size: 14px; animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid #334155; pointer-events: auto; }
 .toast.success { border-left: 4px solid var(--green); }
 .toast.error { border-left: 4px solid var(--red); }
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-/* --- CUSTOM CONFIRM MODAL --- */
 .confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 4000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
 .confirm-box { background: #1e293b; width: 85%; max-width: 320px; padding: 24px; border-radius: 16px; text-align: center; border: 1px solid #475569; animation: popIn 0.2s ease-out; }
 .confirm-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
@@ -138,7 +174,7 @@ body {
 .confirm-actions { display: flex; gap: 12px; }
 @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-/* --- SUMMARY & OTHER --- */
+/* --- SUMMARY --- */
 .summary-item { display: flex; flex-direction: column; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #334155; }
 .summary-item:last-child { border-bottom: none; }
 .summary-header { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
@@ -147,11 +183,8 @@ body {
 .status-msg { font-size: 11px; margin-top: 6px; font-weight: 500; opacity: 0.9; display: flex; align-items: center; gap: 4px; }
 .overall-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); text-align: center; border: 1px solid #475569; padding: 20px; }
 .overall-percent { font-size: 36px; font-weight: 800; margin: 10px 0; letter-spacing: -1px; }
-select, input { width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; margin-bottom: 10px; font-size: 14px; outline: none; }
-.btn-block { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
-.btn-primary { background: var(--accent); color: white; }
-.btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); }
-.btn-secondary { background: #334155; color: white; }
+
+/* --- UTILS --- */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
 .modal-content { background: #1e293b; width: 90%; max-width: 400px; max-height: 85vh; border-radius: 16px; padding: 24px; overflow-y: auto; border: 1px solid #475569; }
 .task-item { background: #0f172a; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-left: 3px solid var(--yellow); }
