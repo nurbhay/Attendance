@@ -322,6 +322,12 @@ input:focus { border-color: var(--accent); }
             <span class="icon-close"></span>
         </button>
     </div>
+
+    <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">TARGET ATTENDANCE (%)</label>
+    <div style="display:flex; gap:10px; margin-bottom: 24px; margin-top: 8px;">
+        <input type="number" id="targetInput" placeholder="75" style="margin-bottom:0;" min="1" max="100">
+        <button class="btn-primary" style="padding: 0 20px; border-radius:8px; border:none; font-weight:600;" onclick="saveTargetSettings()">Save</button>
+    </div>
     <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">NOTIFICATIONS</label>
     <button class="btn-block" style="background: #0ea5e9; color: white; margin-bottom: 24px;" onclick="requestNotificationPermission()">Enable Daily Reminders</button>
     
@@ -491,7 +497,9 @@ function closePasswordModal() {
 
 // --- LOGIC ---
 const PASSWORD = "Nir@2006";
-const MIN_ATTENDANCE = 75; 
+// CHANGED: Load target from storage, default to 75 if not set
+let MIN_ATTENDANCE = parseInt(localStorage.getItem("target_percent")) || 75;
+
 const defaultTimetable = {
   Monday: [ ["11:00-12:00","Introduction to Cyber Law"], ["12:00-01:00","Artificial Intelligence"], ["01:30-03:30","Operating Systems Lab"], ["03:30-04:30","Operating Systems"], ["04:30-05:30","Entrepreneurship and Start-ups"] ],
   Tuesday: [ ["11:00-12:00","Introduction to Cyber Law"], ["12:00-01:00","Theory of Computation"], ["01:30-03:30","Artificial Intelligence Lab"], ["03:30-04:30","Operating Systems"], ["04:30-05:30","Business Communication"] ],
@@ -671,7 +679,7 @@ function renderSummary(){
   const overall = tt ? Math.round((tp / tt) * 100) : 0;
   let overallColor = "text-green"; if(overall < MIN_ATTENDANCE) overallColor = "text-red"; else if(overall < MIN_ATTENDANCE + 10) overallColor = "text-yellow";
   let overallMsg = "";
-  if(tt>0 && overall < MIN_ATTENDANCE){ const overallNeeded = Math.ceil( (target * tt - tp) / (1 - target) ); overallMsg = `Attend next ${overallNeeded} to hit 75%`; } 
+  if(tt>0 && overall < MIN_ATTENDANCE){ const overallNeeded = Math.ceil( (target * tt - tp) / (1 - target) ); overallMsg = `Attend next ${overallNeeded} to hit ${MIN_ATTENDANCE}%`; } 
   else if (tt>0) { const overallBunk = Math.floor((tp / target) - tt); if(overallBunk > 0) overallMsg = `Can bunk ${overallBunk} in total`; }
   div.innerHTML = `<div class="overall-card card"><div style="font-size:12px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Overall Attendance</div><div class="overall-percent ${overallColor}">${overall}%</div><div style="font-size:13px; color:#94a3b8;">${overallMsg}</div></div>` + div.innerHTML;
 }
@@ -698,7 +706,9 @@ function triggerReset(){
       if(input.value === PASSWORD) {
           closePasswordModal();
           showConfirm("Factory Reset?", "All data will be lost permanently.", () => {
-              localStorage.removeItem("attendance"); location.reload();
+              localStorage.removeItem("attendance"); 
+              localStorage.removeItem("target_percent"); // Clear target too
+              location.reload();
           });
       } else {
           showToast("Wrong Password", "error");
@@ -958,7 +968,36 @@ document.getElementById("importFile").addEventListener("change", function(e){
 
 // SETTINGS & CHART
 const modal = document.getElementById("settingsModal");
-function openSettings() { modal.style.display = "flex"; document.getElementById("editDaySelect").value = day; renderEditRows(); setupCustomSelects(); }
+
+// CHANGED: ADDED TARGET LOGIC
+function saveTargetSettings() {
+    const input = document.getElementById("targetInput");
+    const val = parseInt(input.value);
+    
+    if (!val || val < 1 || val > 100) {
+        showToast("Enter 1-100 only", "error");
+        return;
+    }
+
+    MIN_ATTENDANCE = val;
+    localStorage.setItem("target_percent", val);
+    
+    // Re-render everything to update colors and "bunk" math immediately
+    render(); 
+    closeSettings();
+    showToast(`Target set to ${val}%`);
+}
+
+function openSettings() { 
+    modal.style.display = "flex"; 
+    // CHANGED: Pre-fill current target
+    document.getElementById("targetInput").value = MIN_ATTENDANCE;
+    
+    document.getElementById("editDaySelect").value = day; 
+    renderEditRows(); 
+    setupCustomSelects(); 
+}
+
 function closeSettings() { modal.style.display = "none"; }
 function renderEditRows() {
   const selectedDay = document.getElementById("editDaySelect").value;
