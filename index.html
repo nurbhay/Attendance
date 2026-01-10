@@ -8,6 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
 <link rel="apple-touch-icon" href="icon.png">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body { font-family: Arial, sans-serif; background: #0f172a; color: #e5e7eb; margin: 0; padding: 10px; }
@@ -17,7 +18,7 @@ button { margin: 4px; padding: 6px 10px; border: none; border-radius: 5px; curso
 .present { background: #16a34a; color: white; }
 .absent { background: #dc2626; color: white; }
 .cancelled { background: #6b7280; color: white; }
-.note-btn { background: #f59e0b; color: #1e293b; font-weight: bold; } /* New Note Button */
+.note-btn { background: #f59e0b; color: #1e293b; font-weight: bold; }
 .locked { opacity: 0.6; pointer-events: none; }
 select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .reset-btn { background: #7c2d12; color: white; width: 100%; padding: 10px; margin-top: 20px; }
@@ -129,6 +130,13 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 </div>
 
 <div class="card">
+  <h3>📉 30-Day Trend</h3>
+  <div style="height:200px;">
+    <canvas id="attendanceChart"></canvas>
+  </div>
+</div>
+
+<div class="card">
   <h3 onclick="toggleUndo()" style="cursor:pointer;">🕘 Undo Attendance (Today Only) ▼</h3>
   <div id="undoSection" style="display:none;"></div>
 </div>
@@ -190,7 +198,6 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 const PASSWORD = "Nir@2006";
 const MIN_ATTENDANCE = 75; 
 
-// --- DEFAULT TIMETABLE ---
 const defaultTimetable = {
   Monday: [
     ["11:00-12:00","Introduction to Cyber Law"],
@@ -227,12 +234,10 @@ const defaultTimetable = {
   ]
 };
 
-// --- PWA INIT ---
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js").catch(e=>console.log(e));
 }
 
-// --- LOAD DATA ---
 function getStorageDateKey(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -244,14 +249,11 @@ const today = new Date();
 const day = today.toLocaleDateString("en-US",{ weekday:"long" });
 const dateKey = getStorageDateKey(today);
 
-// Data now includes 'tasks'
 let data = JSON.parse(localStorage.getItem("attendance")) || { totals:{}, history:{}, locks:{}, tasks:[] };
-// Ensure tasks array exists for old users
 if(!data.tasks) data.tasks = [];
 
 let timetable = JSON.parse(localStorage.getItem("custom_timetable")) || JSON.parse(JSON.stringify(defaultTimetable));
 
-// --- CORE FUNCTIONS ---
 function save(){ localStorage.setItem("attendance",JSON.stringify(data)); }
 
 function loadLectures(){
@@ -262,7 +264,6 @@ function loadLectures(){
     const locked = data.locks[lockKey];
     const div = document.createElement("div");
     div.className = "card lecture-card"+(locked?"locked":"");
-    // Added Note Button
     div.innerHTML = `<b>${time}</b><br>${subject}<br>
       <button class="present">Present</button>
       <button class="absent">Absent</button>
@@ -279,77 +280,39 @@ function loadLectures(){
       }
     }
     
-    // Add Event Listeners
     const btns = div.querySelectorAll("button");
     btns[0].onclick = ()=>markAttendance(subject, time, "Present");
     btns[1].onclick = ()=>markAttendance(subject, time, "Absent");
     btns[2].onclick = ()=>markAttendance(subject, time, "Cancelled");
-    btns[3].onclick = (e)=>{ 
-        e.stopPropagation(); // Prevent triggering other things
-        addNote(subject); 
-    };
-
+    btns[3].onclick = (e)=>{ e.stopPropagation(); addNote(subject); };
     container.appendChild(div);
   });
 }
 
-// --- NEW NOTE FUNCTIONS ---
 function addNote(subject) {
     const text = prompt(`Add a note for ${subject}:\n(e.g., "Assignment due Monday")`);
     if(text) {
-        data.tasks.push({
-            id: Date.now(),
-            text: text,
-            subject: subject,
-            date: dateKey,
-            done: false
-        });
-        save();
-        renderTasks();
+        data.tasks.push({ id: Date.now(), text: text, subject: subject, date: dateKey, done: false });
+        save(); renderTasks();
     }
 }
-
 function renderTasks() {
     const container = document.getElementById("taskList");
     const card = document.getElementById("taskCard");
     container.innerHTML = "";
-    
-    // Filter out deleted tasks
     const activeTasks = data.tasks; 
-
-    if(activeTasks.length === 0) {
-        card.style.display = "none";
-        return;
-    }
-    
+    if(activeTasks.length === 0) { card.style.display = "none"; return; }
     card.style.display = "block";
     activeTasks.forEach((task, index) => {
         container.innerHTML += `
             <div class="task-item ${task.done ? 'task-done' : ''}" onclick="toggleTask(${index})">
-                <div class="task-text">
-                    ${task.text}
-                    <span class="task-sub">${task.subject} • ${formatDateDDMMYYYY(task.date)}</span>
-                </div>
+                <div class="task-text">${task.text}<span class="task-sub">${task.subject} • ${formatDateDDMMYYYY(task.date)}</span></div>
                 <button class="del-task-btn" onclick="deleteTask(event, ${index})">✖</button>
-            </div>
-        `;
+            </div>`;
     });
 }
-
-function toggleTask(index) {
-    data.tasks[index].done = !data.tasks[index].done;
-    save();
-    renderTasks();
-}
-
-function deleteTask(e, index) {
-    e.stopPropagation(); // Prevent toggling
-    if(confirm("Delete this note?")) {
-        data.tasks.splice(index, 1);
-        save();
-        renderTasks();
-    }
-}
+function toggleTask(index) { data.tasks[index].done = !data.tasks[index].done; save(); renderTasks(); }
+function deleteTask(e, index) { e.stopPropagation(); if(confirm("Delete this note?")) { data.tasks.splice(index, 1); save(); renderTasks(); } }
 
 function markAttendance(subject,time,status){
   const key = dateKey+"_"+subject+"_"+time;
@@ -467,13 +430,11 @@ function getAllSubjects() {
   Object.values(timetable).flat().forEach(x => set.add(x[1]));
   return [...set].sort();
 }
-
 function initExtra(){
   const subjects = getAllSubjects();
   document.getElementById("extraSubject").innerHTML = subjects.map(s=>`<option>${s}</option>`).join("");
 }
 
-// --- PAST ATTENDANCE ---
 let pastBuffer = [], pastDateKey = "", pastDay = "";
 function loadPastTimetable(){
   const input = document.getElementById("pastDate");
@@ -488,10 +449,8 @@ function loadPastTimetable(){
   pastDateKey = val;
   pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
   if(data.history[pastDateKey]){ container.innerHTML = "Attendance already exists for this date 🚫"; return; }
-  
   const lectures = timetable[pastDay] || []; 
   if(lectures.length === 0){ container.innerHTML = "No lectures scheduled on this day 😴"; }
-  
   lectures.forEach(([time,subject])=>{
     const div = document.createElement("div");
     div.className = "card";
@@ -582,7 +541,7 @@ function showSubjectWise(){
   result.innerHTML += `</div>`;
 }
 function exportBackup(){
-  const backup = { version: 7, timestamp: new Date().toISOString(), data: data };
+  const backup = { version: 8, timestamp: new Date().toISOString(), data: data };
   const blob = new Blob([JSON.stringify(backup, null, 2)],{ type: "application/json" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `attendance_backup_${dateKey}.json`; a.click(); URL.revokeObjectURL(a.href);
 }
@@ -596,15 +555,10 @@ document.getElementById("importFile").addEventListener("change", function(e){
   }; reader.readAsText(file);
 });
 
-// --- SETTINGS MODAL LOGIC ---
+// SETTINGS & CHART
 const modal = document.getElementById("settingsModal");
-function openSettings() {
-  modal.style.display = "flex";
-  document.getElementById("editDaySelect").value = day;
-  renderEditRows();
-}
+function openSettings() { modal.style.display = "flex"; document.getElementById("editDaySelect").value = day; renderEditRows(); }
 function closeSettings() { modal.style.display = "none"; }
-
 function renderEditRows() {
   const selectedDay = document.getElementById("editDaySelect").value;
   const container = document.getElementById("editContainer");
@@ -616,21 +570,11 @@ function renderEditRows() {
         <input type="text" class="edit-input time-input" value="${lec[0]}" id="time_${index}">
         <input type="text" class="edit-input sub-input" value="${lec[1]}" id="sub_${index}">
         <button class="del-row-btn" onclick="delEditRow(${index})">🗑</button>
-      </div>
-    `;
+      </div>`;
   });
 }
-function addEditRow() {
-  const selectedDay = document.getElementById("editDaySelect").value;
-  timetable[selectedDay] ??= [];
-  timetable[selectedDay].push(["00:00-00:00", "New Subject"]);
-  renderEditRows();
-}
-function delEditRow(index) {
-  const selectedDay = document.getElementById("editDaySelect").value;
-  timetable[selectedDay].splice(index, 1);
-  renderEditRows();
-}
+function addEditRow() { const selectedDay = document.getElementById("editDaySelect").value; timetable[selectedDay] ??= []; timetable[selectedDay].push(["00:00-00:00", "New Subject"]); renderEditRows(); }
+function delEditRow(index) { const selectedDay = document.getElementById("editDaySelect").value; timetable[selectedDay].splice(index, 1); renderEditRows(); }
 function saveNewTimetable() {
   const selectedDay = document.getElementById("editDaySelect").value;
   const container = document.getElementById("editContainer");
@@ -643,16 +587,104 @@ function saveNewTimetable() {
   });
   timetable[selectedDay] = newDaySchedule;
   localStorage.setItem("custom_timetable", JSON.stringify(timetable));
-  alert(`Saved timetable for ${selectedDay} ✅`);
-  initExtra(); render();
+  alert(`Saved timetable for ${selectedDay} ✅`); initExtra(); render();
 }
 function restoreDefaultTimetable() {
   if(confirm("⚠ Are you sure? This will reset all timetable edits.")){
     localStorage.removeItem("custom_timetable");
     timetable = JSON.parse(JSON.stringify(defaultTimetable));
-    alert("Timetable restored to default 🔄");
-    location.reload();
+    alert("Timetable restored to default 🔄"); location.reload();
   }
+}
+
+// --- CHART LOGIC ---
+let chartInstance = null;
+function renderChart() {
+  // Reconstruct history
+  const dates = Object.keys(data.history).sort();
+  // We need current total P and T
+  let currentP = 0, currentT = 0;
+  for(let s in data.totals){ currentP += data.totals[s].p; currentT += data.totals[s].t; }
+
+  // We will build the chart backwards from today
+  const chartData = [];
+  const chartLabels = [];
+  
+  // Create a copy to manipulate
+  let tempP = currentP;
+  let tempT = currentT;
+
+  // Add Today (Snapshot)
+  if(tempT > 0) {
+      chartData.push(Math.round((tempP/tempT)*100));
+      chartLabels.push(formatDateDDMMYYYY(dateKey).slice(0,5)); // DD/MM
+  }
+
+  // Go backwards through history keys to find previous percentages
+  // Limiting to last 30 entries for readability
+  const relevantDates = dates.filter(d => d !== dateKey).reverse().slice(0, 30);
+
+  relevantDates.forEach(d => {
+      // Calculate what P and T were *before* this day happened
+      // So we subtract this day's events from the totals
+      const dayEvents = data.history[d];
+      dayEvents.forEach(evt => {
+          if(evt.status !== "Cancelled"){
+              tempT--;
+              if(evt.status === "Present") tempP--;
+          }
+      });
+      
+      // Calculate % at end of that day
+      if(tempT > 0) {
+          chartData.push(Math.round((tempP/tempT)*100));
+          chartLabels.push(formatDateDDMMYYYY(d).slice(0,5));
+      }
+  });
+
+  // Since we processed backwards, reverse to show chronological order
+  chartData.reverse();
+  chartLabels.reverse();
+
+  const ctx = document.getElementById('attendanceChart');
+  if(!ctx) return;
+
+  if(chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartLabels,
+      datasets: [{
+        label: 'Overall %',
+        data: chartData,
+        borderColor: '#22c55e',
+        backgroundColor: 'rgba(34, 197, 94, 0.2)',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { 
+            beginAtZero: false, 
+            min: 50, 
+            max: 100,
+            grid: { color: '#334155' },
+            ticks: { color: '#9ca3af' }
+        },
+        x: {
+            grid: { display: false },
+            ticks: { color: '#9ca3af' }
+        }
+      },
+      plugins: {
+          legend: { display: false }
+      }
+    }
+  });
 }
 
 function render(){
@@ -660,13 +692,13 @@ function render(){
   document.getElementById("today").innerText = `${day} | ${formatDateDDMMYYYY(dateKey)}`;
   loadLectures(); 
   renderSummary();
-  renderTasks(); // Render pending tasks
+  renderTasks(); 
+  renderChart(); // Draw graph
 
   const noExtraKey = dateKey + "_NO_EXTRA";
   if(data.locks[noExtraKey]){
     document.getElementById("extraSubject").disabled = true;
     document.querySelectorAll(".card button").forEach(btn=>{ 
-        // Keep note button enabled, disable others
         if(btn.innerText.includes("Present") || btn.innerText.includes("Absent") || btn.innerText.includes("No Extra")){ 
             btn.disabled = true; 
         } 
