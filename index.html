@@ -3,9 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Attendance Tracker (Stable)</title>
+<title>Smart Attendance Tracker</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<link rel="apple-touch-icon" href="icon.png">
 
 <style>
+/* ... SAME STYLES AS BEFORE ... */
 body { font-family: Arial, sans-serif; background: #0f172a; color: #e5e7eb; margin: 0; padding: 10px; }
 h1, h2 { text-align: center; }
 .card { background: #1e293b; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
@@ -15,10 +20,7 @@ button { margin: 4px; padding: 6px 10px; border: none; border-radius: 5px; curso
 .cancelled { background: #6b7280; color: white; }
 .locked { opacity: 0.6; pointer-events: none; }
 select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
-.history { font-size: 14px; }
 .reset-btn { background: #7c2d12; color: white; width: 100%; padding: 10px; margin-top: 20px; }
-
-/* SUMMARY UI */
 .summary-item { padding: 12px 0; border-bottom: 1px solid #334155; }
 .summary-item:last-child { border-bottom: none; }
 .subject-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
@@ -30,15 +32,11 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .progress-green { background: #22c55e; }
 .progress-yellow { background: #facc15; }
 .progress-red { background: #ef4444; }
-
-/* BUNK STATUS MESSAGES */
 .status-msg { font-size: 12px; margin-top: 5px; font-weight: 600; letter-spacing: 0.3px; }
 .msg-safe { color: #4ade80; } 
 .msg-danger { color: #f87171; } 
 .msg-warning { color: #facc15; }
 .msg-cancelled { color: #9ca3af; }
-
-/* OVERALL BAR */
 .overall-container { margin-top: 22px; padding: 14px; background: linear-gradient(135deg, #020617, #0f172a); border-radius: 12px; border: 1px solid #334155; }
 .overall-title { text-align: center; font-size: 14px; color: #cbd5f5; margin-bottom: 8px; letter-spacing: 0.5px; }
 .overall-bar-bg { width: 100%; height: 16px; background: #334155; border-radius: 10px; overflow: hidden; }
@@ -50,8 +48,6 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .overall-green-text { color: #22c55e; }
 .overall-yellow-text { color: #facc15; }
 .overall-red-text { color: #ef4444; }
-
-/* LECTURE CARDS */
 .lecture-card { position: relative; transition: background 0.2s ease, opacity 0.2s ease; }
 .lecture-card.locked { opacity: 0.75; }
 .lecture-card::before { content: ""; position: absolute; left: 0; top: 0; width: 5px; height: 100%; border-radius: 8px 0 0 8px; background: transparent; }
@@ -59,8 +55,6 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
 .lecture-absent::before { background: #ef4444; }
 .lecture-cancelled::before { background: #9ca3af; }
 .status-label { margin-top: 6px; font-size: 12px; font-weight: bold; }
-
-/* DETAIL VIEW */
 .detail-item { padding: 6px 0; border-bottom: 1px solid #334155; font-size: 14px; }
 .status-Present { color: #22c55e; font-weight: bold; }
 .status-Absent { color: #ef4444; font-weight: bold; }
@@ -166,6 +160,13 @@ const timetable = {
   ]
 };
 
+// --- PWA SERVICE WORKER REGISTRATION ---
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js")
+    .then(() => console.log("App Installed Ready!"))
+    .catch((err) => console.log("SW Fail", err));
+}
+
 // --- DATA INITIALIZATION ---
 function getStorageDateKey(date) {
   const y = date.getFullYear();
@@ -186,7 +187,6 @@ function save(){ localStorage.setItem("attendance",JSON.stringify(data)); }
 function loadLectures(){
   const container = document.getElementById("lectures");
   container.innerHTML = "";
-
   (timetable[day] || []).forEach(([time,subject])=>{
     const lockKey = dateKey+"_"+subject+"_"+time;
     const locked = data.locks[lockKey];
@@ -206,9 +206,7 @@ function loadLectures(){
         div.innerHTML += `<div class="status-label">${entry.status === "Present" ? "✔ Present" : entry.status === "Absent" ? "✖ Absent" : "⏸ Cancelled"}</div>`;
       }
     }
-    div.querySelectorAll("button").forEach(btn=>{
-      btn.onclick = ()=>markAttendance(subject, time, btn.innerText);
-    });
+    div.querySelectorAll("button").forEach(btn=>{ btn.onclick = ()=>markAttendance(subject, time, btn.innerText); });
     container.appendChild(div);
   });
 }
@@ -257,32 +255,20 @@ function renderSummary(){
     if(percent < MIN_ATTENDANCE) colorClass = "progress-red";
     else if(percent < MIN_ATTENDANCE + 10) colorClass = "progress-yellow";
 
-    // Subject Bunk Logic
     let statusMsg = "", statusClass = "";
     if (t > 0) {
         if (percent >= MIN_ATTENDANCE) {
             const bunkable = Math.floor((p / target) - t);
-            if(bunkable > 0){
-                statusMsg = `🎉 You can bunk <b>${bunkable}</b> classes safely.`;
-                statusClass = "msg-safe";
-            } else {
-                if(percent === 100){
-                   statusMsg = `💯 Perfect! Attend more to build a buffer.`;
-                   statusClass = "msg-safe";
-                } else {
-                   statusMsg = `⚠ On the edge! Don't miss next class.`;
-                   statusClass = "msg-warning";
-                }
+            if(bunkable > 0){ statusMsg = `🎉 You can bunk <b>${bunkable}</b> classes safely.`; statusClass = "msg-safe"; } 
+            else { 
+               if(percent === 100){ statusMsg = `💯 Perfect! Attend more to build a buffer.`; statusClass = "msg-safe"; }
+               else { statusMsg = `⚠ On the edge! Don't miss next class.`; statusClass = "msg-warning"; }
             }
         } else {
             const needed = Math.ceil( (target * t - p) / (1 - target) );
-            statusMsg = `🚨 Attend next <b>${needed}</b> classes to hit ${MIN_ATTENDANCE}%.`;
-            statusClass = "msg-danger";
+            statusMsg = `🚨 Attend next <b>${needed}</b> classes to hit ${MIN_ATTENDANCE}%.`; statusClass = "msg-danger";
         }
-    } else {
-        statusMsg = "No classes yet.";
-        statusClass = "msg-cancelled";
-    }
+    } else { statusMsg = "No classes yet."; statusClass = "msg-cancelled"; }
 
     div.innerHTML += `
       <div class="summary-item">
@@ -292,39 +278,26 @@ function renderSummary(){
       </div>`;
   }
 
-  // Overall Section
   const overall = tt ? Math.round((tp / tt) * 100) : 0;
   let overallBarClass = "overall-green";
   let overallTextClass = "overall-green-text";
   if(overall < MIN_ATTENDANCE){ overallBarClass = "overall-red"; overallTextClass = "overall-red-text"; }
   else if(overall < MIN_ATTENDANCE + 10){ overallBarClass = "overall-yellow"; overallTextClass = "overall-yellow-text"; }
 
-  // Overall Bunk Logic
   let overallStatusMsg = "", overallStatusClass = "";
   if(tt > 0){
       if(overall >= MIN_ATTENDANCE){
           const overallBunkable = Math.floor((tp / target) - tt);
-          if(overallBunkable > 0){
-              overallStatusMsg = `🎉 You can bunk <b>${overallBunkable}</b> classes in total.`;
-              overallStatusClass = "msg-safe";
-          } else {
-              if(overall === 100){
-                  overallStatusMsg = `💯 Perfect aggregate! Keep it up.`;
-                  overallStatusClass = "msg-safe";
-              } else {
-                  overallStatusMsg = `⚠ Aggregate on the edge! Don't miss any class.`;
-                  overallStatusClass = "msg-warning";
-              }
+          if(overallBunkable > 0){ overallStatusMsg = `🎉 You can bunk <b>${overallBunkable}</b> classes in total.`; overallStatusClass = "msg-safe"; } 
+          else { 
+              if(overall === 100){ overallStatusMsg = `💯 Perfect aggregate! Keep it up.`; overallStatusClass = "msg-safe"; }
+              else { overallStatusMsg = `⚠ Aggregate on the edge! Don't miss any class.`; overallStatusClass = "msg-warning"; }
           }
       } else {
           const overallNeeded = Math.ceil( (target * tt - tp) / (1 - target) );
-          overallStatusMsg = `🚨 Attend next <b>${overallNeeded}</b> classes to hit ${MIN_ATTENDANCE}% aggregate.`;
-          overallStatusClass = "msg-danger";
+          overallStatusMsg = `🚨 Attend next <b>${overallNeeded}</b> classes to hit ${MIN_ATTENDANCE}% aggregate.`; overallStatusClass = "msg-danger";
       }
-  } else {
-      overallStatusMsg = "Start marking attendance to see predictions.";
-      overallStatusClass = "msg-cancelled";
-  }
+  } else { overallStatusMsg = "Start marking attendance to see predictions."; overallStatusClass = "msg-cancelled"; }
 
   div.innerHTML += `
     <div class="overall-container">
@@ -339,19 +312,14 @@ function undo(d,i){
   const h = data.history[d][i];
   const key = d+"_"+h.subject+"_"+h.time;
   delete data.locks[key];
-  if(h.status!=="Cancelled"){
-    data.totals[h.subject].t--;
-    if(h.status==="Present") data.totals[h.subject].p--;
-  }
-  data.history[d].splice(i,1);
-  save(); render();
+  if(h.status!=="Cancelled"){ data.totals[h.subject].t--; if(h.status==="Present") data.totals[h.subject].p--; }
+  data.history[d].splice(i,1); save(); render();
 }
 
 function resetAll(){
   const pass = prompt("Enter reset password:");
   if(pass!==PASSWORD) return alert("Wrong password 😈");
-  localStorage.removeItem("attendance");
-  location.reload();
+  localStorage.removeItem("attendance"); location.reload();
 }
 
 function getAllSubjects() {
@@ -359,36 +327,27 @@ function getAllSubjects() {
   Object.values(timetable).flat().forEach(x => set.add(x[1]));
   return [...set].sort();
 }
-
 function initExtra(){
   const subjects = getAllSubjects();
   document.getElementById("extraSubject").innerHTML = subjects.map(s=>`<option>${s}</option>`).join("");
 }
 
-// --- PAST ATTENDANCE (CRASH FIXED) ---
 let pastBuffer = [], pastDateKey = "", pastDay = "";
-
 function loadPastTimetable(){
   const input = document.getElementById("pastDate");
   const val = input.value;
   const container = document.getElementById("pastLectures");
   const extraDiv = document.getElementById("pastExtra");
-
   container.innerHTML = ""; extraDiv.innerHTML = ""; pastBuffer = [];
-
   if(!val) return;
   const selectedDate = new Date(val);
   const todayDate = new Date(today.toDateString());
-
   if(selectedDate >= todayDate){ alert("Only past dates allowed bro 😑"); input.value = ""; return; }
   pastDateKey = val;
   pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
-
   if(data.history[pastDateKey]){ container.innerHTML = "Attendance already exists for this date 🚫"; return; }
   
-  // FIX: Handle Weekends (Undefined Timetable)
   const lectures = timetable[pastDay] || []; 
-  
   if(lectures.length === 0){ container.innerHTML = "No lectures scheduled on this day 😴"; }
   
   lectures.forEach(([time,subject])=>{
@@ -405,20 +364,17 @@ function loadPastTimetable(){
     });
     container.appendChild(div);
   });
-
   const allSubjects = getAllSubjects();
   extraDiv.innerHTML = `<h4>➕ Extra Lecture</h4>
     <select id="pastExtraSubject">${allSubjects.map(s=>`<option>${s}</option>`).join("")}</select><br>
     <button class="present" onclick="addPastExtra('Present')">Present</button>
     <button class="absent" onclick="addPastExtra('Absent')">Absent</button>`;
 }
-
 function addPastExtra(status){
   const subject = document.getElementById("pastExtraSubject").value;
   if(pastBuffer.find(x=>x.subject===subject && x.time==="Extra")){ alert("Extra lecture already added 😤"); return; }
   pastBuffer.push({subject, time:"Extra", status});
 }
-
 function savePastAttendance(){
   if(!pastDateKey || !pastBuffer.length){ alert("Nothing to save bro 😶"); return; }
   if(data.history[pastDateKey]){ alert("Attendance for this date already exists ❌"); return; }
@@ -427,15 +383,10 @@ function savePastAttendance(){
     const lockKey = pastDateKey+"_"+h.subject+"_"+h.time;
     data.locks[lockKey] = true;
     data.history[pastDateKey].push(h);
-    if(h.status !== "Cancelled"){
-      data.totals[h.subject] ??= {p:0,t:0};
-      data.totals[h.subject].t++;
-      if(h.status==="Present") data.totals[h.subject].p++;
-    }
+    if(h.status !== "Cancelled"){ data.totals[h.subject] ??= {p:0,t:0}; data.totals[h.subject].t++; if(h.status==="Present") data.totals[h.subject].p++; }
   });
   save(); alert("Past attendance saved 🔒"); location.reload();
 }
-
 function toggleUndo(){
   const sec = document.getElementById("undoSection");
   sec.style.display = sec.style.display === "none" ? "block" : "none";
@@ -446,29 +397,19 @@ function toggleUndo(){
     div.innerHTML += `<div class="detail-item"><b>${h.subject}</b> | ${h.time} | <span class="status-${h.status}">${h.status}</span> <button onclick="undo('${dateKey}',${i})">Undo</button></div>`;
   });
 }
-
-function lockNoExtra(){
-  const key = dateKey + "_NO_EXTRA";
-  if(data.locks[key]) return;
-  data.locks[key] = true; save(); render();
-}
-
+function lockNoExtra(){ const key = dateKey + "_NO_EXTRA"; if(data.locks[key]) return; data.locks[key] = true; save(); render(); }
 function getDayName(dateStr){ const d = new Date(dateStr + "T00:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("en-US", { weekday: "long" }); }
 function formatDateDDMMYYYY(isoDate){ if(!isoDate) return ""; const [y, m, d] = isoDate.split("-"); return `${d}/${m}/${y}`; }
-
 function showWeekendMessage(day){
   const statusDiv = document.getElementById("dayStatus");
-  if(day === "Saturday" || day === "Sunday"){
-    statusDiv.innerHTML = `<span style="background:#facc15;color:#1f2933;padding:4px 10px;border-radius:12px;font-size:13px;font-weight:bold;">🟡 Weekend</span><div style="margin-top:6px;color:#9ca3af;">😴 No lectures scheduled for today</div>`;
-  } else { statusDiv.innerHTML = ""; }
+  if(day === "Saturday" || day === "Sunday"){ statusDiv.innerHTML = `<span style="background:#facc15;color:#1f2933;padding:4px 10px;border-radius:12px;font-size:13px;font-weight:bold;">🟡 Weekend</span><div style="margin-top:6px;color:#9ca3af;">😴 No lectures scheduled for today</div>`; } 
+  else { statusDiv.innerHTML = ""; }
 }
-
 function renderDetailView(){
   const mode = document.getElementById("viewMode").value;
   const filter = document.getElementById("filterArea");
   const result = document.getElementById("detailResult");
   filter.innerHTML = ""; result.innerHTML = "";
-
   if(mode === "date"){
     const dates = Object.keys(data.history).sort().reverse();
     if(!dates.length){ result.innerText = "No data yet 😴"; return; }
@@ -480,7 +421,6 @@ function renderDetailView(){
     filter.innerHTML = `<select id="subjectSelect" onchange="showSubjectWise()"><option value="">Select Subject</option>${subjects.map(s=>`<option value="${s}">${s}</option>`).join("")}</select>`;
   }
 }
-
 function showDateWise(){
   const d = document.getElementById("dateSelect").value;
   if(!d || !data.history[d]) return;
@@ -489,29 +429,21 @@ function showDateWise(){
   data.history[d].forEach(h=>{ result.innerHTML += `<div class="detail-item"><b>${h.subject}</b> | ${h.time} | <span class="status-${h.status}">${h.status}</span></div>`; });
   result.innerHTML += `</div>`;
 }
-
 function showSubjectWise(){
   const sub = document.getElementById("subjectSelect").value;
   if(!sub) return;
   const result = document.getElementById("detailResult");
   result.innerHTML = `<div class="detail-list">`;
   Object.keys(data.history).sort().reverse().forEach(d=>{
-    data.history[d].forEach(h=>{
-      if(h.subject === sub){ result.innerHTML += `<div class="detail-item"><b>${formatDateDDMMYYYY(d)} (${getDayName(d)})</b> | ${h.time} | <span class="status-${h.status}">${h.status}</span></div>`; }
-    });
+    data.history[d].forEach(h=>{ if(h.subject === sub){ result.innerHTML += `<div class="detail-item"><b>${formatDateDDMMYYYY(d)} (${getDayName(d)})</b> | ${h.time} | <span class="status-${h.status}">${h.status}</span></div>`; } });
   });
   result.innerHTML += `</div>`;
 }
-
 function exportBackup(){
   const backup = { version: 5, timestamp: new Date().toISOString(), data: data };
   const blob = new Blob([JSON.stringify(backup, null, 2)],{ type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `attendance_backup_${dateKey}.json`;
-  a.click(); URL.revokeObjectURL(a.href);
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `attendance_backup_${dateKey}.json`; a.click(); URL.revokeObjectURL(a.href);
 }
-
 document.getElementById("importFile").addEventListener("change", function(e){
   const file = e.target.files[0]; if(!file) return;
   const reader = new FileReader();
@@ -521,7 +453,6 @@ document.getElementById("importFile").addEventListener("change", function(e){
     } catch(err){ alert("Error importing ❌"); }
   }; reader.readAsText(file);
 });
-
 function render(){
   showWeekendMessage(day);
   document.getElementById("today").innerText = `${day} | ${formatDateDDMMYYYY(dateKey)}`;
@@ -529,17 +460,13 @@ function render(){
   const noExtraKey = dateKey + "_NO_EXTRA";
   if(data.locks[noExtraKey]){
     document.getElementById("extraSubject").disabled = true;
-    document.querySelectorAll(".card button").forEach(btn=>{
-      if(btn.innerText.includes("Present") || btn.innerText.includes("Absent") || btn.innerText.includes("No Extra")){ btn.disabled = true; }
-    });
+    document.querySelectorAll(".card button").forEach(btn=>{ if(btn.innerText.includes("Present") || btn.innerText.includes("Absent") || btn.innerText.includes("No Extra")){ btn.disabled = true; } });
     document.getElementById("extraInfo").innerText = "✔ No extra lectures confirmed for today";
   }
 }
 
-// START APP
 initExtra();
 render();
 </script>
-
 </body>
 </html>
