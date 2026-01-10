@@ -6,43 +6,19 @@
 <title>Smart Attendance Tracker</title>
 
 <style>
-body{
-  font-family: Arial, sans-serif;
-  background:#0f172a;
-  color:#e5e7eb;
-  margin:0;
-  padding:12px;
-}
-h2,h3{margin:6px 0;}
-.card{
-  background:#020617;
-  border-radius:10px;
-  padding:12px;
-  margin-bottom:12px;
-}
-button{
-  padding:6px 10px;
-  border:none;
-  border-radius:6px;
-  margin:4px;
-  cursor:pointer;
-}
-.present{background:#22c55e;}
-.absent{background:#ef4444;}
-.cancelled{background:#6b7280;}
-.locked{opacity:.6;pointer-events:none;}
-.progress-bg{background:#334155;height:10px;border-radius:8px;overflow:hidden;}
-.progress-fill{height:100%;transition:width .4s, background .4s;}
-.green{background:#22c55e;}
-.yellow{background:#facc15;}
-.red{background:#ef4444;}
-select,input[type="date"]{
-  padding:6px;
-  border-radius:6px;
-  border:none;
-  margin-top:6px;
-  width:100%;
-}
+body{font-family:Arial;background:#0f172a;color:#e5e7eb;margin:0;padding:12px}
+.card{background:#020617;border-radius:10px;padding:12px;margin-bottom:12px}
+button{padding:6px 10px;border:none;border-radius:6px;margin:4px;cursor:pointer}
+.present{background:#22c55e}
+.absent{background:#ef4444}
+.cancelled{background:#6b7280}
+.locked{opacity:.6;pointer-events:none}
+select,input[type=date]{padding:6px;border-radius:6px;border:none;width:100%}
+.progress-bg{background:#334155;height:10px;border-radius:8px;overflow:hidden}
+.progress-fill{height:100%;transition:width .4s,background .4s}
+.green{background:#22c55e}
+.yellow{background:#facc15}
+.red{background:#ef4444}
 </style>
 </head>
 
@@ -53,161 +29,147 @@ select,input[type="date"]{
 <div class="card" id="todayInfo"></div>
 
 <div class="card">
-  <h3>📚 Today’s Lectures</h3>
-  <div id="lectures"></div>
+<h3>📚 Today’s Lectures</h3>
+<div id="lectures"></div>
 </div>
 
 <div class="card">
-  <h3>➕ Extra Lecture</h3>
-  <select id="extraSubject"></select><br>
-  <button class="present" onclick="markExtra('Present')">Present</button>
-  <button class="absent" onclick="markExtra('Absent')">Absent</button>
-  <button onclick="lockExtra()">No Extra Lecture</button>
+<h3>➕ Extra Lecture</h3>
+<select id="extraSubject"></select><br>
+<button class="present" onclick="markExtra('Present')">Present</button>
+<button class="absent" onclick="markExtra('Absent')">Absent</button>
+<button onclick="lockExtra()">No Extra Lecture</button>
 </div>
 
 <div class="card">
-  <h3>📈 Attendance Summary</h3>
-  <div id="summary"></div>
+<h3>📈 Attendance Summary</h3>
+<div id="summary"></div>
 </div>
 
 <div class="card">
-  <h3>🔍 Detailed Attendance</h3>
-  <select id="viewMode" onchange="renderDetailView()">
-    <option value="date">Date Wise</option>
-    <option value="subject">Subject Wise</option>
-  </select>
-  <div id="filterArea"></div>
-  <div id="detailResult"></div>
+<h3>🔍 Detailed Attendance</h3>
+<select id="viewMode" onchange="renderDetailView()">
+<option value="date">Date Wise</option>
+<option value="subject">Subject Wise</option>
+</select>
+<div id="filterArea"></div>
+<div id="detailResult"></div>
 </div>
 
 <div class="card">
-  <h3>⏪ Add Past Attendance</h3>
-  <input type="date" id="pastDate"><br>
-  <div id="pastLectures"></div>
-  <button onclick="savePastAttendance()">Save Past Attendance</button>
+<h3>⏪ Add Past Attendance</h3>
+<input type="date" id="pastDate">
+<div id="pastLectures"></div>
+<button onclick="savePastAttendance()">Save Past Attendance</button>
 </div>
 
 <div class="card">
-  <h3>💾 Backup</h3>
-  <button onclick="exportBackup()">Export Backup</button>
-  <input type="file" id="importFile" hidden>
-  <button onclick="document.getElementById('importFile').click()">Import Backup</button>
+<h3>💾 Backup</h3>
+<button onclick="exportBackup()">Export Backup</button>
+<input type="file" id="importFile" hidden>
+<button onclick="document.getElementById('importFile').click()">Import Backup</button>
 </div>
 
 <script>
-/* ================= CORE UTIL ================= */
-
+/* ===== DATE KEY (SINGLE SOURCE OF TRUTH) ===== */
 function makeDateKey(d){
-  const dt = (d instanceof Date)? d : new Date(d);
+  const dt = (d instanceof Date) ? d : new Date(d);
   return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
 }
-function displayDate(d){
-  const dt=new Date(d);
-  return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',weekday:'long'});
+function displayDate(k){
+  const d=new Date(k);
+  return d.toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit",year:"numeric",weekday:"long"});
 }
 
-/* ================= DATA ================= */
-
+/* ===== DATA ===== */
 let data = JSON.parse(localStorage.getItem("attendanceData")) || {
   totals:{}, history:{}, locks:{}, extra:{}
 };
-
 function save(){localStorage.setItem("attendanceData",JSON.stringify(data));}
 
-/* ================= TIMETABLE ================= */
-
+/* ===== TIMETABLE ===== */
 const timetable={
-  Monday:[
-    ["11:00-12:00","Cyber Law"],
-    ["12:00-01:00","AI"]
-  ],
-  Tuesday:[
-    ["11:00-12:00","Cyber Law"]
-  ]
+  Monday:[["11:00-12:00","Cyber Law"],["12:00-01:00","AI"]],
+  Tuesday:[["11:00-12:00","Cyber Law"]]
 };
 
 const today=new Date();
 const day=today.toLocaleDateString("en-US",{weekday:"long"});
 const dateKey=makeDateKey(today);
 
-/* ================= TODAY ================= */
-
+/* ===== TODAY INFO ===== */
 document.getElementById("todayInfo").innerHTML=
-  timetable[day]? `📅 ${displayDate(dateKey)}` :
-  `🟡 Weekend<br>No lectures today`;
+  timetable[day]?`📅 ${displayDate(dateKey)}`:`🟡 Weekend<br>No lectures today`;
 
+/* ===== LOAD LECTURES ===== */
 function loadLectures(){
   const box=document.getElementById("lectures");
   box.innerHTML="";
-  (timetable[day]||[]).forEach(([time,sub])=>{
-    const key=`${dateKey}_${sub}_${time}`;
-    const locked=data.locks[key];
-    const div=document.createElement("div");
-    div.className="card"+(locked?" locked":"");
-    div.innerHTML=`<b>${time}</b> - ${sub}<br>
+  (timetable[day]||[]).forEach(([t,s])=>{
+    const k=`${dateKey}_${s}_${t}`;
+    const locked=data.locks[k];
+    const d=document.createElement("div");
+    d.className="card"+(locked?" locked":"");
+    d.innerHTML=`<b>${t}</b> ${s}<br>
       <button class="present">Present</button>
       <button class="absent">Absent</button>
       <button class="cancelled">Cancelled</button>`;
-    div.querySelectorAll("button").forEach(b=>{
-      b.onclick=()=>markAttendance(sub,time,b.innerText);
+    d.querySelectorAll("button").forEach(b=>{
+      b.onclick=()=>markAttendance(s,t,b.innerText);
     });
-    box.appendChild(div);
+    box.appendChild(d);
   });
 }
 
-/* ================= MARK ================= */
-
-function markAttendance(sub,time,status){
-  const key=`${dateKey}_${sub}_${time}`;
-  if(data.locks[key])return;
-  data.locks[key]=true;
+/* ===== MARK ===== */
+function markAttendance(s,t,st){
+  const k=`${dateKey}_${s}_${t}`;
+  if(data.locks[k])return;
+  data.locks[k]=true;
   data.history[dateKey]??=[];
-  data.history[dateKey].push({subject:sub,time,status});
-  if(status!=="Cancelled"){
-    data.totals[sub]??={p:0,t:0};
-    data.totals[sub].t++;
-    if(status==="Present")data.totals[sub].p++;
+  data.history[dateKey].push({subject:s,time:t,status:st});
+  if(st!=="Cancelled"){
+    data.totals[s]??={p:0,t:0};
+    data.totals[s].t++;
+    if(st==="Present")data.totals[s].p++;
   }
   save();loadLectures();renderSummary();
 }
 
-/* ================= SUMMARY ================= */
-
+/* ===== SUMMARY ===== */
 function renderSummary(){
   const s=document.getElementById("summary");
   s.innerHTML="";
   let tp=0,tt=0;
   Object.entries(data.totals).forEach(([k,v])=>{
-    const per=Math.round(v.p/v.t*100);
+    const p=Math.round(v.p/v.t*100);
     tp+=v.p;tt+=v.t;
-    const c=per<60?"red":per<75?"yellow":"green";
-    s.innerHTML+=`${k} ${v.p}/${v.t} (${per}%)<div class="progress-bg">
-      <div class="progress-fill ${c}" style="width:${per}%"></div></div><br>`;
+    const c=p<60?"red":p<75?"yellow":"green";
+    s.innerHTML+=`${k} ${v.p}/${v.t} (${p}%)<div class="progress-bg">
+      <div class="progress-fill ${c}" style="width:${p}%"></div></div><br>`;
   });
-  const o=tt?Math.round(tp/tt*100):0;
-  s.innerHTML+=`<b>Overall: ${o}%</b>`;
+  if(tt) s.innerHTML+=`<b>Overall ${Math.round(tp/tt*100)}%</b>`;
 }
 
-/* ================= DETAIL VIEW ================= */
-
+/* ===== DETAIL VIEW (UNCHANGED LOGIC) ===== */
 function renderDetailView(){
   const mode=document.getElementById("viewMode").value;
   const f=document.getElementById("filterArea");
   const r=document.getElementById("detailResult");
   f.innerHTML="";r.innerHTML="";
   if(mode==="date"){
-    const dates=Object.keys(data.history);
-    if(!dates.length){r.innerText="No data";return;}
+    const d=Object.keys(data.history);
+    if(!d.length){r.innerText="No data";return;}
     f.innerHTML=`<select onchange="showDateWise(this.value)">
       <option value="">Select Date</option>
-      ${dates.map(d=>`<option value="${d}">${displayDate(d)}</option>`).join("")}
+      ${d.map(x=>`<option value="${x}">${displayDate(x)}</option>`).join("")}
     </select>`;
   }else{
-    const subs=Object.keys(data.totals);
-    if(!subs.length){r.innerText="No data";return;}
+    const s=Object.keys(data.totals);
+    if(!s.length){r.innerText="No data";return;}
     f.innerHTML=`<select onchange="showSubjectWise(this.value)">
       <option value="">Select Subject</option>
-      ${subs.map(s=>`<option>${s}</option>`).join("")}
+      ${s.map(x=>`<option>${x}</option>`).join("")}
     </select>`;
   }
 }
@@ -215,23 +177,20 @@ function showDateWise(d){
   if(!d)return;
   const r=document.getElementById("detailResult");
   r.innerHTML=`<b>${displayDate(d)}</b><br>`;
-  data.history[d].forEach(h=>{
-    r.innerHTML+=`${h.subject} ${h.time} - ${h.status}<br>`;
-  });
+  data.history[d].forEach(h=>r.innerHTML+=`${h.subject} ${h.time} - ${h.status}<br>`);
 }
 function showSubjectWise(s){
   if(!s)return;
   const r=document.getElementById("detailResult");
   r.innerHTML="";
-  Object.entries(data.history).forEach(([d,list])=>{
-    list.filter(h=>h.subject===s).forEach(h=>{
+  Object.entries(data.history).forEach(([d,l])=>{
+    l.filter(h=>h.subject===s).forEach(h=>{
       r.innerHTML+=`${displayDate(d)} ${h.time} - ${h.status}<br>`;
     });
   });
 }
 
-/* ================= PAST ================= */
-
+/* ===== PAST ATTENDANCE (FIXED) ===== */
 let pastBuffer=[],pastDateKey="";
 document.getElementById("pastDate").onchange=e=>{
   pastDateKey=makeDateKey(e.target.value);
@@ -242,8 +201,8 @@ document.getElementById("pastDate").onchange=e=>{
   pastBuffer=[];
   const box=document.getElementById("pastLectures");
   box.innerHTML="";
-  (timetable[new Date(pastDateKey).toLocaleDateString("en-US",{weekday:"long"})]||[])
-  .forEach(([t,s])=>{
+  const wd=new Date(pastDateKey).toLocaleDateString("en-US",{weekday:"long"});
+  (timetable[wd]||[]).forEach(([t,s])=>{
     const d=document.createElement("div");
     d.innerHTML=`${t} ${s}
       <button class="present">Present</button>
@@ -258,7 +217,10 @@ document.getElementById("pastDate").onchange=e=>{
 
 function savePastAttendance(){
   if(!pastDateKey||!pastBuffer.length)return;
-  if(data.history[pastDateKey]){alert("Already exists");return;}
+  if(data.history[pastDateKey]){
+    alert("Attendance already exists for this date");
+    return;
+  }
   data.history[pastDateKey]=[];
   pastBuffer.forEach(h=>{
     data.history[pastDateKey].push(h);
@@ -271,20 +233,18 @@ function savePastAttendance(){
   save();location.reload();
 }
 
-/* ================= BACKUP ================= */
-
+/* ===== BACKUP ===== */
 function exportBackup(){
-  const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+  const b=new Blob([JSON.stringify(data)],{type:"application/json"});
   const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
+  a.href=URL.createObjectURL(b);
   a.download="attendance_backup.json";
   a.click();
 }
 document.getElementById("importFile").onchange=e=>{
-  const f=e.target.files[0];
   const r=new FileReader();
   r.onload=()=>{data=JSON.parse(r.result);save();location.reload();};
-  r.readAsText(f);
+  r.readAsText(e.target.files[0]);
 };
 
 /* INIT */
