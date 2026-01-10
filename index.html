@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Attendance Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Attendance Pro</title>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
@@ -11,180 +11,297 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body { font-family: Arial, sans-serif; background: #0f172a; color: #e5e7eb; margin: 0; padding: 10px; }
-h1, h2 { text-align: center; }
-.card { background: #1e293b; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
-button { margin: 4px; padding: 6px 10px; border: none; border-radius: 5px; cursor: pointer; }
-.present { background: #16a34a; color: white; }
-.absent { background: #dc2626; color: white; }
-.cancelled { background: #6b7280; color: white; }
-.note-btn { background: #f59e0b; color: #1e293b; font-weight: bold; }
-.locked { opacity: 0.6; pointer-events: none; }
-select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
-.reset-btn { background: #7c2d12; color: white; width: 100%; padding: 10px; margin-top: 20px; }
+:root {
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #3b82f6;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --nav-height: 60px;
+}
 
-/* HEADER */
-.header-container { display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 10px; }
-.settings-btn { position: absolute; right: 0; top: 0; background: none; font-size: 24px; cursor: pointer; padding: 5px; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-main);
+    margin: 0;
+    padding: 0;
+    padding-bottom: 80px; /* Space for bottom nav */
+    padding-top: 60px;    /* Space for header */
+}
 
-/* MODAL STYLES */
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
-.modal-content { background: #1e293b; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; max-height: 85vh; overflow-y: auto; border: 1px solid #334155; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.close-modal { background: none; font-size: 24px; color: #ef4444; cursor: pointer; }
-.edit-row { display: flex; gap: 5px; margin-bottom: 8px; align-items: center; }
-.edit-input { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px; border-radius: 5px; width: 100%; }
-.time-input { width: 35%; }
-.sub-input { width: 65%; }
-.del-row-btn { background: #ef4444; color: white; padding: 5px 10px; font-size: 12px; }
-.add-row-btn { background: #2563eb; color: white; width: 100%; padding: 8px; margin-top: 10px; }
-.save-btn { background: #16a34a; color: white; width: 100%; padding: 10px; margin-top: 10px; font-weight: bold; }
-.restore-btn { background: #64748b; color: white; width: 100%; padding: 8px; margin-top: 20px; font-size: 12px; }
-.notify-btn { background: #0ea5e9; color: white; width: 100%; padding: 10px; margin-top: 10px; font-weight: bold; }
+/* --- APP BAR --- */
+.app-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 100;
+    border-bottom: 1px solid #334155;
+}
+.app-title { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+.settings-btn { background: none; border: none; font-size: 22px; cursor: pointer; padding: 5px; }
 
-/* TASK LIST */
-.task-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 8px; margin-bottom: 6px; border-radius: 6px; border-left: 4px solid #f59e0b; }
-.task-text { font-size: 14px; flex-grow: 1; margin-right: 10px; }
-.task-sub { font-size: 11px; color: #9ca3af; display: block; margin-top: 2px; }
-.task-done { opacity: 0.5; text-decoration: line-through; border-left-color: #16a34a; }
-.del-task-btn { background: none; color: #ef4444; font-size: 16px; padding: 0 5px; }
+/* --- NAVIGATION --- */
+.bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--nav-height);
+    background: #1e293b;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid #334155;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 33%;
+}
+.nav-item.active { color: var(--accent); }
+.nav-icon { font-size: 20px; margin-bottom: 2px; }
 
-/* SUMMARY & BARS */
-.summary-item { padding: 12px 0; border-bottom: 1px solid #334155; }
-.summary-item:last-child { border-bottom: none; }
-.subject-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
-.subject-name { font-weight: 600; color: #e5e7eb; }
-.subject-stats { color: #9ca3af; font-size: 13px; }
-.progress-wrap { margin-top: 6px; }
-.progress-bar-bg { width: 100%; height: 10px; background: #334155; border-radius: 6px; overflow: hidden; }
-.progress-bar-fill { height: 100%; border-radius: 6px; transition: width 0.3s ease; }
-.progress-green { background: #22c55e; }
-.progress-yellow { background: #facc15; }
-.progress-red { background: #ef4444; }
+/* --- TABS --- */
+.tab-content { display: none; padding: 15px; animation: fadeIn 0.3s ease; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-.status-msg { font-size: 12px; margin-top: 5px; font-weight: 600; letter-spacing: 0.3px; }
-.msg-safe { color: #4ade80; } 
-.msg-danger { color: #f87171; } 
-.msg-warning { color: #facc15; }
-.msg-cancelled { color: #9ca3af; }
+/* --- CARDS --- */
+.card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #334155;
+}
+.card h3 { margin: 0 0 12px 0; font-size: 16px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
 
-.overall-container { margin-top: 22px; padding: 14px; background: linear-gradient(135deg, #020617, #0f172a); border-radius: 12px; border: 1px solid #334155; }
-.overall-title { text-align: center; font-size: 14px; color: #cbd5f5; margin-bottom: 8px; letter-spacing: 0.5px; }
-.overall-bar-bg { width: 100%; height: 16px; background: #334155; border-radius: 10px; overflow: hidden; }
-.overall-bar-fill { height: 100%; border-radius: 10px; transition: width 0.4s ease, background 0.4s ease; }
-.overall-percent { margin-top: 8px; text-align: center; font-size: 18px; font-weight: bold; }
-.overall-green { background: linear-gradient(90deg, #22c55e, #4ade80); }
-.overall-yellow { background: linear-gradient(90deg, #facc15, #fde047); }
-.overall-red { background: linear-gradient(90deg, #ef4444, #f87171); }
-.overall-green-text { color: #22c55e; }
-.overall-yellow-text { color: #facc15; }
-.overall-red-text { color: #ef4444; }
+/* --- LECTURE CARDS --- */
+.lecture-card {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding-left: 12px;
+}
+.lecture-card::before {
+    content: ""; position: absolute; left: 0; top: 16px; bottom: 16px; width: 4px;
+    background: #475569; border-radius: 4px; transition: background 0.3s;
+}
+.lecture-present::before { background: var(--green); }
+.lecture-absent::before { background: var(--red); }
+.lecture-cancelled::before { background: var(--text-muted); }
+.lecture-card.locked { opacity: 0.6; pointer-events: none; }
 
-.lecture-card { position: relative; transition: background 0.2s ease, opacity 0.2s ease; }
-.lecture-card.locked { opacity: 0.75; }
-.lecture-card::before { content: ""; position: absolute; left: 0; top: 0; width: 5px; height: 100%; border-radius: 8px 0 0 8px; background: transparent; }
-.lecture-present::before { background: #22c55e; }
-.lecture-absent::before { background: #ef4444; }
-.lecture-cancelled::before { background: #9ca3af; }
-.status-label { margin-top: 6px; font-size: 12px; font-weight: bold; }
-.detail-item { padding: 6px 0; border-bottom: 1px solid #334155; font-size: 14px; }
-.status-Present { color: #22c55e; font-weight: bold; }
-.status-Absent { color: #ef4444; font-weight: bold; }
-.status-Cancelled { color: #9ca3af; font-weight: bold; }
+.lec-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+.lec-time { font-size: 12px; color: var(--accent); font-weight: bold; background: rgba(59, 130, 246, 0.1); padding: 2px 8px; border-radius: 12px; }
+.lec-subject { font-size: 16px; font-weight: 600; margin-top: 4px; }
+
+.action-row { display: flex; gap: 8px; margin-top: 5px; }
+.btn-pill {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+.btn-pill:active { transform: scale(0.96); }
+.present { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.2); }
+.absent { background: rgba(239, 68, 68, 0.15); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.2); }
+.cancelled { background: #334155; color: var(--text-muted); }
+.note-btn { width: 40px; background: #f59e0b; color: #fff; border-radius: 8px; border:none; cursor: pointer; display: flex; align-items: center; justify-content: center;}
+
+/* --- SUMMARY --- */
+.summary-item { display: flex; flex-direction: column; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #334155; }
+.summary-header { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+.progress-track { width: 100%; height: 8px; background: #334155; border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+.status-msg { font-size: 11px; margin-top: 4px; font-weight: 500; }
+
+/* --- OVERALL WIDGET --- */
+.overall-card {
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    text-align: center;
+    border: 1px solid #475569;
+}
+.overall-percent { font-size: 32px; font-weight: 800; margin: 10px 0; background: -webkit-linear-gradient(#fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+
+/* --- FORMS & INPUTS --- */
+select, input {
+    width: 100%;
+    padding: 12px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: white;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+.btn-block { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
+.btn-primary { background: var(--accent); color: white; }
+.btn-danger { background: var(--red); color: white; }
+
+/* --- SETTINGS MODAL --- */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+.modal-content { background: #1e293b; width: 90%; max-width: 400px; max-height: 85vh; border-radius: 16px; padding: 20px; overflow-y: auto; border: 1px solid #475569; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
+.edit-row { display: flex; gap: 8px; margin-bottom: 8px; }
+
+/* --- TASKS --- */
+.task-item { background: #0f172a; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-left: 3px solid var(--yellow); }
+.task-done { opacity: 0.5; text-decoration: line-through; border-left-color: var(--green); }
+.del-task-btn { background: none; border: none; color: var(--text-muted); font-size: 18px; }
+
+/* --- COLORS --- */
+.text-green { color: var(--green); }
+.text-red { color: var(--red); }
+.text-yellow { color: var(--yellow); }
+.bg-green { background: var(--green); }
+.bg-red { background: var(--red); }
+.bg-yellow { background: var(--yellow); }
 
 </style>
 </head>
-
 <body>
 
-<div class="header-container">
-  <h1>📊 Attendance</h1>
-  <button class="settings-btn" onclick="openSettings()">⚙️</button>
+<header class="app-header">
+    <div class="app-title">Attendance Pro</div>
+    <button class="settings-btn" onclick="openSettings()">⚙️</button>
+</header>
+
+<div id="reminderAlert" style="display:none; margin: 15px; padding: 12px; background: #be123c; color: white; border-radius: 8px; font-size: 13px; text-align: center;">
+    🔔 <b>Reminder!</b> Mark your attendance for today.
 </div>
 
-<h2 id="today"></h2>
-<div id="dayStatus" style="text-align:center;margin-bottom:10px;"></div>
+<div id="tab-home" class="tab-content active">
+    
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2 id="today" style="font-size: 16px; color: var(--text-muted); margin: 0;"></h2>
+        <div id="dayStatus" style="margin-top: 5px;"></div>
+    </div>
 
-<div id="lectures"></div>
+    <div id="lectures"></div>
 
-<div class="card" id="taskCard" style="display:none;">
-  <h3>📝 Homework & Notes</h3>
-  <div id="taskList"></div>
+    <div class="card" id="taskCard" style="display:none;">
+        <h3>📝 Homework & Tasks</h3>
+        <div id="taskList"></div>
+    </div>
+
 </div>
 
-<div class="card">
-  <h3>➕ Extra Lecture</h3>
-  <select id="extraSubject"></select>
-  <br>
-  <button class="present" onclick="markExtra('Present')">Present</button>
-  <button class="absent" onclick="markExtra('Absent')">Absent</button>
-  <br>
-  <button class="cancelled" onclick="lockNoExtra()">No Extra Lectures</button>
-  <div id="extraInfo" style="font-size:12px;margin-top:6px;"></div>
+<div id="tab-stats" class="tab-content">
+    
+    <div class="card">
+        <h3>📉 30-Day Trend</h3>
+        <div style="height: 200px;">
+            <canvas id="attendanceChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>📊 Subject Summary</h3>
+        <div id="summary"></div>
+    </div>
+
+    <div class="card">
+        <h3>🔍 History Log</h3>
+        <select id="viewMode" onchange="renderDetailView()">
+            <option value="">Select View Mode</option>
+            <option value="date">By Date</option>
+            <option value="subject">By Subject</option>
+        </select>
+        <div id="filterArea"></div>
+        <div id="detailResult" style="margin-top:10px; font-size:13px; color: var(--text-muted);"></div>
+    </div>
+
 </div>
 
-<div class="card">
-  <h3>📈 Attendance Summary</h3>
-  <div id="summary"></div>
+<div id="tab-tools" class="tab-content">
+
+    <div class="card">
+        <h3>➕ Extra Lecture</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: -8px;">Add a class not in your timetable</p>
+        <select id="extraSubject"></select>
+        <div class="action-row">
+            <button class="btn-pill present" onclick="markExtra('Present')">Present</button>
+            <button class="btn-pill absent" onclick="markExtra('Absent')">Absent</button>
+        </div>
+        <button class="btn-block cancelled" style="margin-top:10px; background: #334155; color: #cbd5f5;" onclick="lockNoExtra()">No Extra Classes Today</button>
+        <div id="extraInfo" style="font-size:12px; margin-top:8px; text-align: center; color: var(--green);"></div>
+    </div>
+
+    <div class="card">
+        <h3>📅 Add Past Attendance</h3>
+        <input type="date" id="pastDate" onchange="loadPastTimetable()" />
+        <div id="pastLectures"></div>
+        <div id="pastExtra" style="margin-top:10px;"></div>
+        <button class="btn-block btn-primary" onclick="savePastAttendance()">Save Past Data</button>
+    </div>
+
+    <div class="card">
+        <h3 onclick="toggleUndo()" style="cursor: pointer;">🕘 Undo Today's Entry ▼</h3>
+        <div id="undoSection" style="display:none; margin-top: 10px;"></div>
+    </div>
+
+    <div class="card">
+        <h3>💾 Data Management</h3>
+        <button class="btn-block" style="background: #475569; color: white;" onclick="exportBackup()">⬇ Export Backup File</button>
+        <input type="file" id="importFile" accept=".json" style="display:none">
+        <button class="btn-block" style="background: #475569; color: white;" onclick="document.getElementById('importFile').click()">⬆ Import Backup File</button>
+        
+        <div style="border-top: 1px solid #334155; margin-top: 15px; padding-top: 15px;">
+            <button class="btn-block btn-danger" onclick="resetAll()">⚠️ Factory Reset App</button>
+        </div>
+    </div>
+
 </div>
 
-<div class="card">
-  <h3>📉 30-Day Trend</h3>
-  <div style="height:200px;">
-    <canvas id="attendanceChart"></canvas>
-  </div>
-</div>
-
-<div class="card">
-  <h3 onclick="toggleUndo()" style="cursor:pointer;">🕘 Undo Attendance (Today Only) ▼</h3>
-  <div id="undoSection" style="display:none;"></div>
-</div>
-
-<div class="card">
-  <h3>🔍 Detailed View</h3>
-  <select id="viewMode" onchange="renderDetailView()">
-    <option value="">Select View</option>
-    <option value="date">Date Wise</option>
-    <option value="subject">Subject Wise</option>
-  </select>
-  <div id="filterArea"></div>
-  <div id="detailResult" style="margin-top:10px;font-size:14px;"></div>
-</div>
-
-<div class="card">
-  <h3>🕘 Add Past Attendance</h3>
-  <input type="date" id="pastDate" onchange="loadPastTimetable()" />
-  <div id="pastLectures"></div>
-  <div id="pastExtra" style="margin-top:10px;"></div>
-  <button class="present" onclick="savePastAttendance()">Save Attendance</button>
-</div>
-
-<div class="card">
-  <h3>💾 Backup & Restore</h3>
-  <button onclick="exportBackup()">⬇ Export Backup</button>
-  <input type="file" id="importFile" accept=".json" style="display:none">
-  <button onclick="document.getElementById('importFile').click()">⬆ Import Backup</button>
-</div>
-
-<button class="reset-btn" onclick="resetAll()">RESET ALL DATA</button>
+<nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('home')">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('stats')">
+        <span class="nav-icon">📊</span>
+        <span>Stats</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('tools')">
+        <span class="nav-icon">🛠</span>
+        <span>Tools</span>
+    </button>
+</nav>
 
 <div id="settingsModal" class="modal-overlay">
   <div class="modal-content">
-    <div class="modal-header">
-      <h3>⚙️ Settings</h3>
-      <button class="close-modal" onclick="closeSettings()">✖</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h3 style="margin:0;">⚙️ Settings</h3>
+        <button style="background:none; border:none; font-size:20px; color:var(--red);" onclick="closeSettings()">✖</button>
     </div>
     
-    <label><b>🔔 Notifications:</b></label>
-    <button class="notify-btn" onclick="requestNotificationPermission()">Enable App Notifications</button>
-    <div style="font-size:11px; color:#9ca3af; margin-bottom:15px; margin-top:5px;">
-      *Checks at 5 PM. Works best if app is running in background.
-    </div>
+    <label style="font-size:12px; color:var(--text-muted);">NOTIFICATIONS</label>
+    <button class="btn-block" style="background: #0ea5e9; color: white; margin-bottom: 20px;" onclick="requestNotificationPermission()">🔔 Enable Daily Reminders</button>
 
-    <hr style="border-color:#334155; margin:15px 0;">
-
-    <label><b>Select Day to Edit:</b></label>
-    <select id="editDaySelect" onchange="renderEditRows()">
+    <label style="font-size:12px; color:var(--text-muted);">EDIT TIMETABLE</label>
+    <select id="editDaySelect" onchange="renderEditRows()" style="margin-top: 5px;">
       <option value="Monday">Monday</option>
       <option value="Tuesday">Tuesday</option>
       <option value="Wednesday">Wednesday</option>
@@ -193,18 +310,40 @@ select { padding: 6px; margin-top: 5px; width: 100%; max-width: 300px; }
       <option value="Saturday">Saturday</option>
       <option value="Sunday">Sunday</option>
     </select>
-    <div id="editContainer" style="margin-top:15px;"></div>
-    <button class="add-row-btn" onclick="addEditRow()">+ Add Lecture Slot</button>
-    <button class="save-btn" onclick="saveNewTimetable()">💾 Save Changes</button>
-    <hr style="border-color:#334155; margin:20px 0;">
-    <button class="restore-btn" onclick="restoreDefaultTimetable()">⚠ Restore Default Timetable</button>
+
+    <div id="editContainer"></div>
+
+    <div style="display:flex; gap:10px; margin-top:15px;">
+        <button class="btn-block" style="background:#334155; color:white;" onclick="addEditRow()">+ Slot</button>
+        <button class="btn-block btn-primary" onclick="saveNewTimetable()">Save</button>
+    </div>
+
+    <button class="btn-block" style="background:transparent; border: 1px solid #ef4444; color: #ef4444; margin-top: 20px;" onclick="restoreDefaultTimetable()">Restore Default Timetable</button>
   </div>
 </div>
 
 <script>
+// --- NAVIGATION LOGIC ---
+function switchTab(tabId) {
+    // Hide all contents
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    // Deactivate all nav buttons
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    
+    // Show selected
+    document.getElementById('tab-' + tabId).classList.add('active');
+    // Highlight button (find by onclick attribute is hacky but simple here)
+    const btns = document.querySelectorAll('.nav-item');
+    if(tabId === 'home') btns[0].classList.add('active');
+    if(tabId === 'stats') btns[1].classList.add('active');
+    if(tabId === 'tools') btns[2].classList.add('active');
+}
+
+// --- CONFIGURATION ---
 const PASSWORD = "Nir@2006";
 const MIN_ATTENDANCE = 75; 
 
+// --- DEFAULT TIMETABLE ---
 const defaultTimetable = {
   Monday: [
     ["11:00-12:00","Introduction to Cyber Law"],
@@ -241,16 +380,14 @@ const defaultTimetable = {
   ]
 };
 
+// FORCE UPDATE LOGIC
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js").then(reg => {
     reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // New version found! Force reload.
-          if(confirm("New update available! Reload now?")) {
-            window.location.reload();
-          }
+          if(confirm("New update available! Reload now?")) window.location.reload();
         }
       });
     });
@@ -275,62 +412,40 @@ let timetable = JSON.parse(localStorage.getItem("custom_timetable")) || JSON.par
 
 function save(){ localStorage.setItem("attendance",JSON.stringify(data)); }
 
-// --- NOTIFICATION LOGIC ---
+// NOTIFICATIONS
 function requestNotificationPermission() {
-    if (!("Notification" in window)) {
-        alert("This browser does not support desktop notifications");
-        return;
-    }
+    if (!("Notification" in window)) { alert("Not supported"); return; }
     Notification.requestPermission().then((permission) => {
         if (permission === "granted") {
-            alert("Notifications Enabled! 🔔\n\nThe app will check at 5 PM if you have marked attendance.");
-            // Send a test notification
-            sendNotification("Notifications Setup", "Great! You will be reminded to mark attendance.");
-        } else {
-            alert("Permission Denied 🚫");
-        }
+            alert("Notifications Enabled! 🔔");
+            sendNotification("Setup Complete", "You will be reminded at 5 PM.");
+        } else { alert("Permission Denied 🚫"); }
     });
 }
-
 function sendNotification(title, body) {
     if (Notification.permission === "granted") {
         if(navigator.serviceWorker.controller){
-            navigator.serviceWorker.ready.then(function(registration) {
-                registration.showNotification(title, {
-                    body: body,
-                    icon: 'icon.png',
-                    vibrate: [200, 100, 200]
-                });
-            });
-        } else {
-            new Notification(title, { body: body, icon: 'icon.png' });
-        }
+            navigator.serviceWorker.ready.then(reg => reg.showNotification(title, { body: body, icon: 'icon.png' }));
+        } else { new Notification(title, { body: body, icon: 'icon.png' }); }
     }
 }
-
 function startBackgroundCheck() {
-    // Check every minute
     setInterval(() => {
         const now = new Date();
-        // Check if it's 5:00 PM (17:00)
         if(now.getHours() === 17 && now.getMinutes() === 0) {
-             // Check if weekend
              const d = now.toLocaleDateString("en-US",{ weekday:"long" });
              if(d === "Saturday" || d === "Sunday") return;
-
-             // Check if attendance marked
              const todaysLocks = Object.keys(data.locks).some(k => k.startsWith(dateKey));
-             
-             // If not marked, send notification
              if(!todaysLocks) {
                  sendNotification("Attendance Reminder 🔔", "You haven't marked your attendance today!");
+                 document.getElementById("reminderAlert").style.display = "block";
              }
         }
-    }, 60000); // 60 seconds interval
+    }, 60000);
 }
-// Start the timer when app loads
 startBackgroundCheck();
 
+// LECTURES UI
 function loadLectures(){
   const container = document.getElementById("lectures");
   container.innerHTML = "";
@@ -338,33 +453,46 @@ function loadLectures(){
     const lockKey = dateKey+"_"+subject+"_"+time;
     const locked = data.locks[lockKey];
     const div = document.createElement("div");
-    div.className = "card lecture-card"+(locked?"locked":"");
-    div.innerHTML = `<b>${time}</b><br>${subject}<br>
-      <button class="present">Present</button>
-      <button class="absent">Absent</button>
-      <button class="cancelled">Cancelled</button>
-      <button class="note-btn">📝</button>`;
-
+    div.className = "card lecture-card "+(locked?"locked":"");
+    
+    // Modern Lecture Card Structure
+    let statusHTML = "";
     if(locked && data.history[dateKey]){
       const entry = data.history[dateKey].find(h => h.subject === subject && h.time === time);
       if(entry){
         if(entry.status === "Present") div.classList.add("lecture-present");
         if(entry.status === "Absent") div.classList.add("lecture-absent");
         if(entry.status === "Cancelled") div.classList.add("lecture-cancelled");
-        div.innerHTML += `<div class="status-label">${entry.status === "Present" ? "✔ Present" : entry.status === "Absent" ? "✖ Absent" : "⏸ Cancelled"}</div>`;
+        statusHTML = `<div style="font-size:12px; margin-top:5px; font-weight:bold;">${entry.status === "Present" ? "✔ Present" : entry.status === "Absent" ? "✖ Absent" : "⏸ Cancelled"}</div>`;
       }
     }
+
+    div.innerHTML = `
+        <div class="lec-header">
+            <span class="lec-time">${time}</span>
+            <button class="note-btn">📝</button>
+        </div>
+        <div class="lec-subject">${subject}</div>
+        ${statusHTML}
+        <div class="action-row" style="margin-top:10px;">
+            <button class="btn-pill present">Present</button>
+            <button class="btn-pill absent">Absent</button>
+            <button class="btn-pill cancelled">Off</button>
+        </div>
+    `;
+    
     const btns = div.querySelectorAll("button");
-    btns[0].onclick = ()=>markAttendance(subject, time, "Present");
-    btns[1].onclick = ()=>markAttendance(subject, time, "Absent");
-    btns[2].onclick = ()=>markAttendance(subject, time, "Cancelled");
-    btns[3].onclick = (e)=>{ e.stopPropagation(); addNote(subject); };
+    btns[0].onclick = (e)=>{ e.stopPropagation(); addNote(subject); }; // Note btn
+    btns[1].onclick = ()=>markAttendance(subject, time, "Present");
+    btns[2].onclick = ()=>markAttendance(subject, time, "Absent");
+    btns[3].onclick = ()=>markAttendance(subject, time, "Cancelled");
+    
     container.appendChild(div);
   });
 }
 
 function addNote(subject) {
-    const text = prompt(`Add a note for ${subject}:\n(e.g., "Assignment due Monday")`);
+    const text = prompt(`Add a note for ${subject}:`);
     if(text) {
         data.tasks.push({ id: Date.now(), text: text, subject: subject, date: dateKey, done: false });
         save(); renderTasks();
@@ -380,13 +508,16 @@ function renderTasks() {
     activeTasks.forEach((task, index) => {
         container.innerHTML += `
             <div class="task-item ${task.done ? 'task-done' : ''}" onclick="toggleTask(${index})">
-                <div class="task-text">${task.text}<span class="task-sub">${task.subject} • ${formatDateDDMMYYYY(task.date)}</span></div>
-                <button class="del-task-btn" onclick="deleteTask(event, ${index})">✖</button>
+                <div style="flex:1; margin-right:10px;">
+                    <div style="font-size:14px;">${task.text}</div>
+                    <div style="font-size:11px; color:#9ca3af;">${task.subject} • ${formatDateDDMMYYYY(task.date)}</div>
+                </div>
+                <button class="del-task-btn" onclick="deleteTask(event, ${index})">×</button>
             </div>`;
     });
 }
 function toggleTask(index) { data.tasks[index].done = !data.tasks[index].done; save(); renderTasks(); }
-function deleteTask(e, index) { e.stopPropagation(); if(confirm("Delete this note?")) { data.tasks.splice(index, 1); save(); renderTasks(); } }
+function deleteTask(e, index) { e.stopPropagation(); if(confirm("Delete note?")) { data.tasks.splice(index, 1); save(); renderTasks(); } }
 
 function markAttendance(subject,time,status){
   const key = dateKey+"_"+subject+"_"+time;
@@ -408,7 +539,7 @@ function markExtra(status){
   const subject = document.getElementById("extraSubject").value;
   if(!subject) return; 
   const key = dateKey+"_EXTRA_"+subject;
-  if(data.locks[key]) return alert("Already added bro 😑");
+  if(data.locks[key]) return alert("Already added 😑");
   data.locks[key]=true;
   data.history[dateKey] ??= [];
   data.history[dateKey].push({subject,time:"Extra",status});
@@ -427,56 +558,59 @@ function renderSummary(){
     const { p, t } = data.totals[s];
     const percent = t ? Math.round((p / t) * 100) : 0;
     tp += p; tt += t;
-    let colorClass = "progress-green";
-    if(percent < MIN_ATTENDANCE) colorClass = "progress-red";
-    else if(percent < MIN_ATTENDANCE + 10) colorClass = "progress-yellow";
-    let statusMsg = "", statusClass = "";
+    let colorClass = "bg-green";
+    if(percent < MIN_ATTENDANCE) colorClass = "bg-red";
+    else if(percent < MIN_ATTENDANCE + 10) colorClass = "bg-yellow";
+    
+    let statusMsg = "", statusColor = "text-muted";
     if (t > 0) {
         if (percent >= MIN_ATTENDANCE) {
             const bunkable = Math.floor((p / target) - t);
-            if(bunkable > 0){ statusMsg = `🎉 You can bunk <b>${bunkable}</b> classes safely.`; statusClass = "msg-safe"; } 
+            if(bunkable > 0){ statusMsg = `🎉 Bunk <b>${bunkable}</b> safely`; statusColor = "text-green"; } 
             else { 
-               if(percent === 100){ statusMsg = `💯 Perfect! Attend more to build a buffer.`; statusClass = "msg-safe"; }
-               else { statusMsg = `⚠ On the edge! Don't miss next class.`; statusClass = "msg-warning"; }
+               if(percent === 100){ statusMsg = `💯 Perfect record`; statusColor = "text-green"; }
+               else { statusMsg = `⚠ Don't miss next`; statusColor = "text-yellow"; }
             }
         } else {
             const needed = Math.ceil( (target * t - p) / (1 - target) );
-            statusMsg = `🚨 Attend next <b>${needed}</b> classes to hit ${MIN_ATTENDANCE}%.`; statusClass = "msg-danger";
+            statusMsg = `🚨 Attend next <b>${needed}</b>`; statusColor = "text-red";
         }
-    } else { statusMsg = "No classes yet."; statusClass = "msg-cancelled"; }
+    } else { statusMsg = "No data"; }
+
     div.innerHTML += `
       <div class="summary-item">
-        <div class="subject-row"><div class="subject-name">${s}</div><div class="subject-stats">${p}/${t} (${percent}%)</div></div>
-        <div class="progress-wrap"><div class="progress-bar-bg"><div class="progress-bar-fill ${colorClass}" style="width:${percent}%"></div></div></div>
-        <div class="status-msg ${statusClass}">${statusMsg}</div>
+        <div class="summary-header">
+            <span>${s}</span>
+            <span style="color:#94a3b8">${p}/${t} (${percent}%)</span>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill ${colorClass}" style="width:${percent}%"></div>
+        </div>
+        <div class="status-msg ${statusColor}">${statusMsg}</div>
       </div>`;
   }
   const overall = tt ? Math.round((tp / tt) * 100) : 0;
-  let overallBarClass = "overall-green";
-  let overallTextClass = "overall-green-text";
-  if(overall < MIN_ATTENDANCE){ overallBarClass = "overall-red"; overallTextClass = "overall-red-text"; }
-  else if(overall < MIN_ATTENDANCE + 10){ overallBarClass = "overall-yellow"; overallTextClass = "overall-yellow-text"; }
-  let overallStatusMsg = "", overallStatusClass = "";
-  if(tt > 0){
-      if(overall >= MIN_ATTENDANCE){
-          const overallBunkable = Math.floor((tp / target) - tt);
-          if(overallBunkable > 0){ overallStatusMsg = `🎉 You can bunk <b>${overallBunkable}</b> classes in total.`; overallStatusClass = "msg-safe"; } 
-          else { 
-              if(overall === 100){ overallStatusMsg = `💯 Perfect aggregate! Keep it up.`; overallStatusClass = "msg-safe"; }
-              else { overallStatusMsg = `⚠ Aggregate on the edge! Don't miss any class.`; overallStatusClass = "msg-warning"; }
-          }
-      } else {
-          const overallNeeded = Math.ceil( (target * tt - tp) / (1 - target) );
-          overallStatusMsg = `🚨 Attend next <b>${overallNeeded}</b> classes to hit ${MIN_ATTENDANCE}% aggregate.`; overallStatusClass = "msg-danger";
-      }
-  } else { overallStatusMsg = "Start marking attendance to see predictions."; overallStatusClass = "msg-cancelled"; }
-  div.innerHTML += `
-    <div class="overall-container">
-      <div class="overall-title">OVERALL ATTENDANCE</div>
-      <div class="overall-bar-bg"><div class="overall-bar-fill ${overallBarClass}" style="width:${overall}%"></div></div>
-      <div class="overall-percent ${overallTextClass}">${overall}%</div>
-      <div class="status-msg ${overallStatusClass}" style="text-align:center; margin-top:8px;">${overallStatusMsg}</div>
-    </div>`;
+  let overallColor = "text-green";
+  if(overall < MIN_ATTENDANCE) overallColor = "text-red";
+  else if(overall < MIN_ATTENDANCE + 10) overallColor = "text-yellow";
+
+  let overallMsg = "";
+  if(tt>0 && overall < MIN_ATTENDANCE){
+      const overallNeeded = Math.ceil( (target * tt - tp) / (1 - target) );
+      overallMsg = `Attend next ${overallNeeded} to hit 75%`;
+  } else if (tt>0) {
+      const overallBunk = Math.floor((tp / target) - tt);
+      if(overallBunk > 0) overallMsg = `Can bunk ${overallBunk} in total`;
+  }
+
+  // Prepend Overall Card
+  div.innerHTML = `
+    <div class="overall-card card">
+        <div style="font-size:13px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">Overall Attendance</div>
+        <div class="overall-percent ${overallColor}">${overall}%</div>
+        <div style="font-size:12px; color:#94a3b8;">${overallMsg}</div>
+    </div>
+  ` + div.innerHTML;
 }
 
 function undo(d,i){
@@ -503,6 +637,7 @@ function initExtra(){
   document.getElementById("extraSubject").innerHTML = subjects.map(s=>`<option>${s}</option>`).join("");
 }
 
+// PAST ATTENDANCE
 let pastBuffer = [], pastDateKey = "", pastDay = "";
 function loadPastTimetable(){
   const input = document.getElementById("pastDate");
@@ -513,40 +648,47 @@ function loadPastTimetable(){
   if(!val) return;
   const selectedDate = new Date(val);
   const todayDate = new Date(today.toDateString());
-  if(selectedDate >= todayDate){ alert("Only past dates allowed bro 😑"); input.value = ""; return; }
+  if(selectedDate >= todayDate){ alert("Only past dates allowed"); input.value = ""; return; }
   pastDateKey = val;
   pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
-  if(data.history[pastDateKey]){ container.innerHTML = "Attendance already exists for this date 🚫"; return; }
+  if(data.history[pastDateKey]){ container.innerHTML = "<div style='text-align:center; padding:10px; color:#ef4444;'>Already recorded 🚫</div>"; return; }
   const lectures = timetable[pastDay] || []; 
-  if(lectures.length === 0){ container.innerHTML = "No lectures scheduled on this day 😴"; }
+  if(lectures.length === 0){ container.innerHTML = "<div style='text-align:center; padding:10px;'>No lectures 😴</div>"; }
   lectures.forEach(([time,subject])=>{
     const div = document.createElement("div");
     div.className = "card";
     div.innerHTML = `<b>${subject}</b> (${time})<br>
-      <button class="present">Present</button><button class="absent">Absent</button><button class="cancelled">Cancelled</button>`;
-    div.querySelectorAll("button").forEach(btn=>{
-      btn.onclick = ()=>{
-        pastBuffer = pastBuffer.filter(x=>!(x.subject===subject && x.time===time));
-        pastBuffer.push({ subject, time, status: btn.innerText });
-        div.classList.add("locked");
-      };
-    });
+      <div class="action-row" style="margin-top:10px;">
+        <button class="btn-pill present">Present</button>
+        <button class="btn-pill absent">Absent</button>
+        <button class="btn-pill cancelled">Off</button>
+      </div>`;
+    const btns = div.querySelectorAll("button");
+    btns[0].onclick = ()=>pastMark(subject, time, "Present", div, btns);
+    btns[1].onclick = ()=>pastMark(subject, time, "Absent", div, btns);
+    btns[2].onclick = ()=>pastMark(subject, time, "Cancelled", div, btns);
     container.appendChild(div);
   });
   const allSubjects = getAllSubjects();
-  extraDiv.innerHTML = `<h4>➕ Extra Lecture</h4>
-    <select id="pastExtraSubject">${allSubjects.map(s=>`<option>${s}</option>`).join("")}</select><br>
-    <button class="present" onclick="addPastExtra('Present')">Present</button>
-    <button class="absent" onclick="addPastExtra('Absent')">Absent</button>`;
+  extraDiv.innerHTML = `<h4 style='margin:10px 0;'>➕ Extra Class</h4>
+    <select id="pastExtraSubject">${allSubjects.map(s=>`<option>${s}</option>`).join("")}</select>
+    <div class="action-row"><button class="btn-pill present" onclick="addPastExtra('Present')">Present</button><button class="btn-pill absent" onclick="addPastExtra('Absent')">Absent</button></div>`;
+}
+function pastMark(sub, time, stat, div, btns){
+    pastBuffer = pastBuffer.filter(x=>!(x.subject===sub && x.time===time));
+    pastBuffer.push({ subject: sub, time: time, status: stat });
+    div.style.opacity = "0.5";
+    div.style.border = "1px solid var(--accent)";
 }
 function addPastExtra(status){
   const subject = document.getElementById("pastExtraSubject").value;
-  if(pastBuffer.find(x=>x.subject===subject && x.time==="Extra")){ alert("Extra lecture already added 😤"); return; }
+  if(pastBuffer.find(x=>x.subject===subject && x.time==="Extra")){ alert("Already added"); return; }
   pastBuffer.push({subject, time:"Extra", status});
+  alert("Extra added to buffer");
 }
 function savePastAttendance(){
-  if(!pastDateKey || !pastBuffer.length){ alert("Nothing to save bro 😶"); return; }
-  if(data.history[pastDateKey]){ alert("Attendance for this date already exists ❌"); return; }
+  if(!pastDateKey || !pastBuffer.length){ alert("Nothing to save"); return; }
+  if(data.history[pastDateKey]){ alert("Date exists"); return; }
   data.history[pastDateKey] = [];
   pastBuffer.forEach(h=>{
     const lockKey = pastDateKey+"_"+h.subject+"_"+h.time;
@@ -554,16 +696,16 @@ function savePastAttendance(){
     data.history[pastDateKey].push(h);
     if(h.status !== "Cancelled"){ data.totals[h.subject] ??= {p:0,t:0}; data.totals[h.subject].t++; if(h.status==="Present") data.totals[h.subject].p++; }
   });
-  save(); alert("Past attendance saved 🔒"); location.reload();
+  save(); alert("Saved successfully 🔒"); location.reload();
 }
 function toggleUndo(){
   const sec = document.getElementById("undoSection");
   sec.style.display = sec.style.display === "none" ? "block" : "none";
   const div = document.getElementById("undoSection");
   div.innerHTML = "";
-  if(!data.history[dateKey] || data.history[dateKey].length === 0){ div.innerHTML = "<i>No attendance to undo today</i>"; return; }
+  if(!data.history[dateKey] || data.history[dateKey].length === 0){ div.innerHTML = "<div style='text-align:center; color:#94a3b8;'>Nothing to undo today</div>"; return; }
   data.history[dateKey].forEach((h,i)=>{
-    div.innerHTML += `<div class="detail-item"><b>${h.subject}</b> | ${h.time} | <span class="status-${h.status}">${h.status}</span> <button onclick="undo('${dateKey}',${i})">Undo</button></div>`;
+    div.innerHTML += `<div class="task-item"><span>${h.subject} (${h.status})</span> <button class="del-task-btn" onclick="undo('${dateKey}',${i})">↺</button></div>`;
   });
 }
 function lockNoExtra(){ const key = dateKey + "_NO_EXTRA"; if(data.locks[key]) return; data.locks[key] = true; save(); render(); }
@@ -571,7 +713,7 @@ function getDayName(dateStr){ const d = new Date(dateStr + "T00:00:00"); return 
 function formatDateDDMMYYYY(isoDate){ if(!isoDate) return ""; const [y, m, d] = isoDate.split("-"); return `${d}/${m}/${y}`; }
 function showWeekendMessage(day){
   const statusDiv = document.getElementById("dayStatus");
-  if(day === "Saturday" || day === "Sunday"){ statusDiv.innerHTML = `<span style="background:#facc15;color:#1f2933;padding:4px 10px;border-radius:12px;font-size:13px;font-weight:bold;">🟡 Weekend</span><div style="margin-top:6px;color:#9ca3af;">😴 No lectures scheduled for today</div>`; } 
+  if(day === "Saturday" || day === "Sunday"){ statusDiv.innerHTML = `<span style="background:var(--yellow);color:#1f2933;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:bold;">🟡 Weekend</span>`; } 
   else { statusDiv.innerHTML = ""; }
 }
 function renderDetailView(){
@@ -581,12 +723,12 @@ function renderDetailView(){
   filter.innerHTML = ""; result.innerHTML = "";
   if(mode === "date"){
     const dates = Object.keys(data.history).sort().reverse();
-    if(!dates.length){ result.innerText = "No data yet 😴"; return; }
+    if(!dates.length){ result.innerText = "No data yet"; return; }
     filter.innerHTML = `<select id="dateSelect" onchange="showDateWise()"><option value="">Select Date</option>${dates.map(d=>`<option value="${d}">${formatDateDDMMYYYY(d)}</option>`).join("")}</select>`;
   }
   if(mode === "subject"){
     const subjects = Object.keys(data.totals).sort();
-    if(!subjects.length){ result.innerText = "No data yet 😴"; return; }
+    if(!subjects.length){ result.innerText = "No data yet"; return; }
     filter.innerHTML = `<select id="subjectSelect" onchange="showSubjectWise()"><option value="">Select Subject</option>${subjects.map(s=>`<option value="${s}">${s}</option>`).join("")}</select>`;
   }
 }
@@ -594,65 +736,35 @@ function showDateWise(){
   const d = document.getElementById("dateSelect").value;
   if(!d || !data.history[d]) return;
   const result = document.getElementById("detailResult");
-  result.innerHTML = `<div id="dateHeader" style="margin-bottom:6px;font-weight:bold;">Date: ${formatDateDDMMYYYY(d)} (${getDayName(d)})</div><div class="detail-list">`;
-  data.history[d].forEach(h=>{ result.innerHTML += `<div class="detail-item"><b>${h.subject}</b> | ${h.time} | <span class="status-${h.status}">${h.status}</span></div>`; });
-  result.innerHTML += `</div>`;
+  result.innerHTML = `<div style="margin-bottom:10px; font-weight:bold;">${formatDateDDMMYYYY(d)} (${getDayName(d)})</div>`;
+  data.history[d].forEach(h=>{ result.innerHTML += `<div class="task-item" style="border-left:none;"><span>${h.subject} | ${h.time}</span> <span class="${h.status === 'Present' ? 'text-green' : 'text-red'}">${h.status}</span></div>`; });
 }
 function showSubjectWise(){
   const sub = document.getElementById("subjectSelect").value;
   if(!sub) return;
   const result = document.getElementById("detailResult");
-  result.innerHTML = `<div class="detail-list">`;
+  result.innerHTML = "";
   Object.keys(data.history).sort().reverse().forEach(d=>{
-    data.history[d].forEach(h=>{ if(h.subject === sub){ result.innerHTML += `<div class="detail-item"><b>${formatDateDDMMYYYY(d)} (${getDayName(d)})</b> | ${h.time} | <span class="status-${h.status}">${h.status}</span></div>`; } });
+    data.history[d].forEach(h=>{ if(h.subject === sub){ result.innerHTML += `<div class="task-item" style="border-left:none;"><span>${formatDateDDMMYYYY(d)}</span> <span class="${h.status === 'Present' ? 'text-green' : 'text-red'}">${h.status}</span></div>`; } });
   });
-  result.innerHTML += `</div>`;
 }
 function exportBackup(){
-  const backup = { version: 10, timestamp: new Date().toISOString(), data: data };
+  const backup = { version: 11, timestamp: new Date().toISOString(), data: data };
   const blob = new Blob([JSON.stringify(backup, null, 2)],{ type: "application/json" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `attendance_backup_${dateKey}.json`; a.click(); URL.revokeObjectURL(a.href);
 }
 document.getElementById("importFile").addEventListener("change", function(e){
-  const file = e.target.files[0]; 
-  if(!file) return;
-  
+  const file = e.target.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = function(){
-    try{ 
-      const backup = JSON.parse(reader.result); 
-      
-      // Basic check
-      if(!backup.data){ alert("Invalid backup file ❌"); return; }
-
-      if(!confirm("This will REPLACE current attendance data. Continue?")){ 
-          // Reset file input so you can select the same file again if needed
-          e.target.value = ''; 
-          return; 
-      } 
-      
-      data = backup.data;
-      
-      // --- CRITICAL FIX: Add missing parts for old backups ---
-      if(!data.tasks) data.tasks = [];        // Fixes "Homework" crash
-      if(!data.history) data.history = {};    // Fixes "Graph" crash
-      if(!data.totals) data.totals = {};
-      if(!data.locks) data.locks = {};
-      // -------------------------------------------------------
-
-      save(); 
-      render(); 
-      alert("Backup restored successfully ✅");
-      
-    } catch(err){ 
-      console.error(err); // This helps you see the real error in console if needed
-      alert("Backup restored partially ❌"); 
-    }
-    
-    // Reset file input
+    try{ const backup = JSON.parse(reader.result); if(!backup.data){ alert("Invalid file"); return; }
+      if(!confirm("Replace current data?")){ e.target.value = ''; return; } 
+      data = backup.data; 
+      if(!data.tasks) data.tasks = []; if(!data.history) data.history = {}; if(!data.totals) data.totals = {}; if(!data.locks) data.locks = {};
+      save(); render(); alert("Restored ✅");
+    } catch(err){ console.error(err); alert("Error importing"); }
     e.target.value = '';
-  }; 
-  reader.readAsText(file);
+  }; reader.readAsText(file);
 });
 
 // SETTINGS & CHART
@@ -665,12 +777,7 @@ function renderEditRows() {
   container.innerHTML = "";
   const lectures = timetable[selectedDay] || [];
   lectures.forEach((lec, index) => {
-    container.innerHTML += `
-      <div class="edit-row">
-        <input type="text" class="edit-input time-input" value="${lec[0]}" id="time_${index}">
-        <input type="text" class="edit-input sub-input" value="${lec[1]}" id="sub_${index}">
-        <button class="del-row-btn" onclick="delEditRow(${index})">🗑</button>
-      </div>`;
+    container.innerHTML += `<div class="edit-row"><input type="text" class="edit-input" style="width:30%" value="${lec[0]}" id="time_${index}"><input type="text" class="edit-input" style="width:70%" value="${lec[1]}" id="sub_${index}"><button class="btn-danger" style="padding:0 8px; border-radius:4px; border:none;" onclick="delEditRow(${index})">🗑</button></div>`;
   });
 }
 function addEditRow() { const selectedDay = document.getElementById("editDaySelect").value; timetable[selectedDay] ??= []; timetable[selectedDay].push(["00:00-00:00", "New Subject"]); renderEditRows(); }
@@ -687,13 +794,13 @@ function saveNewTimetable() {
   });
   timetable[selectedDay] = newDaySchedule;
   localStorage.setItem("custom_timetable", JSON.stringify(timetable));
-  alert(`Saved timetable for ${selectedDay} ✅`); initExtra(); render();
+  alert(`Saved timetable for ${selectedDay}`); initExtra(); render();
 }
 function restoreDefaultTimetable() {
-  if(confirm("⚠ Are you sure? This will reset all timetable edits.")){
+  if(confirm("Reset to default timetable?")){
     localStorage.removeItem("custom_timetable");
     timetable = JSON.parse(JSON.stringify(defaultTimetable));
-    alert("Timetable restored to default 🔄"); location.reload();
+    alert("Restored"); location.reload();
   }
 }
 
@@ -709,9 +816,7 @@ function renderChart() {
   const relevantDates = dates.filter(d => d !== dateKey).reverse().slice(0, 30);
   relevantDates.forEach(d => {
       const dayEvents = data.history[d];
-      dayEvents.forEach(evt => {
-          if(evt.status !== "Cancelled"){ tempT--; if(evt.status === "Present") tempP--; }
-      });
+      dayEvents.forEach(evt => { if(evt.status !== "Cancelled"){ tempT--; if(evt.status === "Present") tempP--; } });
       if(tempT > 0) { chartData.push(Math.round((tempP/tempT)*100)); chartLabels.push(formatDateDDMMYYYY(d).slice(0,5)); }
   });
   chartData.reverse(); chartLabels.reverse();
@@ -724,9 +829,10 @@ function renderChart() {
       datasets: [{
         label: 'Overall %',
         data: chartData,
-        borderColor: '#22c55e',
-        backgroundColor: 'rgba(34, 197, 94, 0.2)',
-        tension: 0.3,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.4,
+        pointRadius: 4,
         fill: true
       }]
     },
@@ -734,8 +840,8 @@ function renderChart() {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        y: { beginAtZero: false, min: 50, max: 100, grid: { color: '#334155' }, ticks: { color: '#9ca3af' } },
-        x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
+        y: { beginAtZero: false, min: 50, max: 100, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
       },
       plugins: { legend: { display: false } }
     }
@@ -744,17 +850,17 @@ function renderChart() {
 
 function render(){
   showWeekendMessage(day);
-  document.getElementById("today").innerText = `${day} | ${formatDateDDMMYYYY(dateKey)}`;
+  document.getElementById("today").innerText = `${day}, ${formatDateDDMMYYYY(dateKey)}`;
   loadLectures(); renderSummary(); renderTasks(); renderChart(); 
   const noExtraKey = dateKey + "_NO_EXTRA";
   if(data.locks[noExtraKey]){
     document.getElementById("extraSubject").disabled = true;
     document.querySelectorAll(".card button").forEach(btn=>{ 
-        if(btn.innerText.includes("Present") || btn.innerText.includes("Absent") || btn.innerText.includes("No Extra")){ 
+        if(btn.innerText.includes("Present") || btn.innerText.includes("Absent") || btn.innerText.includes("Off")){ 
             btn.disabled = true; 
         } 
     });
-    document.getElementById("extraInfo").innerText = "✔ No extra lectures confirmed for today";
+    document.getElementById("extraInfo").innerText = "✔ No extra lectures today";
   }
 }
 
