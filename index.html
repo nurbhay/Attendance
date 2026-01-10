@@ -417,9 +417,11 @@ document.querySelectorAll('.icon-gear').forEach(e => e.innerHTML = ICONS.gear);
 // --- CUSTOM DROPDOWN ENGINE ---
 function setupCustomSelects() {
     document.querySelectorAll('.custom-select-source').forEach(select => {
-        if(select.nextElementSibling && select.nextElementSibling.classList.contains('custom-select-wrapper')) return; 
+        // FIXED CHECK: Check if the parent is already a wrapper
+        if (select.parentNode.classList.contains('custom-select-wrapper')) return;
         
         const wrapper = document.createElement('div');
+        // ... rest of the function remains the same
         wrapper.className = 'custom-select-wrapper';
         
         const trigger = document.createElement('div');
