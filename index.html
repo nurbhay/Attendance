@@ -123,7 +123,7 @@ body {
 .cancelled { background: #334155; color: var(--text-muted); }
 .note-btn { background: transparent; color: var(--text-muted); border: 1px solid #334155; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-/* --- FORM ELEMENTS (New Professional Dropdowns) --- */
+/* --- FORM ELEMENTS (Professional Dropdowns) --- */
 select, input {
     width: 100%;
     padding: 12px 14px;
@@ -135,7 +135,6 @@ select, input {
     font-size: 14px;
     outline: none;
     transition: border-color 0.2s;
-    /* Custom Dropdown Arrow */
     appearance: none;
     -webkit-appearance: none;
     background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
@@ -144,16 +143,15 @@ select, input {
     background-size: 0.7em auto;
     padding-right: 2.5rem;
 }
-select:focus, input:focus {
-    border-color: var(--accent);
-}
-input[type="date"] {
-    /* Fix for date picker icon on some browsers */
-    background-image: none; 
-}
-/* Remove default arrow for Inputs that aren't select (if needed) */
+select:focus, input:focus { border-color: var(--accent); }
 input { background-image: none; }
 
+/* Styles for the options list inside dropdowns */
+select option {
+    background-color: #1e293b;
+    color: #f8fafc;
+    padding: 12px;
+}
 
 .btn-block { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
 .btn-primary { background: var(--accent); color: white; }
@@ -192,6 +190,11 @@ input { background-image: none; }
 .del-task-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
 .text-green { color: var(--green); } .text-red { color: var(--red); } .text-yellow { color: var(--yellow); } .bg-green { background: var(--green); } .bg-red { background: var(--red); } .bg-yellow { background: var(--yellow); }
 
+/* --- WEEKEND CARD --- */
+.weekend-card { text-align: center; padding: 30px 20px; color: var(--text-muted); border: 1px dashed #334155; border-radius: 16px; margin-top: 10px; }
+.weekend-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+.weekend-title { font-size: 18px; color: var(--text-main); font-weight: 700; margin-bottom: 4px; }
+
 </style>
 </head>
 <body>
@@ -209,7 +212,7 @@ input { background-image: none; }
     
     <div style="display:flex; flex-direction:column; align-items:center; margin-bottom: 20px;">
         <h2 id="today" style="font-size: 14px; font-weight: 500; color: var(--text-muted); margin: 0;"></h2>
-        <div id="dayStatus" style="margin-top: 8px;"></div>
+        <div id="dayStatus" style="width: 100%;"></div> 
     </div>
 
     <div id="lectures"></div>
@@ -679,7 +682,14 @@ function getDayName(dateStr){ const d = new Date(dateStr + "T00:00:00"); return 
 function formatDateDDMMYYYY(isoDate){ if(!isoDate) return ""; const [y, m, d] = isoDate.split("-"); return `${d}/${m}/${y}`; }
 function showWeekendMessage(day){
   const statusDiv = document.getElementById("dayStatus");
-  if(day === "Saturday" || day === "Sunday"){ statusDiv.innerHTML = `<span style="background:var(--yellow);color:#1f2933;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">WEEKEND MODE</span>`; } else { statusDiv.innerHTML = ""; }
+  if(day === "Saturday" || day === "Sunday"){ 
+      statusDiv.innerHTML = `
+      <div class="weekend-card">
+        <div class="weekend-icon">☕</div>
+        <div class="weekend-title">No lectures today</div>
+        <div style="font-size:13px; opacity:0.8;">Enjoy your weekend!</div>
+      </div>`; 
+  } else { statusDiv.innerHTML = ""; }
 }
 function renderDetailView(){
   const mode = document.getElementById("viewMode").value;
