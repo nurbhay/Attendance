@@ -647,7 +647,6 @@ function render(){
 }
 
 function renderDetailView(){
-  const date = document.getElementById("dateSelect").value;
   const mode = document.getElementById("viewMode").value;
   const filter = document.getElementById("filterArea");
   const result = document.getElementById("detailResult");
@@ -688,7 +687,8 @@ function renderDetailView(){
 }
 
 function showDateWise(){
-  const d = document.getElementById("dateSelect").value;
+  const dateEl = document.getElementById("dateSelect");
+  const d = dateEl ? dateEl.value : null;
   const displayDate = formatDateDDMMYYYY(d);
   const dayName = getDayName(d);
   const result = document.getElementById("detailResult");
@@ -717,7 +717,8 @@ result.innerHTML = `
 
 
 function showSubjectWise(){
-  const sub = document.getElementById("subjectSelect").value;
+  const subjectEl = document.getElementById("subjectSelect");
+  const subject = subjectEl ? subjectEl.value : null;
   const result = document.getElementById("detailResult");
   result.innerHTML = "";
 
