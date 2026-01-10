@@ -1,4 +1,4 @@
-const CACHE_NAME = "attendance-smart-cache";
+const CACHE_NAME = "attendance-v4";
 const ASSETS_TO_CACHE = [
   "./manifest.json",
   "./icon.png"
