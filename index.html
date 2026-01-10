@@ -614,13 +614,45 @@ function exportBackup(){
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `attendance_backup_${dateKey}.json`; a.click(); URL.revokeObjectURL(a.href);
 }
 document.getElementById("importFile").addEventListener("change", function(e){
-  const file = e.target.files[0]; if(!file) return;
+  const file = e.target.files[0]; 
+  if(!file) return;
+  
   const reader = new FileReader();
   reader.onload = function(){
-    try{ const backup = JSON.parse(reader.result); if(!backup.data){ alert("Invalid backup"); return; }
-      if(!confirm("Replace data?")){ return; } data = backup.data; save(); render(); alert("Restored ✅");
-    } catch(err){ alert("Error importing ❌"); }
-  }; reader.readAsText(file);
+    try{ 
+      const backup = JSON.parse(reader.result); 
+      
+      // Basic check
+      if(!backup.data){ alert("Invalid backup file ❌"); return; }
+
+      if(!confirm("This will REPLACE current attendance data. Continue?")){ 
+          // Reset file input so you can select the same file again if needed
+          e.target.value = ''; 
+          return; 
+      } 
+      
+      data = backup.data;
+      
+      // --- CRITICAL FIX: Add missing parts for old backups ---
+      if(!data.tasks) data.tasks = [];        // Fixes "Homework" crash
+      if(!data.history) data.history = {};    // Fixes "Graph" crash
+      if(!data.totals) data.totals = {};
+      if(!data.locks) data.locks = {};
+      // -------------------------------------------------------
+
+      save(); 
+      render(); 
+      alert("Backup restored successfully ✅");
+      
+    } catch(err){ 
+      console.error(err); // This helps you see the real error in console if needed
+      alert("Error importing ❌"); 
+    }
+    
+    // Reset file input
+    e.target.value = '';
+  }; 
+  reader.readAsText(file);
 });
 
 // SETTINGS & CHART
