@@ -156,12 +156,40 @@ input:focus { border-color: var(--accent); }
 .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); }
 .btn-secondary { background: #334155; color: white; }
 
-/* --- TOAST & MODALS --- */
-#toastBox { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 3000; display: flex; flex-direction: column; gap: 10px; align-items: center; width: 90%; max-width: 350px; pointer-events: none; }
-.toast { background: #1e293b; color: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; font-size: 14px; animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid #334155; pointer-events: auto; }
+/* --- TOAST (MOVED TO TOP) --- */
+#toastBox { 
+    position: fixed; 
+    top: 75px; /* MOVED FROM BOTTOM TO TOP */
+    left: 50%; 
+    transform: translateX(-50%); 
+    z-index: 3000; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    align-items: center; 
+    width: 90%; 
+    max-width: 350px; 
+    pointer-events: none; 
+}
+.toast { 
+    background: #1e293b; 
+    color: white; 
+    padding: 12px 16px; 
+    border-radius: 12px; 
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    font-size: 14px; 
+    animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    border: 1px solid #334155; 
+    pointer-events: auto; 
+}
 .toast.success { border-left: 4px solid var(--green); }
 .toast.error { border-left: 4px solid var(--red); }
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Animation coming from top now */
+@keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
 .confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 4000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
 .confirm-box { background: #1e293b; width: 85%; max-width: 320px; padding: 24px; border-radius: 16px; text-align: center; border: 1px solid #475569; animation: popIn 0.2s ease-out; }
@@ -186,7 +214,8 @@ input:focus { border-color: var(--accent); }
 .task-item { background: #0f172a; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-left: 3px solid var(--yellow); }
 .task-done { opacity: 0.5; text-decoration: line-through; border-left-color: var(--green); }
 .del-task-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
-.text-green { color: var(--green); } .text-red { color: var(--red); } .text-yellow { color: var(--yellow); } .bg-green { background: var(--green); } .bg-red { background: var(--red); } .bg-yellow { background: var(--yellow); }
+.text-green { color: var(--green); } .text-red { color: var(--red); } .text-yellow { color: var(--yellow); } .text-muted { color: var(--text-muted); }
+.bg-green { background: var(--green); } .bg-red { background: var(--red); } .bg-yellow { background: var(--yellow); }
 
 /* --- WEEKEND CARD --- */
 .weekend-card { text-align: center; padding: 30px 20px; color: var(--text-muted); border: 1px dashed #334155; border-radius: 16px; margin-top: 10px; background: rgba(245, 158, 11, 0.05); }
@@ -1004,7 +1033,10 @@ function showDateWise(){
   if(!d || !data.history[d]) return;
   const result = document.getElementById("detailResult");
   result.innerHTML = `<div style="margin-bottom:10px; font-weight:bold;">${formatDateDDMMYYYY(d)} (${getDayName(d)})</div>`;
-  data.history[d].forEach(h=>{ result.innerHTML += `<div class="task-item" style="border-left:none;"><span>${h.subject} | ${h.time}</span> <span class="${h.status === 'Present' ? 'text-green' : 'text-red'}">${h.status}</span></div>`; });
+  data.history[d].forEach(h=>{ 
+      let colorClass = h.status === 'Present' ? 'text-green' : (h.status === 'Cancelled' ? 'text-muted' : 'text-red');
+      result.innerHTML += `<div class="task-item" style="border-left:none;"><span>${h.subject} | ${h.time}</span> <span class="${colorClass}">${h.status}</span></div>`; 
+  });
 }
 function showSubjectWise(){
   const sub = document.getElementById("subjectSelect").value;
@@ -1012,7 +1044,12 @@ function showSubjectWise(){
   const result = document.getElementById("detailResult");
   result.innerHTML = "";
   Object.keys(data.history).sort().reverse().forEach(d=>{
-    data.history[d].forEach(h=>{ if(h.subject === sub){ result.innerHTML += `<div class="task-item" style="border-left:none;"><span>${formatDateDDMMYYYY(d)}</span> <span class="${h.status === 'Present' ? 'text-green' : 'text-red'}">${h.status}</span></div>`; } });
+    data.history[d].forEach(h=>{ 
+        if(h.subject === sub){ 
+            let colorClass = h.status === 'Present' ? 'text-green' : (h.status === 'Cancelled' ? 'text-muted' : 'text-red');
+            result.innerHTML += `<div class="task-item" style="border-left:none;"><span>${formatDateDDMMYYYY(d)}</span> <span class="${colorClass}">${h.status}</span></div>`; 
+        } 
+    });
   });
   result.innerHTML += `</div>`;
 }
@@ -1148,7 +1185,6 @@ function renderChart() {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        // FIXED: Changed min from 50 to 0
         y: { beginAtZero: true, min: 0, max: 100, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
         x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
       },
