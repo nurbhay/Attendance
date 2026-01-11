@@ -132,11 +132,21 @@ body {
 /* --- CUSTOM DROPDOWN CSS --- */
 .custom-select-wrapper { position: relative; user-select: none; margin-bottom: 12px; }
 .custom-select-wrapper select { display: none; }
-.custom-select-trigger { position: relative; display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 14px; font-size: 14px; font-weight: 400; color: #fff; background: #0f172a; border: 1px solid #334155; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-.custom-select-trigger:after { content: ''; display: block; width: 6px; height: 6px; border-bottom: 2px solid #94a3b8; border-right: 2px solid #94a3b8; transform: rotate(45deg); transition: all 0.2s; margin-left: 10px; margin-top: -3px; }
+.custom-select-trigger {
+    position: relative; display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 14px;
+    font-size: 14px; font-weight: 400; color: #fff; background: #0f172a; border: 1px solid #334155; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+}
+.custom-select-trigger:after {
+    content: ''; display: block; width: 6px; height: 6px; border-bottom: 2px solid #94a3b8; border-right: 2px solid #94a3b8;
+    transform: rotate(45deg); transition: all 0.2s; margin-left: 10px; margin-top: -3px;
+}
 .custom-select-wrapper.open .custom-select-trigger:after { transform: rotate(-135deg); margin-top: 3px; }
 .custom-select-wrapper.open .custom-select-trigger { border-color: var(--accent); }
-.custom-options { position: absolute; display: block; top: 100%; left: 0; right: 0; border: 1px solid #334155; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); background: #1e293b; z-index: 200; opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-10px); transition: all 0.2s ease-in-out; max-height: 250px; overflow-y: auto; margin-top: 6px; }
+.custom-options {
+    position: absolute; display: block; top: 100%; left: 0; right: 0; border: 1px solid #334155; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    background: #1e293b; z-index: 200; opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-10px); transition: all 0.2s ease-in-out;
+    max-height: 250px; overflow-y: auto; margin-top: 6px;
+}
 .custom-select-wrapper.open .custom-options { opacity: 1; visibility: visible; pointer-events: all; transform: translateY(0); }
 .custom-option { padding: 12px 14px; font-size: 14px; color: #cbd5e1; cursor: pointer; transition: 0.1s; border-bottom: 1px solid #334155; }
 .custom-option:last-child { border-bottom: none; }
@@ -182,6 +192,8 @@ input:focus { border-color: var(--accent); }
 .task-done { opacity: 0.5; text-decoration: line-through; border-left-color: var(--green); }
 .del-task-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
 .text-green { color: var(--green); } .text-red { color: var(--red); } .text-yellow { color: var(--yellow); } .text-muted { color: var(--text-muted); }
+
+/* --- WEEKEND CARD --- */
 .weekend-card { text-align: center; padding: 30px 20px; color: var(--text-muted); border: 1px dashed #334155; border-radius: 16px; margin-top: 10px; background: rgba(245, 158, 11, 0.05); }
 .weekend-icon { font-size: 48px; margin-bottom: 12px; display: block; animation: float 3s ease-in-out infinite; }
 .weekend-title { font-size: 18px; color: var(--text-main); font-weight: 700; margin-bottom: 4px; }
@@ -205,13 +217,18 @@ input:focus { border-color: var(--accent); }
 </div>
 
 <div id="tab-home" class="tab-content active">
+    
     <div style="display:flex; flex-direction:column; align-items:center; margin-bottom: 20px;">
         <h2 id="today" style="font-size: 14px; font-weight: 500; color: var(--text-muted); margin: 0;"></h2>
         <div id="dayStatus" style="width: 100%; margin-top: 10px;"></div> 
     </div>
+
     <div id="lectures"></div>
+
     <div class="card" style="border: 1px dashed #475569;">
-        <div class="card-header"><h3 class="card-title"><span class="icon-slot"></span> Extra Lecture</h3></div>
+        <div class="card-header">
+            <h3 class="card-title"><span class="icon-slot"></span> Extra Lecture</h3>
+        </div>
         <p style="font-size: 12px; color: var(--text-muted); margin-top: -8px; margin-bottom: 12px;">Add a class not in your timetable</p>
         <select id="extraSubject" class="custom-select-source"></select>
         <div class="action-row">
@@ -221,23 +238,35 @@ input:focus { border-color: var(--accent); }
         <button class="btn-block btn-secondary" style="margin-top:10px;" onclick="lockNoExtra()">No Extra Classes Today</button>
         <div id="extraInfo" style="font-size:12px; margin-top:8px; text-align: center; color: var(--green);"></div>
     </div>
+
     <div class="card" id="taskCard" style="display:none;">
-        <div class="card-header"><h3 class="card-title"><span class="icon-task"></span> Tasks & Notes</h3></div>
+        <div class="card-header">
+            <h3 class="card-title"><span class="icon-task"></span> Tasks & Notes</h3>
+        </div>
         <div id="taskList"></div>
     </div>
+
 </div>
 
 <div id="tab-stats" class="tab-content">
     <div class="card">
-        <div class="card-header"><h3 class="card-title"><span class="icon-graph"></span> 30-Day Trend</h3></div>
-        <div style="height: 200px;"><canvas id="attendanceChart"></canvas></div>
+        <div class="card-header">
+            <h3 class="card-title"><span class="icon-graph"></span> 30-Day Trend</h3>
+        </div>
+        <div style="height: 200px;">
+            <canvas id="attendanceChart"></canvas>
+        </div>
     </div>
     <div class="card">
-        <div class="card-header"><h3 class="card-title"><span class="icon-chart"></span> Subject Summary</h3></div>
+        <div class="card-header">
+            <h3 class="card-title"><span class="icon-chart"></span> Subject Summary</h3>
+        </div>
         <div id="summary"></div>
     </div>
     <div class="card">
-        <div class="card-header"><h3 class="card-title"><span class="icon-list"></span> History Log</h3></div>
+        <div class="card-header">
+            <h3 class="card-title"><span class="icon-list"></span> History Log</h3>
+        </div>
         <select id="viewMode" class="custom-select-source" onchange="renderDetailView()">
             <option value="">Select View Mode</option>
             <option value="date">By Date</option>
@@ -279,7 +308,9 @@ input:focus { border-color: var(--accent); }
     </div>
 
     <div class="card">
-        <div class="card-header"><h3 class="card-title"><span class="icon-calendar"></span> Past Attendance</h3></div>
+        <div class="card-header">
+            <h3 class="card-title"><span class="icon-calendar"></span> Past Attendance</h3>
+        </div>
         <input type="date" id="pastDate" onchange="loadPastTimetable()" />
         <div id="pastLectures"></div>
         <div id="pastExtra" style="margin-top:10px;"></div>
@@ -287,12 +318,16 @@ input:focus { border-color: var(--accent); }
     </div>
     <div class="card" onclick="toggleUndo()">
         <div class="card-header" style="margin-bottom:0;">
-            <h3 class="card-title" style="font-size:14px; color:var(--text-muted); cursor:pointer;"><span class="icon-undo"></span> Undo Today's Entry</h3>
+            <h3 class="card-title" style="font-size:14px; color:var(--text-muted); cursor:pointer;">
+                <span class="icon-undo"></span> Undo Today's Entry
+            </h3>
         </div>
         <div id="undoSection" style="display:none; margin-top: 15px; border-top:1px solid #334155; padding-top:10px;"></div>
     </div>
     <div class="card">
-        <div class="card-header"><h3 class="card-title"><span class="icon-db"></span> Data & Backup</h3></div>
+        <div class="card-header">
+            <h3 class="card-title"><span class="icon-db"></span> Data & Backup</h3>
+        </div>
         <button class="btn-block btn-secondary" onclick="exportBackup()">Export Backup File</button>
         <input type="file" id="importFile" accept=".json" style="display:none">
         <button class="btn-block btn-secondary" onclick="document.getElementById('importFile').click()">Import Backup File</button>
@@ -303,68 +338,110 @@ input:focus { border-color: var(--accent); }
 </div>
 
 <nav class="bottom-nav">
-    <button class="nav-item active" onclick="switchTab('home')"><span id="navHome"></span><span>Home</span></button>
-    <button class="nav-item" onclick="switchTab('stats')"><span id="navStats"></span><span>Stats</span></button>
-    <button class="nav-item" onclick="switchTab('tools')"><span id="navTools"></span><span>Tools</span></button>
+    <button class="nav-item active" onclick="switchTab('home')">
+        <span id="navHome"></span>
+        <span>Home</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('stats')">
+        <span id="navStats"></span>
+        <span>Stats</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('tools')">
+        <span id="navTools"></span>
+        <span>Tools</span>
+    </button>
 </nav>
 
 <div id="settingsModal" class="modal-overlay">
   <div class="modal-content">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h3 style="margin:0; display:flex; align-items:center; gap:8px;"><span class="icon-gear"></span> Settings</h3>
-        <button style="background:none; border:none; color:var(--text-muted);" onclick="closeSettings()"><span class="icon-close"></span></button>
+        <h3 style="margin:0; display:flex; align-items:center; gap:8px;">
+            <span class="icon-gear"></span> Settings
+        </h3>
+        <button style="background:none; border:none; color:var(--text-muted);" onclick="closeSettings()">
+            <span class="icon-close"></span>
+        </button>
     </div>
+
     <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">TARGET ATTENDANCE (%)</label>
-    <div style="display:flex; gap:10px; margin-bottom: 24px; margin-top: 8px;"><input type="number" id="targetInput" placeholder="75" style="margin-bottom:0;" min="1" max="100"></div>
+    <div style="display:flex; gap:10px; margin-bottom: 24px; margin-top: 8px;">
+        <input type="number" id="targetInput" placeholder="75" style="margin-bottom:0;" min="1" max="100">
+    </div>
+
     <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">SEMESTER START DATE</label>
     <input type="date" id="semStartInput" style="margin-top: 8px; margin-bottom: 24px;">
+
     <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">NOTIFICATIONS</label>
     <button class="btn-block" style="background: #0ea5e9; color: white; margin-bottom: 24px;" onclick="requestNotificationPermission()">Enable Daily Reminders</button>
+    
     <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">EDIT TIMETABLE</label>
+    
     <select id="editDaySelect" class="custom-select-source" onchange="renderEditRows()" style="margin-top: 8px;">
-      <option value="Monday">Monday</option><option value="Tuesday">Tuesday</option><option value="Wednesday">Wednesday</option><option value="Thursday">Thursday</option><option value="Friday">Friday</option><option value="Saturday">Saturday</option><option value="Sunday">Sunday</option>
+      <option value="Monday">Monday</option>
+      <option value="Tuesday">Tuesday</option>
+      <option value="Wednesday">Wednesday</option>
+      <option value="Thursday">Thursday</option>
+      <option value="Friday">Friday</option>
+      <option value="Saturday">Saturday</option>
+      <option value="Sunday">Sunday</option>
     </select>
+
     <div id="editContainer"></div>
     <div style="display:flex; gap:10px; margin-top:15px;">
         <button class="btn-block btn-secondary" onclick="addEditRow()">+ Slot</button>
         <button class="btn-block btn-primary" onclick="saveNewTimetable()">Save Timetable</button>
     </div>
+    
     <button class="btn-block btn-primary" style="margin-top: 25px;" onclick="saveSettings()">Save Settings</button>
+
     <button class="btn-block" style="background:transparent; border: 1px solid #ef4444; color: #ef4444; margin-top: 24px; font-size:13px;" onclick="triggerRestore()">Restore Default Timetable</button>
   </div>
 </div>
 
 <div id="toastBox"></div>
+
 <div id="confirmModal" class="confirm-overlay">
     <div class="confirm-box">
         <div class="confirm-title" id="confirmTitle">Are you sure?</div>
         <div class="confirm-desc" id="confirmDesc">This action cannot be undone.</div>
-        <div class="confirm-actions"><button class="btn-pill btn-secondary" onclick="closeConfirm()">Cancel</button><button class="btn-pill btn-primary" id="confirmYesBtn">Confirm</button></div>
+        <div class="confirm-actions">
+            <button class="btn-pill btn-secondary" onclick="closeConfirm()">Cancel</button>
+            <button class="btn-pill btn-primary" id="confirmYesBtn">Confirm</button>
+        </div>
     </div>
 </div>
+
 <div id="noteModal" class="confirm-overlay">
     <div class="confirm-box">
         <div class="confirm-title">Add Note</div>
         <div class="confirm-desc" id="noteSubjectDisplay" style="color:var(--accent); font-weight:600;"></div>
         <textarea id="noteInput" rows="4" style="width:100%; background:#0f172a; color:white; border:1px solid #334155; border-radius:8px; padding:12px; margin-bottom:20px; font-family:inherit; resize:none;" placeholder="Type your note here..."></textarea>
-        <div class="confirm-actions"><button class="btn-pill btn-secondary" onclick="closeNoteModal()">Cancel</button><button class="btn-pill btn-primary" id="saveNoteBtn">Save Note</button></div>
+        <div class="confirm-actions">
+            <button class="btn-pill btn-secondary" onclick="closeNoteModal()">Cancel</button>
+            <button class="btn-pill btn-primary" id="saveNoteBtn">Save Note</button>
+        </div>
     </div>
 </div>
+
 <div id="passwordModal" class="confirm-overlay">
     <div class="confirm-box">
         <div class="confirm-title">Security Check</div>
         <div class="confirm-desc">Enter password to reset data.</div>
         <input type="password" id="resetPasswordInput" placeholder="Enter Password" style="text-align:center;">
-        <div class="confirm-actions"><button class="btn-pill btn-secondary" onclick="closePasswordModal()">Cancel</button><button class="btn-pill btn-danger" id="submitPasswordBtn">Reset</button></div>
+        <div class="confirm-actions">
+            <button class="btn-pill btn-secondary" onclick="closePasswordModal()">Cancel</button>
+            <button class="btn-pill btn-danger" id="submitPasswordBtn">Reset</button>
+        </div>
     </div>
 </div>
 
 <script>
-// --- ICONS ---
+// --- ICON LIBRARY (SVG) ---
 const ICONS = {
     home: '<svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
     stats: '<svg class="icon icon-lg" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>',
-    tools: '<svg class="icon icon-lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>',
+    tools: '<svg class="icon icon-lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>',
+    gear: '<svg class="icon icon-lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>',
     note: '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>',
     check: '<svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>',
     x: '<svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
@@ -506,7 +583,89 @@ function checkForCloudUpdates() {
 function forceCloudSync() { syncToCloud(); showToast("Backup started"); }
 
 
-// --- APP LOGIC ---
+// --- CUSTOM DROPDOWN ENGINE ---
+function setupCustomSelects() {
+    document.querySelectorAll('.custom-select-source').forEach(select => {
+        // Fix for multiple wrappers
+        if (select.parentNode.classList.contains('custom-select-wrapper')) return;
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-select-wrapper';
+        
+        const trigger = document.createElement('div');
+        trigger.className = 'custom-select-trigger';
+        trigger.innerHTML = `<span>${select.options[select.selectedIndex]?.text || 'Select...'}</span>`;
+        
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'custom-options';
+        
+        Array.from(select.options).forEach(opt => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'custom-option' + (opt.selected ? ' selected' : '');
+            optionDiv.innerText = opt.text;
+            optionDiv.setAttribute('data-value', opt.value);
+            
+            optionDiv.addEventListener('click', function(e) {
+                e.stopPropagation();
+                select.value = this.getAttribute('data-value');
+                trigger.innerHTML = `<span>${this.innerText}</span>`;
+                wrapper.classList.remove('open');
+                select.dispatchEvent(new Event('change'));
+                optionsDiv.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+            optionsDiv.appendChild(optionDiv);
+        });
+
+        trigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.querySelectorAll('.custom-select-wrapper.open').forEach(el => {
+                if(el !== wrapper) el.classList.remove('open');
+            });
+            wrapper.classList.toggle('open');
+        });
+
+        select.parentNode.insertBefore(wrapper, select.nextSibling);
+        wrapper.appendChild(select); 
+        wrapper.appendChild(trigger);
+        wrapper.appendChild(optionsDiv);
+    });
+
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.custom-select-wrapper.open').forEach(el => el.classList.remove('open'));
+    });
+}
+
+// --- UI UTILS ---
+function showToast(msg, type = 'success') {
+    const box = document.getElementById('toastBox');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? ICONS.check : ICONS.x;
+    toast.innerHTML = `<span class="icon-sm">${icon}</span> ${msg}`;
+    box.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, 3000);
+}
+
+function showConfirm(title, desc, onConfirm) {
+    const modal = document.getElementById('confirmModal');
+    document.getElementById('confirmTitle').innerText = title;
+    document.getElementById('confirmDesc').innerText = desc;
+    modal.style.display = "flex";
+    
+    const confirmBtn = document.getElementById('confirmYesBtn');
+    confirmBtn.onclick = () => {
+        onConfirm();
+        closeConfirm();
+    };
+}
+function closeConfirm() { document.getElementById('confirmModal').style.display = "none"; }
+
+function closePasswordModal() {
+    document.getElementById('passwordModal').style.display = "none";
+}
+
+// --- LOGIC ---
 const PASSWORD = "Nir@2006";
 let MIN_ATTENDANCE = parseInt(localStorage.getItem("target_percent")) || 75;
 
@@ -549,7 +708,7 @@ let data = JSON.parse(localStorage.getItem("attendance")) || { totals:{}, histor
 if(!data.tasks) data.tasks = [];
 let timetable = JSON.parse(localStorage.getItem("custom_timetable")) || JSON.parse(JSON.stringify(defaultTimetable));
 
-// MODIFIED SAVE FUNCTION
+// MODIFIED SAVE FUNCTION (WITH CLOUD)
 function save(triggerSync = true){ 
     localStorage.setItem("attendance",JSON.stringify(data)); 
     if(triggerSync) {
@@ -567,58 +726,6 @@ function switchTab(tabId) {
     if(tabId === 'stats') btns[1].classList.add('active');
     if(tabId === 'tools') btns[2].classList.add('active');
 }
-
-function setupCustomSelects() {
-    document.querySelectorAll('.custom-select-source').forEach(select => {
-        if (select.parentNode.classList.contains('custom-select-wrapper')) return;
-        const wrapper = document.createElement('div'); wrapper.className = 'custom-select-wrapper';
-        const trigger = document.createElement('div'); trigger.className = 'custom-select-trigger';
-        trigger.innerHTML = `<span>${select.options[select.selectedIndex]?.text || 'Select...'}</span>`;
-        const optionsDiv = document.createElement('div'); optionsDiv.className = 'custom-options';
-        Array.from(select.options).forEach(opt => {
-            const optionDiv = document.createElement('div');
-            optionDiv.className = 'custom-option' + (opt.selected ? ' selected' : '');
-            optionDiv.innerText = opt.text;
-            optionDiv.setAttribute('data-value', opt.value);
-            optionDiv.addEventListener('click', function(e) {
-                e.stopPropagation(); select.value = this.getAttribute('data-value');
-                trigger.innerHTML = `<span>${this.innerText}</span>`; wrapper.classList.remove('open');
-                select.dispatchEvent(new Event('change'));
-                optionsDiv.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
-                this.classList.add('selected');
-            });
-            optionsDiv.appendChild(optionDiv);
-        });
-        trigger.addEventListener('click', function(e) {
-            e.stopPropagation();
-            document.querySelectorAll('.custom-select-wrapper.open').forEach(el => { if(el !== wrapper) el.classList.remove('open'); });
-            wrapper.classList.toggle('open');
-        });
-        select.parentNode.insertBefore(wrapper, select.nextSibling); wrapper.appendChild(select); wrapper.appendChild(trigger); wrapper.appendChild(optionsDiv);
-    });
-    document.addEventListener('click', function() { document.querySelectorAll('.custom-select-wrapper.open').forEach(el => el.classList.remove('open')); });
-}
-
-function showToast(msg, type = 'success') {
-    const box = document.getElementById('toastBox');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    const icon = type === 'success' ? ICONS.check : ICONS.x;
-    toast.innerHTML = `<span class="icon-sm">${icon}</span> ${msg}`;
-    box.appendChild(toast);
-    setTimeout(() => { toast.remove(); }, 3000);
-}
-
-function showConfirm(title, desc, onConfirm) {
-    const modal = document.getElementById('confirmModal');
-    document.getElementById('confirmTitle').innerText = title;
-    document.getElementById('confirmDesc').innerText = desc;
-    modal.style.display = "flex";
-    const confirmBtn = document.getElementById('confirmYesBtn');
-    confirmBtn.onclick = () => { onConfirm(); closeConfirm(); };
-}
-function closeConfirm() { document.getElementById('confirmModal').style.display = "none"; }
-function closePasswordModal() { document.getElementById('passwordModal').style.display = "none"; }
 
 function requestNotificationPermission() {
     if (!("Notification" in window)) { showToast("Not supported", "error"); return; }
@@ -670,139 +777,582 @@ function loadLectures(){
         statusHTML = `<div style="font-size:12px; margin-top:5px; font-weight:bold; display:flex; align-items:center; gap:4px;">${icon} ${entry.status}</div>`;
       }
     }
-    div.innerHTML = `<div class="lec-top"><span class="lec-time">${time}</span><div class="lec-subject">${subject}</div><button class="note-btn" onclick="event.stopPropagation(); addNote('${subject}')">${ICONS.note}</button></div>${statusHTML}<div class="action-row" style="display:${locked ? 'none' : 'flex'}"><button class="btn-pill present" onclick="markAttendance('${subject}', '${time}', 'Present')">Present</button><button class="btn-pill absent" onclick="markAttendance('${subject}', '${time}', 'Absent')">Absent</button><button class="btn-pill cancelled" onclick="markAttendance('${subject}', '${time}', 'Cancelled')">Off</button></div>`;
+    div.innerHTML = `
+        <div class="lec-top"><span class="lec-time">${time}</span><div class="lec-subject">${subject}</div><button class="note-btn" onclick="event.stopPropagation(); addNote('${subject}')">${ICONS.note}</button></div>
+        ${statusHTML}
+        <div class="action-row" style="display:${locked ? 'none' : 'flex'}">
+            <button class="btn-pill present" onclick="markAttendance('${subject}', '${time}', 'Present')">Present</button>
+            <button class="btn-pill absent" onclick="markAttendance('${subject}', '${time}', 'Absent')">Absent</button>
+            <button class="btn-pill cancelled" onclick="markAttendance('${subject}', '${time}', 'Cancelled')">Off</button>
+        </div>`;
     container.appendChild(div);
   });
 }
 
 // --- NEW NOTE LOGIC ---
 let currentNoteSubject = "";
-function addNote(subject) { currentNoteSubject = subject; document.getElementById('noteSubjectDisplay').innerText = subject; document.getElementById('noteInput').value = ""; document.getElementById('noteModal').style.display = 'flex'; document.getElementById('noteInput').focus(); }
-function closeNoteModal() { document.getElementById('noteModal').style.display = 'none'; }
-document.getElementById('saveNoteBtn').onclick = function() { const text = document.getElementById('noteInput').value.trim(); if(text) { data.tasks.push({ id: Date.now(), text: text, subject: currentNoteSubject, date: dateKey, done: false }); save(); renderTasks(); showToast("Note Added"); closeNoteModal(); } else { showToast("Please enter text", "error"); } };
+function addNote(subject) {
+    currentNoteSubject = subject;
+    document.getElementById('noteSubjectDisplay').innerText = subject;
+    document.getElementById('noteInput').value = "";
+    document.getElementById('noteModal').style.display = 'flex';
+    document.getElementById('noteInput').focus();
+}
+
+function closeNoteModal() { 
+    document.getElementById('noteModal').style.display = 'none'; 
+}
+
+// Bind the note save button
+document.getElementById('saveNoteBtn').onclick = function() {
+    const text = document.getElementById('noteInput').value.trim();
+    if(text) {
+        data.tasks.push({ id: Date.now(), text: text, subject: currentNoteSubject, date: dateKey, done: false });
+        save(); 
+        renderTasks(); 
+        showToast("Note Added");
+        closeNoteModal();
+    } else {
+        showToast("Please enter text", "error");
+    }
+};
+
 function renderTasks() {
-    const container = document.getElementById("taskList"); const card = document.getElementById("taskCard"); container.innerHTML = ""; const activeTasks = data.tasks; 
+    const container = document.getElementById("taskList");
+    const card = document.getElementById("taskCard");
+    container.innerHTML = "";
+    const activeTasks = data.tasks; 
     if(activeTasks.length === 0) { card.style.display = "none"; return; }
     card.style.display = "block";
-    activeTasks.forEach((task, index) => { container.innerHTML += `<div class="task-item ${task.done ? 'task-done' : ''}" onclick="toggleTask(${index})"><div style="flex:1; margin-right:10px;"><div style="font-size:14px; margin-bottom:2px;">${task.text}</div><div style="font-size:11px; color:#94a3b8;">${task.subject} • ${formatDateDDMMYYYY(task.date)}</div></div><button class="del-task-btn" onclick="deleteTask(event, ${index})">${ICONS.trash}</button></div>`; });
+    activeTasks.forEach((task, index) => {
+        container.innerHTML += `
+            <div class="task-item ${task.done ? 'task-done' : ''}" onclick="toggleTask(${index})">
+                <div style="flex:1; margin-right:10px;">
+                    <div style="font-size:14px; margin-bottom:2px;">${task.text}</div>
+                    <div style="font-size:11px; color:#94a3b8;">${task.subject} • ${formatDateDDMMYYYY(task.date)}</div>
+                </div>
+                <button class="del-task-btn" onclick="deleteTask(event, ${index})">${ICONS.trash}</button>
+            </div>`;
+    });
 }
 function toggleTask(index) { data.tasks[index].done = !data.tasks[index].done; save(); renderTasks(); }
 function deleteTask(e, index) { e.stopPropagation(); showConfirm("Delete Note?", "This cannot be undone.", () => { data.tasks.splice(index, 1); save(); renderTasks(); }); }
 
-function markAttendance(subject,time,status){ const key = dateKey+"_"+subject+"_"+time; if(data.locks[key]) return; data.locks[key] = true; data.history[dateKey] ??= []; data.history[dateKey].push({subject,time,status}); if(status !== "Cancelled"){ data.totals[subject] ??= {p:0,t:0}; data.totals[subject].t++; if(status==="Present") data.totals[subject].p++; } save(); render(); showToast(`Marked ${status}`); }
-function markExtra(status){ const noExtraKey = dateKey + "_NO_EXTRA"; if(data.locks[noExtraKey]){ showToast("Locked for today", "error"); return; } const subject = document.getElementById("extraSubject").value; if(!subject) return; const key = dateKey+"_EXTRA_"+subject; if(data.locks[key]) return showToast("Already added", "error"); data.locks[key]=true; data.history[dateKey] ??= []; data.history[dateKey].push({subject,time:"Extra",status}); data.totals[subject] ??= {p:0,t:0}; data.totals[subject].t++; if(status==="Present") data.totals[subject].p++; save(); render(); showToast("Extra Class Added"); }
+function markAttendance(subject,time,status){
+  const key = dateKey+"_"+subject+"_"+time;
+  if(data.locks[key]) return;
+  data.locks[key] = true;
+  data.history[dateKey] ??= [];
+  data.history[dateKey].push({subject,time,status});
+  if(status !== "Cancelled"){ data.totals[subject] ??= {p:0,t:0}; data.totals[subject].t++; if(status==="Present") data.totals[subject].p++; }
+  save(); render(); showToast(`Marked ${status}`);
+}
+
+function markExtra(status){
+  const noExtraKey = dateKey + "_NO_EXTRA";
+  if(data.locks[noExtraKey]){ showToast("Locked for today", "error"); return; }
+  const subject = document.getElementById("extraSubject").value;
+  if(!subject) return; 
+  const key = dateKey+"_EXTRA_"+subject;
+  if(data.locks[key]) return showToast("Already added", "error");
+  data.locks[key]=true; data.history[dateKey] ??= []; data.history[dateKey].push({subject,time:"Extra",status});
+  data.totals[subject] ??= {p:0,t:0}; data.totals[subject].t++; if(status==="Present") data.totals[subject].p++;
+  save(); render(); showToast("Extra Class Added");
+}
 
 function renderSummary(){
-  const div = document.getElementById("summary"); div.innerHTML = ""; let tp = 0, tt = 0; const target = MIN_ATTENDANCE / 100;
+  const div = document.getElementById("summary");
+  div.innerHTML = "";
+  let tp = 0, tt = 0;
+  const target = MIN_ATTENDANCE / 100;
+
   for(let s in data.totals){
-    const { p, t } = data.totals[s]; const percent = t ? Math.round((p / t) * 100) : 0; tp += p; tt += t;
+    const { p, t } = data.totals[s];
+    const percent = t ? Math.round((p / t) * 100) : 0;
+    tp += p; tt += t;
+
+    // GRADIENT LOGIC
     let gradient = "";
-    if(percent >= MIN_ATTENDANCE) gradient = "linear-gradient(90deg, #10b981 0%, #34d399 100%)"; 
-    else if (percent >= (MIN_ATTENDANCE - 15)) gradient = "linear-gradient(90deg, #84cc16 0%, #a3e635 100%)"; 
-    else if (percent >= (MIN_ATTENDANCE - 25)) gradient = "linear-gradient(90deg, #f97316 0%, #fb923c 100%)"; 
-    else gradient = "linear-gradient(90deg, #ef4444 0%, #f87171 100%)";
+    if(percent >= MIN_ATTENDANCE) {
+        gradient = "linear-gradient(90deg, #10b981 0%, #34d399 100%)"; // Greenish
+    } else if (percent >= (MIN_ATTENDANCE - 15)) {
+        gradient = "linear-gradient(90deg, #84cc16 0%, #a3e635 100%)"; // Yellow-Green
+    } else if (percent >= (MIN_ATTENDANCE - 25)) {
+        gradient = "linear-gradient(90deg, #f97316 0%, #fb923c 100%)"; // Orange
+    } else {
+        gradient = "linear-gradient(90deg, #ef4444 0%, #f87171 100%)"; // Red
+    }
+
     let statusMsg = "", statusColor = "text-muted", statusIcon = "";
     if (t > 0) {
-        if (percent >= MIN_ATTENDANCE) { const bunkable = Math.floor((p / target) - t); if(bunkable > 0){ statusMsg = `Safe to bunk <b>${bunkable}</b>`; statusColor = "text-green"; statusIcon = ICONS.check; } else { if(percent === 100){ statusMsg = `Perfect record`; statusColor = "text-green"; statusIcon = ICONS.check; } else { statusMsg = `Don't miss next`; statusColor = "text-yellow"; statusIcon = ICONS.x; } } } 
-        else { const needed = Math.ceil( (target * t - p) / (1 - target) ); statusMsg = `Attend next <b>${needed}</b>`; statusColor = "text-red"; statusIcon = ICONS.x; }
+        if (percent >= MIN_ATTENDANCE) {
+            const bunkable = Math.floor((p / target) - t);
+            if(bunkable > 0){ statusMsg = `Safe to bunk <b>${bunkable}</b>`; statusColor = "text-green"; statusIcon = ICONS.check; } 
+            else { if(percent === 100){ statusMsg = `Perfect record`; statusColor = "text-green"; statusIcon = ICONS.check; } else { statusMsg = `Don't miss next`; statusColor = "text-yellow"; statusIcon = ICONS.x; } }
+        } else { const needed = Math.ceil( (target * t - p) / (1 - target) ); statusMsg = `Attend next <b>${needed}</b>`; statusColor = "text-red"; statusIcon = ICONS.x; }
     } else { statusMsg = "No data"; }
-    div.innerHTML += `<div class="summary-item"><div class="summary-header"><span>${s}</span><span style="color:#94a3b8">${p}/${t} (${percent}%)</span></div><div class="progress-track"><div class="progress-fill" style="width:${percent}%; background:${gradient}; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div></div><div class="status-msg ${statusColor}"><span class="icon-sm" style="display:inline-block; vertical-align:middle;">${statusIcon}</span>${statusMsg}</div></div>`;
+
+    div.innerHTML += `
+    <div class="summary-item">
+        <div class="summary-header"><span>${s}</span><span style="color:#94a3b8">${p}/${t} (${percent}%)</span></div>
+        <div class="progress-track">
+            <div class="progress-fill" style="width:${percent}%; background:${gradient}; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>
+        </div>
+        <div class="status-msg ${statusColor}"><span class="icon-sm" style="display:inline-block; vertical-align:middle;">${statusIcon}</span>${statusMsg}</div>
+    </div>`;
   }
-  const overall = tt ? Math.round((tp / tt) * 100) : 0; let overallColor = "text-green"; if(overall < MIN_ATTENDANCE) overallColor = "text-red"; else if(overall < MIN_ATTENDANCE + 10) overallColor = "text-yellow"; let overallMsg = "";
-  if(tt>0 && overall < MIN_ATTENDANCE){ const overallNeeded = Math.ceil( (target * tt - tp) / (1 - target) ); overallMsg = `Attend next ${overallNeeded} to hit ${MIN_ATTENDANCE}%`; } else if (tt>0) { const overallBunk = Math.floor((tp / target) - tt); if(overallBunk > 0) overallMsg = `Can bunk ${overallBunk} in total`; }
+
+  const overall = tt ? Math.round((tp / tt) * 100) : 0;
+  let overallColor = "text-green"; if(overall < MIN_ATTENDANCE) overallColor = "text-red"; else if(overall < MIN_ATTENDANCE + 10) overallColor = "text-yellow";
+  let overallMsg = "";
+  if(tt>0 && overall < MIN_ATTENDANCE){ const overallNeeded = Math.ceil( (target * tt - tp) / (1 - target) ); overallMsg = `Attend next ${overallNeeded} to hit ${MIN_ATTENDANCE}%`; } 
+  else if (tt>0) { const overallBunk = Math.floor((tp / target) - tt); if(overallBunk > 0) overallMsg = `Can bunk ${overallBunk} in total`; }
   div.innerHTML = `<div class="overall-card card"><div style="font-size:12px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Overall Attendance</div><div class="overall-percent ${overallColor}">${overall}%</div><div style="font-size:13px; color:#94a3b8;">${overallMsg}</div></div>` + div.innerHTML;
 }
 
-function undo(d,i){ const h = data.history[d][i]; const key = d+"_"+h.subject+"_"+h.time; delete data.locks[key]; if(h.status!=="Cancelled"){ data.totals[h.subject].t--; if(h.status==="Present") data.totals[h.subject].p--; } data.history[d].splice(i,1); save(); render(); showToast("Entry Undone"); }
+function undo(d,i){
+  const h = data.history[d][i];
+  const key = d+"_"+h.subject+"_"+h.time;
+  delete data.locks[key];
+  if(h.status!=="Cancelled"){ data.totals[h.subject].t--; if(h.status==="Present") data.totals[h.subject].p--; }
+  data.history[d].splice(i,1); save(); render(); showToast("Entry Undone");
+  // Refresh undo list
+  toggleUndo(); toggleUndo(); // quick hack to refresh or just manually re-render
+  document.getElementById("undoSection").style.display="none"; // close it
+}
 
 function triggerReset(){
-  const modal = document.getElementById('passwordModal'); const input = document.getElementById('resetPasswordInput'); const btn = document.getElementById('submitPasswordBtn'); input.value = ""; modal.style.display = "flex"; input.focus();
-  btn.onclick = () => { if(input.value === PASSWORD) { closePasswordModal(); showConfirm("Factory Reset?", "All data will be lost permanently.", () => { localStorage.removeItem("attendance"); localStorage.removeItem("target_percent"); location.reload(); }); } else { showToast("Wrong Password", "error"); input.value = ""; input.focus(); } };
+  // Replaced prompt with custom modal
+  const modal = document.getElementById('passwordModal');
+  const input = document.getElementById('resetPasswordInput');
+  const btn = document.getElementById('submitPasswordBtn');
+  
+  input.value = "";
+  modal.style.display = "flex";
+  input.focus();
+
+  btn.onclick = () => {
+      if(input.value === PASSWORD) {
+          closePasswordModal();
+          showConfirm("Factory Reset?", "All data will be lost permanently.", () => {
+              localStorage.removeItem("attendance"); 
+              localStorage.removeItem("target_percent"); // Clear target too
+              location.reload();
+          });
+      } else {
+          showToast("Wrong Password", "error");
+          input.value = "";
+          input.focus();
+      }
+  };
 }
 
 function getAllSubjects() { const set = new Set(); Object.values(timetable).flat().forEach(x => set.add(x[1])); return [...set].sort(); }
-function initExtra(){ document.getElementById("extraSubject").innerHTML = getAllSubjects().map(s=>`<option>${s}</option>`).join(""); setupCustomSelects(); }
+function initExtra(){ 
+    document.getElementById("extraSubject").innerHTML = getAllSubjects().map(s=>`<option>${s}</option>`).join("");
+    setupCustomSelects();
+}
 
+// --- PAST ATTENDANCE ENGINE (UPDATED: EDIT MODE) ---
 let pastBuffer = [], pastDateKey = "", pastDay = "";
+
 function loadPastTimetable(){
-  const input = document.getElementById("pastDate"); const val = input.value; const container = document.getElementById("pastLectures"); const extraDiv = document.getElementById("pastExtra"); container.innerHTML = ""; extraDiv.innerHTML = ""; pastBuffer = [];
+  const input = document.getElementById("pastDate");
+  const val = input.value;
+  const container = document.getElementById("pastLectures");
+  const extraDiv = document.getElementById("pastExtra");
+  
+  container.innerHTML = ""; 
+  extraDiv.innerHTML = ""; 
+  pastBuffer = [];
+
   if(!val) return;
-  const selectedDate = new Date(val); const todayDate = new Date(today.toDateString());
-  if(selectedDate >= todayDate){ showToast("Cannot edit future/today here", "error"); input.value = ""; return; }
-  pastDateKey = val; pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
-  let existingData = data.history[pastDateKey] || []; let isEditMode = existingData.length > 0;
-  if(isEditMode) { showToast("Editing saved record ✏️"); pastBuffer = [...existingData]; }
+
+  const selectedDate = new Date(val);
+  const todayDate = new Date(today.toDateString());
+  
+  // Prevent selecting future dates
+  if(selectedDate >= todayDate){ 
+      showToast("Cannot edit future/today here", "error"); 
+      input.value = ""; 
+      return; 
+  }
+
+  pastDateKey = val;
+  pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
+  
+  // 1. CHECK IF DATA EXISTS
+  let existingData = data.history[pastDateKey] || [];
+  let isEditMode = existingData.length > 0;
+
+  if(isEditMode) {
+      showToast("Editing saved record ✏️");
+      // Pre-fill buffer with existing data so we don't lose it if we just click save
+      pastBuffer = [...existingData];
+  }
+
+  // 2. LOAD LECTURES (Standard Timetable)
   const lectures = timetable[pastDay] || []; 
   if(lectures.length === 0){ container.innerHTML = "<div style='text-align:center; padding:10px; opacity:0.6;'>No lectures scheduled 😴</div>"; }
+  
   lectures.forEach(([time,subject])=>{
-    const div = document.createElement("div"); div.className = "card";
-    const savedState = existingData.find(h => h.subject === subject && h.time === time); const status = savedState ? savedState.status : "";
-    div.innerHTML = `<div style="font-weight:600; margin-bottom:5px;">${subject}</div><div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">${time}</div><div class="action-row" id="btns_${subject.replace(/\s/g,'')}"><button class="btn-pill ${status==='Present'?'present':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Present', this)">Present</button><button class="btn-pill ${status==='Absent'?'absent':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Absent', this)">Absent</button><button class="btn-pill ${status==='Cancelled'?'cancelled':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Cancelled', this)">Off</button></div>`;
+    const div = document.createElement("div"); 
+    div.className = "card";
+    
+    // Check if this specific lecture was already marked in history
+    const savedState = existingData.find(h => h.subject === subject && h.time === time);
+    const status = savedState ? savedState.status : "";
+
+    // Highlight the saved button
+    const pClass = status === "Present" ? "present" : (status ? "btn-secondary" : "btn-secondary");
+    const aClass = status === "Absent" ? "absent" : (status ? "btn-secondary" : "btn-secondary");
+    const cClass = status === "Cancelled" ? "cancelled" : (status ? "btn-secondary" : "btn-secondary");
+
+    div.innerHTML = `
+        <div style="font-weight:600; margin-bottom:5px;">${subject}</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">${time}</div>
+        <div class="action-row" id="btns_${subject.replace(/\s/g,'')}">
+            <button class="btn-pill ${status==='Present'?'present':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Present', this)">Present</button>
+            <button class="btn-pill ${status==='Absent'?'absent':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Absent', this)">Absent</button>
+            <button class="btn-pill ${status==='Cancelled'?'cancelled':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Cancelled', this)">Off</button>
+        </div>`;
+    
     container.appendChild(div);
   });
-  const existingExtras = existingData.filter(h => h.time === "Extra"); let extraHTML = "";
-  if(existingExtras.length > 0) { existingExtras.forEach(ex => { extraHTML += `<div class="task-item" style="margin-bottom:5px;"><span>${ex.subject} (Extra)</span> <span class="${ex.status==='Present'?'text-green':'text-red'}">${ex.status}</span><button class="del-task-btn" onclick="removePastExtra('${ex.subject}')">×</button></div>`; }); }
-  const allSubjects = getAllSubjects(); extraDiv.innerHTML = `<hr style="border-color:#334155; margin:15px 0;"><div id="existingExtrasList">${extraHTML}</div><h4 style='margin:10px 0; font-size:14px;'>➕ Add Extra Class</h4><select id="pastExtraSubject" class="custom-select-source">${allSubjects.map(s=>`<option>${s}</option>`).join("")}</select><div class="action-row"><button class="btn-pill btn-secondary" onclick="addPastExtra('Present')">Present</button><button class="btn-pill btn-secondary" onclick="addPastExtra('Absent')">Absent</button></div>`;
-  setupCustomSelects(); 
+
+  // 3. LOAD EXTRA CLASSES (If any existed)
+  const existingExtras = existingData.filter(h => h.time === "Extra");
+  let extraHTML = "";
+  if(existingExtras.length > 0) {
+      existingExtras.forEach(ex => {
+          extraHTML += `<div class="task-item" style="margin-bottom:5px;">
+            <span>${ex.subject} (Extra)</span> 
+            <span class="${ex.status==='Present'?'text-green':'text-red'}">${ex.status}</span>
+            <button class="del-task-btn" onclick="removePastExtra('${ex.subject}')">×</button>
+          </div>`;
+      });
+  }
+
+  const allSubjects = getAllSubjects();
+  extraDiv.innerHTML = `
+    <hr style="border-color:#334155; margin:15px 0;">
+    <div id="existingExtrasList">${extraHTML}</div>
+    <h4 style='margin:10px 0; font-size:14px;'>➕ Add Extra Class</h4>
+    <select id="pastExtraSubject" class="custom-select-source">${allSubjects.map(s=>`<option>${s}</option>`).join("")}</select>
+    <div class="action-row">
+        <button class="btn-pill btn-secondary" onclick="addPastExtra('Present')">Present</button>
+        <button class="btn-pill btn-secondary" onclick="addPastExtra('Absent')">Absent</button>
+    </div>`;
+    
+  setupCustomSelects(); // Re-init dropdowns
 }
-function pastMark(sub, time, stat, btn){ pastBuffer = pastBuffer.filter(x => !(x.subject === sub && x.time === time)); pastBuffer.push({ subject: sub, time: time, status: stat }); const parent = btn.parentElement; parent.querySelectorAll('.btn-pill').forEach(b => { b.className = 'btn-pill btn-secondary'; }); let activeClass = stat === "Present" ? "present" : (stat === "Absent" ? "absent" : "cancelled"); btn.className = `btn-pill ${activeClass}`; }
-function addPastExtra(status){ const subject = document.getElementById("pastExtraSubject").value; if(pastBuffer.find(x=>x.subject===subject && x.time==="Extra")){ showToast("Already in list", "error"); return; } pastBuffer.push({subject, time:"Extra", status}); const list = document.getElementById("existingExtrasList"); list.innerHTML += `<div class="task-item" style="margin-bottom:5px;"><span>${subject} (Extra)</span> <span class="${status==='Present'?'text-green':'text-red'}">${status}</span></div>`; }
-function removePastExtra(subject){ pastBuffer = pastBuffer.filter(x => !(x.subject === subject && x.time === "Extra")); loadPastTimetable(); }
+
+function pastMark(sub, time, stat, btn){
+    // Update Buffer
+    // Remove old entry for this specific subject/time if exists
+    pastBuffer = pastBuffer.filter(x => !(x.subject === sub && x.time === time));
+    // Add new status
+    pastBuffer.push({ subject: sub, time: time, status: stat });
+
+    // Update UI (Visual Feedback)
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.btn-pill').forEach(b => {
+        b.className = 'btn-pill btn-secondary'; // Reset all
+    });
+    // Set active class
+    let activeClass = stat === "Present" ? "present" : (stat === "Absent" ? "absent" : "cancelled");
+    btn.className = `btn-pill ${activeClass}`;
+}
+
+function addPastExtra(status){
+  const subject = document.getElementById("pastExtraSubject").value;
+  // Check if already in buffer
+  if(pastBuffer.find(x=>x.subject===subject && x.time==="Extra")){ showToast("Already in list", "error"); return; }
+  
+  pastBuffer.push({subject, time:"Extra", status});
+  
+  // Add to visual list
+  const list = document.getElementById("existingExtrasList");
+  list.innerHTML += `<div class="task-item" style="margin-bottom:5px;"><span>${subject} (Extra)</span> <span class="${status==='Present'?'text-green':'text-red'}">${status}</span></div>`;
+}
+
+function removePastExtra(subject){
+    pastBuffer = pastBuffer.filter(x => !(x.subject === subject && x.time === "Extra"));
+    loadPastTimetable(); // Reload UI
+}
+
 function savePastAttendance(){
-  if(!pastDateKey){ showToast("Select a date", "error"); return; } if(pastBuffer.length === 0){ showToast("No data to save", "error"); return; }
-  if(data.history[pastDateKey]) { data.history[pastDateKey].forEach(oldEntry => { if(oldEntry.status !== "Cancelled" && data.totals[oldEntry.subject]){ data.totals[oldEntry.subject].t--; if(oldEntry.status === "Present") data.totals[oldEntry.subject].p--; } }); }
-  data.history[pastDateKey] = pastBuffer; 
-  pastBuffer.forEach(h => { if(h.status !== "Cancelled"){ data.totals[h.subject] ??= {p:0,t:0}; data.totals[h.subject].t++; if(h.status === "Present") data.totals[h.subject].p++; } const lockKey = pastDateKey + "_" + h.subject + "_" + h.time; data.locks[lockKey] = true; });
-  save(); render(); showToast("History Updated ✅"); document.getElementById("pastDate").value = ""; document.getElementById("pastLectures").innerHTML = ""; document.getElementById("pastExtra").innerHTML = "";
+  if(!pastDateKey){ showToast("Select a date", "error"); return; }
+  if(pastBuffer.length === 0){ showToast("No data to save", "error"); return; }
+
+  // 1. REVERSE OLD STATS (If we are editing)
+  if(data.history[pastDateKey]) {
+      data.history[pastDateKey].forEach(oldEntry => {
+          if(oldEntry.status !== "Cancelled" && data.totals[oldEntry.subject]){
+              data.totals[oldEntry.subject].t--;
+              if(oldEntry.status === "Present") data.totals[oldEntry.subject].p--;
+          }
+      });
+  }
+
+  // 2. APPLY NEW STATS
+  data.history[pastDateKey] = pastBuffer; // Overwrite history
+  
+  pastBuffer.forEach(h => {
+      // Re-add to totals
+      if(h.status !== "Cancelled"){ 
+          data.totals[h.subject] ??= {p:0,t:0}; 
+          data.totals[h.subject].t++; 
+          if(h.status === "Present") data.totals[h.subject].p++; 
+      }
+      // Ensure locks exist so main page shows them if we view that date
+      const lockKey = pastDateKey + "_" + h.subject + "_" + h.time;
+      data.locks[lockKey] = true; 
+  });
+
+  save(); 
+  render(); 
+  showToast("History Updated ✅");
+  
+  // Clear inputs
+  document.getElementById("pastDate").value = "";
+  document.getElementById("pastLectures").innerHTML = "";
+  document.getElementById("pastExtra").innerHTML = "";
+}
+
+function toggleUndo(){
+  const sec = document.getElementById("undoSection");
+  // Toggle Visibility
+  sec.style.display = (sec.style.display === "none" || sec.style.display === "") ? "block" : "none";
+  
+  // Populate content if visible
+  if(sec.style.display === "block"){
+      sec.innerHTML = "";
+      if(!data.history[dateKey] || data.history[dateKey].length === 0){ 
+          sec.innerHTML = "<div style='text-align:center; color:#94a3b8; font-size:13px;'>Nothing to undo today 😴</div>"; 
+          return; 
+      }
+      data.history[dateKey].forEach((h,i)=>{ 
+          sec.innerHTML += `<div class="task-item"><span>${h.subject} (${h.status})</span> <button class="del-task-btn" onclick="event.stopPropagation(); undo('${dateKey}',${i})">${ICONS.undo}</button></div>`; 
+      });
+  }
 }
 
 function lockNoExtra(){ const key = dateKey + "_NO_EXTRA"; if(data.locks[key]) return; data.locks[key] = true; save(); render(); showToast("Locked for today"); }
 function getDayName(dateStr){ const d = new Date(dateStr + "T00:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("en-US", { weekday: "long" }); }
 function formatDateDDMMYYYY(isoDate){ if(!isoDate) return ""; const [y, m, d] = isoDate.split("-"); return `${d}/${m}/${y}`; }
-function showWeekendMessage(day){ const statusDiv = document.getElementById("dayStatus"); if(day === "Saturday" || day === "Sunday"){ statusDiv.innerHTML = `<div class="weekend-card"><div class="weekend-icon">☕</div><div class="weekend-title">No lectures today</div><div style="font-size:13px; opacity:0.8;">Enjoy your weekend!</div></div>`; } else { statusDiv.innerHTML = ""; } }
+function showWeekendMessage(day){
+  const statusDiv = document.getElementById("dayStatus");
+  if(day === "Saturday" || day === "Sunday"){ 
+      statusDiv.innerHTML = `
+      <div class="weekend-card">
+        <div class="weekend-icon">☕</div>
+        <div class="weekend-title">No lectures today</div>
+        <div style="font-size:13px; opacity:0.8;">Enjoy your weekend!</div>
+      </div>`; 
+  } else { statusDiv.innerHTML = ""; }
+}
 function renderDetailView(){
-  const mode = document.getElementById("viewMode").value; const filter = document.getElementById("filterArea"); const result = document.getElementById("detailResult"); filter.innerHTML = ""; result.innerHTML = "";
-  if(mode === "date"){ const dates = Object.keys(data.history).sort().reverse(); if(!dates.length){ result.innerText = "No data yet"; return; } filter.innerHTML = `<select id="dateSelect" class="custom-select-source" onchange="showDateWise()"><option value="">Select Date</option>${dates.map(d=>`<option value="${d}">${formatDateDDMMYYYY(d)}</option>`).join("")}</select>`; setupCustomSelects(); }
-  if(mode === "subject"){ const subjects = Object.keys(data.totals).sort(); if(!subjects.length){ result.innerText = "No data yet"; return; } filter.innerHTML = `<select id="subjectSelect" class="custom-select-source" onchange="showSubjectWise()"><option value="">Select Subject</option>${subjects.map(s=>`<option value="${s}">${s}</option>`).join("")}</select>`; setupCustomSelects(); }
+  const mode = document.getElementById("viewMode").value;
+  const filter = document.getElementById("filterArea");
+  const result = document.getElementById("detailResult");
+  filter.innerHTML = ""; result.innerHTML = "";
+  if(mode === "date"){
+    const dates = Object.keys(data.history).sort().reverse();
+    if(!dates.length){ result.innerText = "No data yet"; return; }
+    filter.innerHTML = `<select id="dateSelect" class="custom-select-source" onchange="showDateWise()"><option value="">Select Date</option>${dates.map(d=>`<option value="${d}">${formatDateDDMMYYYY(d)}</option>`).join("")}</select>`;
+    setupCustomSelects(); 
+  }
+  if(mode === "subject"){
+    const subjects = Object.keys(data.totals).sort();
+    if(!subjects.length){ result.innerText = "No data yet"; return; }
+    filter.innerHTML = `<select id="subjectSelect" class="custom-select-source" onchange="showSubjectWise()"><option value="">Select Subject</option>${subjects.map(s=>`<option value="${s}">${s}</option>`).join("")}</select>`;
+    setupCustomSelects(); 
+  }
 }
-function showDateWise(){ const d = document.getElementById("dateSelect").value; if(!d || !data.history[d]) return; const result = document.getElementById("detailResult"); result.innerHTML = `<div style="margin-bottom:10px; font-weight:bold;">${formatDateDDMMYYYY(d)} (${getDayName(d)})</div>`; data.history[d].forEach(h=>{ let colorClass = h.status === 'Present' ? 'text-green' : (h.status === 'Cancelled' ? 'text-muted' : 'text-red'); result.innerHTML += `<div class="task-item" style="border-left:none;"><span>${h.subject} | ${h.time}</span> <span class="${colorClass}">${h.status}</span></div>`; }); }
-function showSubjectWise(){ const sub = document.getElementById("subjectSelect").value; if(!sub) return; const result = document.getElementById("detailResult"); result.innerHTML = ""; Object.keys(data.history).sort().reverse().forEach(d=>{ data.history[d].forEach(h=>{ if(h.subject === sub){ let colorClass = h.status === 'Present' ? 'text-green' : (h.status === 'Cancelled' ? 'text-muted' : 'text-red'); result.innerHTML += `<div class="task-item" style="border-left:none;"><span>${formatDateDDMMYYYY(d)}</span> <span class="${colorClass}">${h.status}</span></div>`; } }); }); result.innerHTML += `</div>`; }
-function exportBackup(){ const backup = { version: 14, timestamp: new Date().toISOString(), data: data }; const blob = new Blob([JSON.stringify(backup, null, 2)],{ type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `attendance_backup_${dateKey}.json`; a.click(); URL.revokeObjectURL(a.href); showToast("Backup Downloaded"); }
-document.getElementById("importFile").addEventListener("change", function(e){ const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(){ try{ const backup = JSON.parse(reader.result); if(!backup.data){ showToast("Invalid file", "error"); return; } showConfirm("Overwrite Data?", "This will replace all current data.", () => { data = backup.data; if(!data.tasks) data.tasks = []; if(!data.history) data.history = {}; if(!data.totals) data.totals = {}; if(!data.locks) data.locks = {}; save(); render(); showToast("Restored successfully"); }); } catch(err){ console.error(err); showToast("Error importing", "error"); } e.target.value = ''; }; reader.readAsText(file); });
+function showDateWise(){
+  const d = document.getElementById("dateSelect").value;
+  if(!d || !data.history[d]) return;
+  const result = document.getElementById("detailResult");
+  result.innerHTML = `<div style="margin-bottom:10px; font-weight:bold;">${formatDateDDMMYYYY(d)} (${getDayName(d)})</div>`;
+  data.history[d].forEach(h=>{ 
+      let colorClass = h.status === 'Present' ? 'text-green' : (h.status === 'Cancelled' ? 'text-muted' : 'text-red');
+      result.innerHTML += `<div class="task-item" style="border-left:none;"><span>${h.subject} | ${h.time}</span> <span class="${colorClass}">${h.status}</span></div>`; 
+  });
+}
+function showSubjectWise(){
+  const sub = document.getElementById("subjectSelect").value;
+  if(!sub) return;
+  const result = document.getElementById("detailResult");
+  result.innerHTML = "";
+  Object.keys(data.history).sort().reverse().forEach(d=>{
+    data.history[d].forEach(h=>{ 
+        if(h.subject === sub){ 
+            let colorClass = h.status === 'Present' ? 'text-green' : (h.status === 'Cancelled' ? 'text-muted' : 'text-red');
+            result.innerHTML += `<div class="task-item" style="border-left:none;"><span>${formatDateDDMMYYYY(d)}</span> <span class="${colorClass}">${h.status}</span></div>`; 
+        } 
+    });
+  });
+  result.innerHTML += `</div>`;
+}
+function exportBackup(){
+  const backup = { version: 14, timestamp: new Date().toISOString(), data: data };
+  const blob = new Blob([JSON.stringify(backup, null, 2)],{ type: "application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `attendance_backup_${dateKey}.json`; a.click(); URL.revokeObjectURL(a.href);
+  showToast("Backup Downloaded");
+}
+document.getElementById("importFile").addEventListener("change", function(e){
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(){
+    try{ const backup = JSON.parse(reader.result); if(!backup.data){ showToast("Invalid file", "error"); return; }
+      showConfirm("Overwrite Data?", "This will replace all current data.", () => {
+          data = backup.data; if(!data.tasks) data.tasks = []; if(!data.history) data.history = {}; if(!data.totals) data.totals = {}; if(!data.locks) data.locks = {};
+          save(); render(); showToast("Restored successfully");
+      });
+    } catch(err){ console.error(err); showToast("Error importing", "error"); }
+    e.target.value = '';
+  }; reader.readAsText(file);
+});
 
+// SETTINGS & CHART
 const modal = document.getElementById("settingsModal");
+
 function saveSettings() {
-    const input = document.getElementById("targetInput"); const val = parseInt(input.value);
-    if (!val || val < 1 || val > 100) { showToast("Target must be 1-100%", "error"); return; }
-    MIN_ATTENDANCE = val; localStorage.setItem("target_percent", val);
-    const startVal = document.getElementById("semStartInput").value; localStorage.setItem("sem_start_date", startVal);
-    const pastInput = document.getElementById("pastDate"); if(pastInput && startVal) pastInput.min = startVal;
-    save(); render(); closeSettings(); showToast("Settings Saved");
+    // 1. Save Target
+    const input = document.getElementById("targetInput");
+    const val = parseInt(input.value);
+    
+    if (!val || val < 1 || val > 100) {
+        showToast("Target must be 1-100%", "error");
+        return;
+    }
+
+    MIN_ATTENDANCE = val;
+    localStorage.setItem("target_percent", val);
+
+    // 2. Save Semester Start Date
+    const startVal = document.getElementById("semStartInput").value;
+    localStorage.setItem("sem_start_date", startVal);
+    
+    // Apply limit immediately
+    const pastInput = document.getElementById("pastDate");
+    if(pastInput && startVal) pastInput.min = startVal;
+    
+    // Re-render everything
+    render(); 
+    closeSettings();
+    showToast("Settings Saved");
 }
-function openSettings() { modal.style.display = "flex"; document.getElementById("targetInput").value = MIN_ATTENDANCE; document.getElementById("semStartInput").value = localStorage.getItem("sem_start_date") || ""; document.getElementById("editDaySelect").value = day; renderEditRows(); setupCustomSelects(); }
+
+function openSettings() { 
+    modal.style.display = "flex"; 
+    
+    // Load current values
+    document.getElementById("targetInput").value = MIN_ATTENDANCE;
+    document.getElementById("semStartInput").value = localStorage.getItem("sem_start_date") || "";
+    
+    document.getElementById("editDaySelect").value = day; 
+    renderEditRows(); 
+    setupCustomSelects(); 
+}
+
 function closeSettings() { modal.style.display = "none"; }
-function renderEditRows() { const selectedDay = document.getElementById("editDaySelect").value; const container = document.getElementById("editContainer"); container.innerHTML = ""; const lectures = timetable[selectedDay] || []; lectures.forEach((lec, index) => { container.innerHTML += `<div class="edit-row"><input type="text" class="edit-input" style="width:30%" value="${lec[0]}" id="time_${index}"><input type="text" class="edit-input" style="width:70%" value="${lec[1]}" id="sub_${index}"><button style="background:var(--red); color:white; border:none; border-radius:4px; padding:0 8px;" onclick="delEditRow(${index})">${ICONS.trash}</button></div>`; }); }
+function renderEditRows() {
+  const selectedDay = document.getElementById("editDaySelect").value;
+  const container = document.getElementById("editContainer");
+  container.innerHTML = "";
+  const lectures = timetable[selectedDay] || [];
+  lectures.forEach((lec, index) => {
+    container.innerHTML += `<div class="edit-row"><input type="text" class="edit-input" style="width:30%" value="${lec[0]}" id="time_${index}"><input type="text" class="edit-input" style="width:70%" value="${lec[1]}" id="sub_${index}"><button style="background:var(--red); color:white; border:none; border-radius:4px; padding:0 8px;" onclick="delEditRow(${index})">${ICONS.trash}</button></div>`;
+  });
+}
 function addEditRow() { const selectedDay = document.getElementById("editDaySelect").value; timetable[selectedDay] ??= []; timetable[selectedDay].push(["00:00-00:00", "New Subject"]); renderEditRows(); }
 function delEditRow(index) { const selectedDay = document.getElementById("editDaySelect").value; timetable[selectedDay].splice(index, 1); renderEditRows(); }
-function saveNewTimetable() { const selectedDay = document.getElementById("editDaySelect").value; const container = document.getElementById("editContainer"); const rows = container.querySelectorAll(".edit-row"); const newDaySchedule = []; rows.forEach((row, index) => { const t = document.getElementById(`time_${index}`).value; const s = document.getElementById(`sub_${index}`).value; if(t && s) newDaySchedule.push([t, s]); }); timetable[selectedDay] = newDaySchedule; localStorage.setItem("custom_timetable", JSON.stringify(timetable)); showToast(`Saved ${selectedDay}`); initExtra(); render(); }
-function triggerRestore() { showConfirm("Reset Timetable?", "This reverts all schedule edits.", () => { localStorage.removeItem("custom_timetable"); timetable = JSON.parse(JSON.stringify(defaultTimetable)); showToast("Restored Default"); location.reload(); }); }
+function saveNewTimetable() {
+  const selectedDay = document.getElementById("editDaySelect").value;
+  const container = document.getElementById("editContainer");
+  const rows = container.querySelectorAll(".edit-row");
+  const newDaySchedule = [];
+  rows.forEach((row, index) => {
+    const t = document.getElementById(`time_${index}`).value;
+    const s = document.getElementById(`sub_${index}`).value;
+    if(t && s) newDaySchedule.push([t, s]);
+  });
+  timetable[selectedDay] = newDaySchedule;
+  localStorage.setItem("custom_timetable", JSON.stringify(timetable));
+  showToast(`Saved ${selectedDay}`); initExtra(); render();
+}
+function triggerRestore() {
+  showConfirm("Reset Timetable?", "This reverts all schedule edits.", () => {
+    localStorage.removeItem("custom_timetable");
+    timetable = JSON.parse(JSON.stringify(defaultTimetable));
+    showToast("Restored Default"); location.reload();
+  });
+}
 
+// CHART
 let chartInstance = null;
 function renderChart() {
-  const dates = Object.keys(data.history).sort(); let currentP = 0, currentT = 0; for(let s in data.totals){ currentP += data.totals[s].p; currentT += data.totals[s].t; }
-  const chartData = []; const chartLabels = []; let tempP = currentP; let tempT = currentT;
+  const dates = Object.keys(data.history).sort();
+  let currentP = 0, currentT = 0;
+  for(let s in data.totals){ currentP += data.totals[s].p; currentT += data.totals[s].t; }
+  const chartData = []; const chartLabels = [];
+  let tempP = currentP; let tempT = currentT;
   if(tempT > 0) { chartData.push(Math.round((tempP/tempT)*100)); chartLabels.push(formatDateDDMMYYYY(dateKey).slice(0,5)); }
   const relevantDates = dates.filter(d => d !== dateKey).reverse().slice(0, 30);
-  relevantDates.forEach(d => { const dayEvents = data.history[d]; dayEvents.forEach(evt => { if(evt.status !== "Cancelled"){ tempT--; if(evt.status === "Present") tempP--; } }); if(tempT > 0) { chartData.push(Math.round((tempP/tempT)*100)); chartLabels.push(formatDateDDMMYYYY(d).slice(0,5)); } });
+  relevantDates.forEach(d => {
+      const dayEvents = data.history[d];
+      dayEvents.forEach(evt => { if(evt.status !== "Cancelled"){ tempT--; if(evt.status === "Present") tempP--; } });
+      if(tempT > 0) { chartData.push(Math.round((tempP/tempT)*100)); chartLabels.push(formatDateDDMMYYYY(d).slice(0,5)); }
+  });
   chartData.reverse(); chartLabels.reverse();
   const ctx = document.getElementById('attendanceChart'); if(!ctx) return;
   if(chartInstance) chartInstance.destroy();
-  chartInstance = new Chart(ctx, { type: 'line', data: { labels: chartLabels, datasets: [{ label: 'Overall %', data: chartData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.4, pointRadius: 4, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, min: 0, max: 100, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { display: false } } } });
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartLabels,
+      datasets: [{
+        label: 'Overall %',
+        data: chartData,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.4,
+        pointRadius: 4,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, min: 0, max: 100, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
 }
 
-function render(){ showWeekendMessage(day); document.getElementById("today").innerText = `${day}, ${formatDateDDMMYYYY(dateKey)}`; loadLectures(); renderSummary(); renderTasks(); renderChart(); const noExtraKey = dateKey + "_NO_EXTRA"; if(data.locks[noExtraKey]){ document.getElementById("extraSubject").disabled = true; document.querySelectorAll(".card button").forEach(btn=>{ if(btn.innerText.includes("Present") || btn.innerText.includes("Absent") || btn.innerText.includes("Off")){ btn.disabled = true; } }); document.getElementById("extraInfo").innerText = "✔ No extra lectures today"; } }
+function render(){
+  showWeekendMessage(day);
+  document.getElementById("today").innerText = `${day}, ${formatDateDDMMYYYY(dateKey)}`;
+  loadLectures(); renderSummary(); renderTasks(); renderChart(); 
+  const noExtraKey = dateKey + "_NO_EXTRA";
+  if(data.locks[noExtraKey]){
+    document.getElementById("extraSubject").disabled = true;
+    document.querySelectorAll(".card button").forEach(btn=>{ 
+        if(btn.innerText.includes("Present") || btn.innerText.includes("Absent") || btn.innerText.includes("Off")){ 
+            btn.disabled = true; 
+        } 
+    });
+    document.getElementById("extraInfo").innerText = "✔ No extra lectures today";
+  }
+}
 
-initExtra(); render();
+initExtra();
+render();
 </script>
 </body>
 </html>
