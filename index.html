@@ -8,7 +8,6 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
 <link rel="apple-touch-icon" href="icon.png">
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -130,30 +129,7 @@ body {
 .cancelled { background: #334155; color: var(--text-muted); }
 .note-btn { background: transparent; color: var(--text-muted); border: 1px solid #334155; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-/* --- INPUTS & BUTTONS --- */
-input { width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; margin-bottom: 12px; font-size: 14px; outline: none; -webkit-user-select: text; user-select: text; }
-input:focus { border-color: var(--accent); }
-.btn-block { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
-.btn-primary { background: var(--accent); color: white; }
-.btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); }
-.btn-secondary { background: #334155; color: white; }
-.btn-google { background: white; color: #333; }
-
-/* --- TOAST (TOP) --- */
-#toastBox { 
-    position: fixed; top: 75px; left: 50%; transform: translateX(-50%); z-index: 3000; 
-    display: flex; flex-direction: column; gap: 10px; align-items: center; width: 90%; max-width: 350px; pointer-events: none; 
-}
-.toast { 
-    background: #1e293b; color: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); 
-    display: flex; align-items: center; gap: 10px; font-size: 14px; animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-    border: 1px solid #334155; pointer-events: auto; 
-}
-.toast.success { border-left: 4px solid var(--green); }
-.toast.error { border-left: 4px solid var(--red); }
-@keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-
-/* --- DROPDOWN, MODALS, ETC. --- */
+/* --- CUSTOM DROPDOWN CSS --- */
 .custom-select-wrapper { position: relative; user-select: none; margin-bottom: 12px; }
 .custom-select-wrapper select { display: none; }
 .custom-select-trigger { position: relative; display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 14px; font-size: 14px; font-weight: 400; color: #fff; background: #0f172a; border: 1px solid #334155; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
@@ -166,15 +142,28 @@ input:focus { border-color: var(--accent); }
 .custom-option:last-child { border-bottom: none; }
 .custom-option:hover, .custom-option.selected { background: #334155; color: #fff; }
 
+/* --- INPUTS & BUTTONS --- */
+input { width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; margin-bottom: 12px; font-size: 14px; outline: none; -webkit-user-select: text; user-select: text; }
+input:focus { border-color: var(--accent); }
+.btn-block { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
+.btn-primary { background: var(--accent); color: white; }
+.btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); }
+.btn-secondary { background: #334155; color: white; }
+.btn-google { background: white; color: #333; }
+
+/* --- TOAST --- */
+#toastBox { position: fixed; top: 75px; left: 50%; transform: translateX(-50%); z-index: 3000; display: flex; flex-direction: column; gap: 10px; align-items: center; width: 90%; max-width: 350px; pointer-events: none; }
+.toast { background: #1e293b; color: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; font-size: 14px; animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid #334155; pointer-events: auto; }
+.toast.success { border-left: 4px solid var(--green); }
+.toast.error { border-left: 4px solid var(--red); }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
 .confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 4000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
 .confirm-box { background: #1e293b; width: 85%; max-width: 320px; padding: 24px; border-radius: 16px; text-align: center; border: 1px solid #475569; animation: popIn 0.2s ease-out; }
 .confirm-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
 .confirm-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
 .confirm-actions { display: flex; gap: 12px; }
 @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
-.modal-content { background: #1e293b; width: 90%; max-width: 400px; max-height: 85vh; border-radius: 16px; padding: 24px; overflow-y: auto; border: 1px solid #475569; }
 
 /* --- SUMMARY --- */
 .summary-item { display: flex; flex-direction: column; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #334155; }
@@ -186,7 +175,9 @@ input:focus { border-color: var(--accent); }
 .overall-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); text-align: center; border: 1px solid #475569; padding: 20px; }
 .overall-percent { font-size: 36px; font-weight: 800; margin: 10px 0; letter-spacing: -1px; }
 
-/* --- MISC UTILS --- */
+/* --- UTILS --- */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+.modal-content { background: #1e293b; width: 90%; max-width: 400px; max-height: 85vh; border-radius: 16px; padding: 24px; overflow-y: auto; border: 1px solid #475569; }
 .task-item { background: #0f172a; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-left: 3px solid var(--yellow); }
 .task-done { opacity: 0.5; text-decoration: line-through; border-left-color: var(--green); }
 .del-task-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
@@ -200,7 +191,6 @@ input:focus { border-color: var(--accent); }
 .cloud-status { display:flex; align-items:center; justify-content:space-between; background:#0f172a; padding:12px; border-radius:8px; border:1px solid #334155; margin-bottom:12px; }
 .user-avatar { width:32px; height:32px; border-radius:50%; background:#334155; display:flex; align-items:center; justify-content:center; font-weight:bold; color:white; overflow:hidden; }
 .user-avatar img { width:100%; height:100%; object-fit:cover; }
-
 </style>
 </head>
 <body>
@@ -259,6 +249,7 @@ input:focus { border-color: var(--accent); }
 </div>
 
 <div id="tab-tools" class="tab-content">
+    
     <div class="card">
         <div class="card-header"><h3 class="card-title"><span class="icon-db"></span> Cloud Sync</h3></div>
         
@@ -285,7 +276,6 @@ input:focus { border-color: var(--accent); }
             </div>
             <button class="btn-block btn-secondary" onclick="forceCloudSync()">Force Backup to Cloud</button>
         </div>
-
     </div>
 
     <div class="card">
@@ -295,16 +285,14 @@ input:focus { border-color: var(--accent); }
         <div id="pastExtra" style="margin-top:10px;"></div>
         <button class="btn-block btn-primary" onclick="savePastAttendance()">Save Past Data</button>
     </div>
-    
     <div class="card" onclick="toggleUndo()">
         <div class="card-header" style="margin-bottom:0;">
             <h3 class="card-title" style="font-size:14px; color:var(--text-muted); cursor:pointer;"><span class="icon-undo"></span> Undo Today's Entry</h3>
         </div>
         <div id="undoSection" style="display:none; margin-top: 15px; border-top:1px solid #334155; padding-top:10px;"></div>
     </div>
-    
     <div class="card">
-        <div class="card-header"><h3 class="card-title"><span class="icon-db"></span> Local Data</h3></div>
+        <div class="card-header"><h3 class="card-title"><span class="icon-db"></span> Data & Backup</h3></div>
         <button class="btn-block btn-secondary" onclick="exportBackup()">Export Backup File</button>
         <input type="file" id="importFile" accept=".json" style="display:none">
         <button class="btn-block btn-secondary" onclick="document.getElementById('importFile').click()">Import Backup File</button>
@@ -372,7 +360,7 @@ input:focus { border-color: var(--accent); }
 </div>
 
 <script>
-// --- ICONS & UI SETUP ---
+// --- ICONS ---
 const ICONS = {
     home: '<svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
     stats: '<svg class="icon icon-lg" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>',
@@ -391,7 +379,7 @@ const ICONS = {
     task: '<svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
     slot: '<svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>'
 };
-// Icon assignment
+
 document.getElementById('headerSettingsBtn').innerHTML = ICONS.gear;
 document.getElementById('navHome').innerHTML = ICONS.home;
 document.getElementById('navStats').innerHTML = ICONS.stats;
@@ -408,14 +396,6 @@ document.querySelectorAll('.icon-close').forEach(e => e.innerHTML = ICONS.close)
 document.querySelectorAll('.icon-gear').forEach(e => e.innerHTML = ICONS.gear);
 
 // --- FIREBASE SETUP ---
- // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyD_3PoAWTKc9yrNuW37MFBg2nhtFV3v4xM",
   authDomain: "attendancepro-f5017.firebaseapp.com",
@@ -427,40 +407,34 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-};
-
 let auth, db, currentUser;
 
-// Initialize Firebase only if config is present (prevents crash before setup)
-if (firebaseConfig.apiKey) {
-    try {
-        firebase.initializeApp(firebaseConfig);
-        auth = firebase.auth();
-        db = firebase.firestore();
+try {
+    firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    
+    // Auth Listener
+    auth.onAuthStateChanged(user => {
+        currentUser = user;
+        const loginDiv = document.getElementById("cloudLoggedOut");
+        const statusDiv = document.getElementById("cloudLoggedIn");
         
-        // Auth Listener
-        auth.onAuthStateChanged(user => {
-            currentUser = user;
-            const loginDiv = document.getElementById("cloudLoggedOut");
-            const statusDiv = document.getElementById("cloudLoggedIn");
-            if (user) {
-                loginDiv.style.display = "none";
-                statusDiv.style.display = "block";
-                document.getElementById("userName").innerText = user.displayName || "User";
-                if(user.photoURL) document.getElementById("userAvatar").innerHTML = `<img src="${user.photoURL}">`;
-                checkForCloudUpdates(); // Check on login
-            } else {
-                loginDiv.style.display = "block";
-                statusDiv.style.display = "none";
-            }
-        });
-    } catch(e) { console.error("Firebase init error:", e); }
-}
+        if (user) {
+            loginDiv.style.display = "none";
+            statusDiv.style.display = "block";
+            document.getElementById("userName").innerText = user.displayName || "User";
+            if(user.photoURL) document.getElementById("userAvatar").innerHTML = `<img src="${user.photoURL}">`;
+            checkForCloudUpdates(); // Check on login
+        } else {
+            loginDiv.style.display = "block";
+            statusDiv.style.display = "none";
+        }
+    });
+} catch(e) { console.error("Firebase init error:", e); }
 
 function loginWithGoogle() {
-    if(!auth) return showToast("Setup Firebase Config first!", "error");
+    if(!auth) return showToast("Firebase not init", "error");
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider).then(() => showToast("Logged In")).catch(e => showToast(e.message, "error"));
 }
@@ -531,6 +505,7 @@ function checkForCloudUpdates() {
 }
 function forceCloudSync() { syncToCloud(); showToast("Backup started"); }
 
+
 // --- APP LOGIC ---
 const PASSWORD = "Nir@2006";
 let MIN_ATTENDANCE = parseInt(localStorage.getItem("target_percent")) || 75;
@@ -543,6 +518,19 @@ const defaultTimetable = {
   Friday: [ ["11:00-01:00","Software Requirement Engineering"], ["01:30-02:30","Theory of Computation"], ["02:30-04:30","Report Writing & Presentation Skill"] ]
 };
 
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js").then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          showConfirm("Update Available", "A new version of the app is ready.", () => window.location.reload());
+        }
+      });
+    });
+  });
+}
+
 function getStorageDateKey(date) {
   const y = date.getFullYear(); const m = String(date.getMonth() + 1).padStart(2, '0'); const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
@@ -553,22 +541,33 @@ const dateKey = getStorageDateKey(today);
 
 // Apply limit on load
 const savedStart = localStorage.getItem("sem_start_date");
-if(savedStart && document.getElementById("pastDate")) document.getElementById("pastDate").min = savedStart;
+if(savedStart && document.getElementById("pastDate")) {
+    document.getElementById("pastDate").min = savedStart;
+}
 
 let data = JSON.parse(localStorage.getItem("attendance")) || { totals:{}, history:{}, locks:{}, tasks:[] };
 if(!data.tasks) data.tasks = [];
 let timetable = JSON.parse(localStorage.getItem("custom_timetable")) || JSON.parse(JSON.stringify(defaultTimetable));
 
-// MODIFIED SAVE TO TRIGGER SYNC
+// MODIFIED SAVE FUNCTION
 function save(triggerSync = true){ 
     localStorage.setItem("attendance",JSON.stringify(data)); 
     if(triggerSync) {
-        localStorage.setItem("last_sync_time", Date.now()); // Mark local save time
+        localStorage.setItem("last_sync_time", Date.now()); 
         syncToCloud(); 
     }
 }
 
-// --- STANDARD FUNCTIONS (Unchanged logic, just compacted) ---
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    const btns = document.querySelectorAll('.nav-item');
+    if(tabId === 'home') btns[0].classList.add('active');
+    if(tabId === 'stats') btns[1].classList.add('active');
+    if(tabId === 'tools') btns[2].classList.add('active');
+}
+
 function setupCustomSelects() {
     document.querySelectorAll('.custom-select-source').forEach(select => {
         if (select.parentNode.classList.contains('custom-select-wrapper')) return;
@@ -599,29 +598,67 @@ function setupCustomSelects() {
     });
     document.addEventListener('click', function() { document.querySelectorAll('.custom-select-wrapper.open').forEach(el => el.classList.remove('open')); });
 }
+
 function showToast(msg, type = 'success') {
-    const box = document.getElementById('toastBox'); const toast = document.createElement('div'); toast.className = `toast ${type}`;
-    const icon = type === 'success' ? ICONS.check : ICONS.x; toast.innerHTML = `<span class="icon-sm">${icon}</span> ${msg}`;
-    box.appendChild(toast); setTimeout(() => { toast.remove(); }, 3000);
+    const box = document.getElementById('toastBox');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? ICONS.check : ICONS.x;
+    toast.innerHTML = `<span class="icon-sm">${icon}</span> ${msg}`;
+    box.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, 3000);
 }
+
 function showConfirm(title, desc, onConfirm) {
-    const modal = document.getElementById('confirmModal'); document.getElementById('confirmTitle').innerText = title; document.getElementById('confirmDesc').innerText = desc; modal.style.display = "flex";
-    const confirmBtn = document.getElementById('confirmYesBtn'); confirmBtn.onclick = () => { onConfirm(); closeConfirm(); };
+    const modal = document.getElementById('confirmModal');
+    document.getElementById('confirmTitle').innerText = title;
+    document.getElementById('confirmDesc').innerText = desc;
+    modal.style.display = "flex";
+    const confirmBtn = document.getElementById('confirmYesBtn');
+    confirmBtn.onclick = () => { onConfirm(); closeConfirm(); };
 }
 function closeConfirm() { document.getElementById('confirmModal').style.display = "none"; }
 function closePasswordModal() { document.getElementById('passwordModal').style.display = "none"; }
-function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    document.getElementById('tab-' + tabId).classList.add('active');
-    const btns = document.querySelectorAll('.nav-item');
-    if(tabId === 'home') btns[0].classList.add('active'); if(tabId === 'stats') btns[1].classList.add('active'); if(tabId === 'tools') btns[2].classList.add('active');
+
+function requestNotificationPermission() {
+    if (!("Notification" in window)) { showToast("Not supported", "error"); return; }
+    Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+            showToast("Notifications Enabled!");
+            sendNotification("Setup Complete", "You will be reminded at 5 PM.");
+        } else { showToast("Permission Denied", "error"); }
+    });
 }
+function sendNotification(title, body) {
+    if (Notification.permission === "granted") {
+        if(navigator.serviceWorker.controller){ navigator.serviceWorker.ready.then(reg => reg.showNotification(title, { body: body, icon: 'icon.png' })); } 
+        else { new Notification(title, { body: body, icon: 'icon.png' }); }
+    }
+}
+function startBackgroundCheck() {
+    setInterval(() => {
+        const now = new Date();
+        if(now.getHours() === 17 && now.getMinutes() === 0) {
+             const d = now.toLocaleDateString("en-US",{ weekday:"long" });
+             if(d === "Saturday" || d === "Sunday") return;
+             const todaysLocks = Object.keys(data.locks).some(k => k.startsWith(dateKey));
+             if(!todaysLocks) {
+                 sendNotification("Attendance Reminder", "You haven't marked your attendance today!");
+                 document.getElementById("reminderAlert").style.display = "block";
+             }
+        }
+    }, 60000);
+}
+startBackgroundCheck();
+
 function loadLectures(){
-  const container = document.getElementById("lectures"); container.innerHTML = "";
+  const container = document.getElementById("lectures");
+  container.innerHTML = "";
   (timetable[day] || []).forEach(([time,subject])=>{
-    const lockKey = dateKey+"_"+subject+"_"+time; const locked = data.locks[lockKey];
-    const div = document.createElement("div"); div.className = "card lecture-card "+(locked?"locked":"");
+    const lockKey = dateKey+"_"+subject+"_"+time;
+    const locked = data.locks[lockKey];
+    const div = document.createElement("div");
+    div.className = "card lecture-card "+(locked?"locked":"");
     let statusHTML = "";
     if(locked && data.history[dateKey]){
       const entry = data.history[dateKey].find(h => h.subject === subject && h.time === time);
@@ -637,6 +674,8 @@ function loadLectures(){
     container.appendChild(div);
   });
 }
+
+// --- NEW NOTE LOGIC ---
 let currentNoteSubject = "";
 function addNote(subject) { currentNoteSubject = subject; document.getElementById('noteSubjectDisplay').innerText = subject; document.getElementById('noteInput').value = ""; document.getElementById('noteModal').style.display = 'flex'; document.getElementById('noteInput').focus(); }
 function closeNoteModal() { document.getElementById('noteModal').style.display = 'none'; }
@@ -649,8 +688,10 @@ function renderTasks() {
 }
 function toggleTask(index) { data.tasks[index].done = !data.tasks[index].done; save(); renderTasks(); }
 function deleteTask(e, index) { e.stopPropagation(); showConfirm("Delete Note?", "This cannot be undone.", () => { data.tasks.splice(index, 1); save(); renderTasks(); }); }
+
 function markAttendance(subject,time,status){ const key = dateKey+"_"+subject+"_"+time; if(data.locks[key]) return; data.locks[key] = true; data.history[dateKey] ??= []; data.history[dateKey].push({subject,time,status}); if(status !== "Cancelled"){ data.totals[subject] ??= {p:0,t:0}; data.totals[subject].t++; if(status==="Present") data.totals[subject].p++; } save(); render(); showToast(`Marked ${status}`); }
 function markExtra(status){ const noExtraKey = dateKey + "_NO_EXTRA"; if(data.locks[noExtraKey]){ showToast("Locked for today", "error"); return; } const subject = document.getElementById("extraSubject").value; if(!subject) return; const key = dateKey+"_EXTRA_"+subject; if(data.locks[key]) return showToast("Already added", "error"); data.locks[key]=true; data.history[dateKey] ??= []; data.history[dateKey].push({subject,time:"Extra",status}); data.totals[subject] ??= {p:0,t:0}; data.totals[subject].t++; if(status==="Present") data.totals[subject].p++; save(); render(); showToast("Extra Class Added"); }
+
 function renderSummary(){
   const div = document.getElementById("summary"); div.innerHTML = ""; let tp = 0, tt = 0; const target = MIN_ATTENDANCE / 100;
   for(let s in data.totals){
@@ -671,13 +712,17 @@ function renderSummary(){
   if(tt>0 && overall < MIN_ATTENDANCE){ const overallNeeded = Math.ceil( (target * tt - tp) / (1 - target) ); overallMsg = `Attend next ${overallNeeded} to hit ${MIN_ATTENDANCE}%`; } else if (tt>0) { const overallBunk = Math.floor((tp / target) - tt); if(overallBunk > 0) overallMsg = `Can bunk ${overallBunk} in total`; }
   div.innerHTML = `<div class="overall-card card"><div style="font-size:12px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Overall Attendance</div><div class="overall-percent ${overallColor}">${overall}%</div><div style="font-size:13px; color:#94a3b8;">${overallMsg}</div></div>` + div.innerHTML;
 }
+
 function undo(d,i){ const h = data.history[d][i]; const key = d+"_"+h.subject+"_"+h.time; delete data.locks[key]; if(h.status!=="Cancelled"){ data.totals[h.subject].t--; if(h.status==="Present") data.totals[h.subject].p--; } data.history[d].splice(i,1); save(); render(); showToast("Entry Undone"); }
+
 function triggerReset(){
   const modal = document.getElementById('passwordModal'); const input = document.getElementById('resetPasswordInput'); const btn = document.getElementById('submitPasswordBtn'); input.value = ""; modal.style.display = "flex"; input.focus();
   btn.onclick = () => { if(input.value === PASSWORD) { closePasswordModal(); showConfirm("Factory Reset?", "All data will be lost permanently.", () => { localStorage.removeItem("attendance"); localStorage.removeItem("target_percent"); location.reload(); }); } else { showToast("Wrong Password", "error"); input.value = ""; input.focus(); } };
 }
+
 function getAllSubjects() { const set = new Set(); Object.values(timetable).flat().forEach(x => set.add(x[1])); return [...set].sort(); }
 function initExtra(){ document.getElementById("extraSubject").innerHTML = getAllSubjects().map(s=>`<option>${s}</option>`).join(""); setupCustomSelects(); }
+
 let pastBuffer = [], pastDateKey = "", pastDay = "";
 function loadPastTimetable(){
   const input = document.getElementById("pastDate"); const val = input.value; const container = document.getElementById("pastLectures"); const extraDiv = document.getElementById("pastExtra"); container.innerHTML = ""; extraDiv.innerHTML = ""; pastBuffer = [];
@@ -710,7 +755,7 @@ function savePastAttendance(){
   pastBuffer.forEach(h => { if(h.status !== "Cancelled"){ data.totals[h.subject] ??= {p:0,t:0}; data.totals[h.subject].t++; if(h.status === "Present") data.totals[h.subject].p++; } const lockKey = pastDateKey + "_" + h.subject + "_" + h.time; data.locks[lockKey] = true; });
   save(); render(); showToast("History Updated ✅"); document.getElementById("pastDate").value = ""; document.getElementById("pastLectures").innerHTML = ""; document.getElementById("pastExtra").innerHTML = "";
 }
-function toggleUndo(){ const sec = document.getElementById("undoSection"); sec.style.display = sec.style.display === "none" ? "block" : "none"; const div = document.getElementById("undoSection"); div.innerHTML = ""; if(!data.history[dateKey] || data.history[dateKey].length === 0){ div.innerHTML = "<div style='text-align:center; color:#94a3b8;'>Nothing to undo today</div>"; return; } data.history[dateKey].forEach((h,i)=>{ div.innerHTML += `<div class="task-item"><span>${h.subject} (${h.status})</span> <button class="del-task-btn" onclick="undo('${dateKey}',${i})">${ICONS.undo}</button></div>`; }); }
+
 function lockNoExtra(){ const key = dateKey + "_NO_EXTRA"; if(data.locks[key]) return; data.locks[key] = true; save(); render(); showToast("Locked for today"); }
 function getDayName(dateStr){ const d = new Date(dateStr + "T00:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("en-US", { weekday: "long" }); }
 function formatDateDDMMYYYY(isoDate){ if(!isoDate) return ""; const [y, m, d] = isoDate.split("-"); return `${d}/${m}/${y}`; }
@@ -724,6 +769,7 @@ function showDateWise(){ const d = document.getElementById("dateSelect").value; 
 function showSubjectWise(){ const sub = document.getElementById("subjectSelect").value; if(!sub) return; const result = document.getElementById("detailResult"); result.innerHTML = ""; Object.keys(data.history).sort().reverse().forEach(d=>{ data.history[d].forEach(h=>{ if(h.subject === sub){ let colorClass = h.status === 'Present' ? 'text-green' : (h.status === 'Cancelled' ? 'text-muted' : 'text-red'); result.innerHTML += `<div class="task-item" style="border-left:none;"><span>${formatDateDDMMYYYY(d)}</span> <span class="${colorClass}">${h.status}</span></div>`; } }); }); result.innerHTML += `</div>`; }
 function exportBackup(){ const backup = { version: 14, timestamp: new Date().toISOString(), data: data }; const blob = new Blob([JSON.stringify(backup, null, 2)],{ type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `attendance_backup_${dateKey}.json`; a.click(); URL.revokeObjectURL(a.href); showToast("Backup Downloaded"); }
 document.getElementById("importFile").addEventListener("change", function(e){ const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(){ try{ const backup = JSON.parse(reader.result); if(!backup.data){ showToast("Invalid file", "error"); return; } showConfirm("Overwrite Data?", "This will replace all current data.", () => { data = backup.data; if(!data.tasks) data.tasks = []; if(!data.history) data.history = {}; if(!data.totals) data.totals = {}; if(!data.locks) data.locks = {}; save(); render(); showToast("Restored successfully"); }); } catch(err){ console.error(err); showToast("Error importing", "error"); } e.target.value = ''; }; reader.readAsText(file); });
+
 const modal = document.getElementById("settingsModal");
 function saveSettings() {
     const input = document.getElementById("targetInput"); const val = parseInt(input.value);
@@ -740,6 +786,7 @@ function addEditRow() { const selectedDay = document.getElementById("editDaySele
 function delEditRow(index) { const selectedDay = document.getElementById("editDaySelect").value; timetable[selectedDay].splice(index, 1); renderEditRows(); }
 function saveNewTimetable() { const selectedDay = document.getElementById("editDaySelect").value; const container = document.getElementById("editContainer"); const rows = container.querySelectorAll(".edit-row"); const newDaySchedule = []; rows.forEach((row, index) => { const t = document.getElementById(`time_${index}`).value; const s = document.getElementById(`sub_${index}`).value; if(t && s) newDaySchedule.push([t, s]); }); timetable[selectedDay] = newDaySchedule; localStorage.setItem("custom_timetable", JSON.stringify(timetable)); showToast(`Saved ${selectedDay}`); initExtra(); render(); }
 function triggerRestore() { showConfirm("Reset Timetable?", "This reverts all schedule edits.", () => { localStorage.removeItem("custom_timetable"); timetable = JSON.parse(JSON.stringify(defaultTimetable)); showToast("Restored Default"); location.reload(); }); }
+
 let chartInstance = null;
 function renderChart() {
   const dates = Object.keys(data.history).sort(); let currentP = 0, currentT = 0; for(let s in data.totals){ currentP += data.totals[s].p; currentT += data.totals[s].t; }
@@ -752,7 +799,9 @@ function renderChart() {
   if(chartInstance) chartInstance.destroy();
   chartInstance = new Chart(ctx, { type: 'line', data: { labels: chartLabels, datasets: [{ label: 'Overall %', data: chartData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.4, pointRadius: 4, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, min: 0, max: 100, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { display: false } } } });
 }
+
 function render(){ showWeekendMessage(day); document.getElementById("today").innerText = `${day}, ${formatDateDDMMYYYY(dateKey)}`; loadLectures(); renderSummary(); renderTasks(); renderChart(); const noExtraKey = dateKey + "_NO_EXTRA"; if(data.locks[noExtraKey]){ document.getElementById("extraSubject").disabled = true; document.querySelectorAll(".card button").forEach(btn=>{ if(btn.innerText.includes("Present") || btn.innerText.includes("Absent") || btn.innerText.includes("Off")){ btn.disabled = true; } }); document.getElementById("extraInfo").innerText = "✔ No extra lectures today"; } }
+
 initExtra(); render();
 </script>
 </body>
