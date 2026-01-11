@@ -32,8 +32,6 @@ body {
     padding: 0;
     padding-bottom: 90px;
     padding-top: 60px;
-
-    /* ADD THESE LINES */
     -webkit-user-select: none; /* Safari/Chrome */
     user-select: none;         /* Standard */
 }
@@ -151,7 +149,7 @@ body {
 .custom-option:hover, .custom-option.selected { background: #334155; color: #fff; }
 
 /* --- INPUTS & BUTTONS --- */
-input { width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; margin-bottom: 12px; font-size: 14px; outline: none;  -webkit-user-select: text; user-select: text;}
+input { width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; margin-bottom: 12px; font-size: 14px; outline: none; -webkit-user-select: text; user-select: text; }
 input:focus { border-color: var(--accent); }
 .btn-block { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
 .btn-primary { background: var(--accent); color: white; }
@@ -330,8 +328,11 @@ input:focus { border-color: var(--accent); }
     <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">TARGET ATTENDANCE (%)</label>
     <div style="display:flex; gap:10px; margin-bottom: 24px; margin-top: 8px;">
         <input type="number" id="targetInput" placeholder="75" style="margin-bottom:0;" min="1" max="100">
-        <button class="btn-primary" style="padding: 0 20px; border-radius:8px; border:none; font-weight:600;" onclick="saveTargetSettings()">Save</button>
     </div>
+
+    <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">SEMESTER START DATE</label>
+    <input type="date" id="semStartInput" style="margin-top: 8px; margin-bottom: 24px;">
+
     <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">NOTIFICATIONS</label>
     <button class="btn-block" style="background: #0ea5e9; color: white; margin-bottom: 24px;" onclick="requestNotificationPermission()">Enable Daily Reminders</button>
     
@@ -350,8 +351,11 @@ input:focus { border-color: var(--accent); }
     <div id="editContainer"></div>
     <div style="display:flex; gap:10px; margin-top:15px;">
         <button class="btn-block btn-secondary" onclick="addEditRow()">+ Slot</button>
-        <button class="btn-block btn-primary" onclick="saveNewTimetable()">Save</button>
+        <button class="btn-block btn-primary" onclick="saveNewTimetable()">Save Timetable</button>
     </div>
+    
+    <button class="btn-block btn-primary" style="margin-top: 25px;" onclick="saveSettings()">Save Settings</button>
+
     <button class="btn-block" style="background:transparent; border: 1px solid #ef4444; color: #ef4444; margin-top: 24px; font-size:13px;" onclick="triggerRestore()">Restore Default Timetable</button>
   </div>
 </div>
@@ -365,6 +369,18 @@ input:focus { border-color: var(--accent); }
         <div class="confirm-actions">
             <button class="btn-pill btn-secondary" onclick="closeConfirm()">Cancel</button>
             <button class="btn-pill btn-primary" id="confirmYesBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<div id="noteModal" class="confirm-overlay">
+    <div class="confirm-box">
+        <div class="confirm-title">Add Note</div>
+        <div class="confirm-desc" id="noteSubjectDisplay" style="color:var(--accent); font-weight:600;"></div>
+        <textarea id="noteInput" rows="4" style="width:100%; background:#0f172a; color:white; border:1px solid #334155; border-radius:8px; padding:12px; margin-bottom:20px; font-family:inherit; resize:none;" placeholder="Type your note here..."></textarea>
+        <div class="confirm-actions">
+            <button class="btn-pill btn-secondary" onclick="closeNoteModal()">Cancel</button>
+            <button class="btn-pill btn-primary" id="saveNoteBtn">Save Note</button>
         </div>
     </div>
 </div>
@@ -421,11 +437,10 @@ document.querySelectorAll('.icon-gear').forEach(e => e.innerHTML = ICONS.gear);
 // --- CUSTOM DROPDOWN ENGINE ---
 function setupCustomSelects() {
     document.querySelectorAll('.custom-select-source').forEach(select => {
-        // FIXED CHECK: Check if the parent is already a wrapper
+        // Fix for multiple wrappers
         if (select.parentNode.classList.contains('custom-select-wrapper')) return;
         
         const wrapper = document.createElement('div');
-        // ... rest of the function remains the same
         wrapper.className = 'custom-select-wrapper';
         
         const trigger = document.createElement('div');
@@ -503,7 +518,6 @@ function closePasswordModal() {
 
 // --- LOGIC ---
 const PASSWORD = "Nir@2006";
-// CHANGED: Load target from storage, default to 75 if not set
 let MIN_ATTENDANCE = parseInt(localStorage.getItem("target_percent")) || 75;
 
 const defaultTimetable = {
@@ -534,6 +548,13 @@ function getStorageDateKey(date) {
 const today = new Date();
 const day = today.toLocaleDateString("en-US",{ weekday:"long" });
 const dateKey = getStorageDateKey(today);
+
+// Apply limit on load
+const savedStart = localStorage.getItem("sem_start_date");
+if(savedStart && document.getElementById("pastDate")) {
+    document.getElementById("pastDate").min = savedStart;
+}
+
 let data = JSON.parse(localStorage.getItem("attendance")) || { totals:{}, history:{}, locks:{}, tasks:[] };
 if(!data.tasks) data.tasks = [];
 let timetable = JSON.parse(localStorage.getItem("custom_timetable")) || JSON.parse(JSON.stringify(defaultTimetable));
@@ -612,13 +633,34 @@ function loadLectures(){
   });
 }
 
+// --- NEW NOTE LOGIC ---
+let currentNoteSubject = "";
 function addNote(subject) {
-    const text = prompt(`Add a note for ${subject}:`);
-    if(text) {
-        data.tasks.push({ id: Date.now(), text: text, subject: subject, date: dateKey, done: false });
-        save(); renderTasks(); showToast("Note Added");
-    }
+    currentNoteSubject = subject;
+    document.getElementById('noteSubjectDisplay').innerText = subject;
+    document.getElementById('noteInput').value = "";
+    document.getElementById('noteModal').style.display = 'flex';
+    document.getElementById('noteInput').focus();
 }
+
+function closeNoteModal() { 
+    document.getElementById('noteModal').style.display = 'none'; 
+}
+
+// Bind the note save button
+document.getElementById('saveNoteBtn').onclick = function() {
+    const text = document.getElementById('noteInput').value.trim();
+    if(text) {
+        data.tasks.push({ id: Date.now(), text: text, subject: currentNoteSubject, date: dateKey, done: false });
+        save(); 
+        renderTasks(); 
+        showToast("Note Added");
+        closeNoteModal();
+    } else {
+        showToast("Please enter text", "error");
+    }
+};
+
 function renderTasks() {
     const container = document.getElementById("taskList");
     const card = document.getElementById("taskCard");
@@ -667,11 +709,24 @@ function renderSummary(){
   div.innerHTML = "";
   let tp = 0, tt = 0;
   const target = MIN_ATTENDANCE / 100;
+
   for(let s in data.totals){
     const { p, t } = data.totals[s];
     const percent = t ? Math.round((p / t) * 100) : 0;
     tp += p; tt += t;
-    let colorClass = "bg-green"; if(percent < MIN_ATTENDANCE) colorClass = "bg-red"; else if(percent < MIN_ATTENDANCE + 10) colorClass = "bg-yellow";
+
+    // GRADIENT LOGIC
+    let gradient = "";
+    if(percent >= MIN_ATTENDANCE) {
+        gradient = "linear-gradient(90deg, #10b981 0%, #34d399 100%)"; // Greenish
+    } else if (percent >= (MIN_ATTENDANCE - 15)) {
+        gradient = "linear-gradient(90deg, #84cc16 0%, #a3e635 100%)"; // Yellow-Green
+    } else if (percent >= (MIN_ATTENDANCE - 25)) {
+        gradient = "linear-gradient(90deg, #f97316 0%, #fb923c 100%)"; // Orange
+    } else {
+        gradient = "linear-gradient(90deg, #ef4444 0%, #f87171 100%)"; // Red
+    }
+
     let statusMsg = "", statusColor = "text-muted", statusIcon = "";
     if (t > 0) {
         if (percent >= MIN_ATTENDANCE) {
@@ -680,8 +735,17 @@ function renderSummary(){
             else { if(percent === 100){ statusMsg = `Perfect record`; statusColor = "text-green"; statusIcon = ICONS.check; } else { statusMsg = `Don't miss next`; statusColor = "text-yellow"; statusIcon = ICONS.x; } }
         } else { const needed = Math.ceil( (target * t - p) / (1 - target) ); statusMsg = `Attend next <b>${needed}</b>`; statusColor = "text-red"; statusIcon = ICONS.x; }
     } else { statusMsg = "No data"; }
-    div.innerHTML += `<div class="summary-item"><div class="summary-header"><span>${s}</span><span style="color:#94a3b8">${p}/${t} (${percent}%)</span></div><div class="progress-track"><div class="progress-fill ${colorClass}" style="width:${percent}%"></div></div><div class="status-msg ${statusColor}"><span class="icon-sm" style="display:inline-block; vertical-align:middle;">${statusIcon}</span>${statusMsg}</div></div>`;
+
+    div.innerHTML += `
+    <div class="summary-item">
+        <div class="summary-header"><span>${s}</span><span style="color:#94a3b8">${p}/${t} (${percent}%)</span></div>
+        <div class="progress-track">
+            <div class="progress-fill" style="width:${percent}%; background:${gradient}; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>
+        </div>
+        <div class="status-msg ${statusColor}"><span class="icon-sm" style="display:inline-block; vertical-align:middle;">${statusIcon}</span>${statusMsg}</div>
+    </div>`;
   }
+
   const overall = tt ? Math.round((tp / tt) * 100) : 0;
   let overallColor = "text-green"; if(overall < MIN_ATTENDANCE) overallColor = "text-red"; else if(overall < MIN_ATTENDANCE + 10) overallColor = "text-yellow";
   let overallMsg = "";
@@ -975,29 +1039,39 @@ document.getElementById("importFile").addEventListener("change", function(e){
 // SETTINGS & CHART
 const modal = document.getElementById("settingsModal");
 
-// CHANGED: ADDED TARGET LOGIC
-function saveTargetSettings() {
+function saveSettings() {
+    // 1. Save Target
     const input = document.getElementById("targetInput");
     const val = parseInt(input.value);
     
     if (!val || val < 1 || val > 100) {
-        showToast("Enter 1-100 only", "error");
+        showToast("Target must be 1-100%", "error");
         return;
     }
 
     MIN_ATTENDANCE = val;
     localStorage.setItem("target_percent", val);
+
+    // 2. Save Semester Start Date
+    const startVal = document.getElementById("semStartInput").value;
+    localStorage.setItem("sem_start_date", startVal);
     
-    // Re-render everything to update colors and "bunk" math immediately
+    // Apply limit immediately
+    const pastInput = document.getElementById("pastDate");
+    if(pastInput && startVal) pastInput.min = startVal;
+    
+    // Re-render everything
     render(); 
     closeSettings();
-    showToast(`Target set to ${val}%`);
+    showToast("Settings Saved");
 }
 
 function openSettings() { 
     modal.style.display = "flex"; 
-    // CHANGED: Pre-fill current target
+    
+    // Load current values
     document.getElementById("targetInput").value = MIN_ATTENDANCE;
+    document.getElementById("semStartInput").value = localStorage.getItem("sem_start_date") || "";
     
     document.getElementById("editDaySelect").value = day; 
     renderEditRows(); 
