@@ -25,7 +25,7 @@
     --red: #ef4444;
     --yellow: #f59e0b;
     --nav-height: 64px;
-    --holiday-border: rgba(255, 255, 255, 0.2); /* Theme matching border */
+    --holiday-border: rgba(255, 255, 255, 0.2);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -62,19 +62,16 @@ body {
 }
 .app-title { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
 
-/* --- SETTINGS BUTTON (Fixed & Centered) --- */
+/* --- SETTINGS BUTTON --- */
 .settings-btn { 
     background: none; 
     border: none; 
     color: var(--text-main); 
     cursor: pointer; 
     border-radius: 50%;
-    
-    /* Strict Center Alignment */
     display: flex; 
     align-items: center; 
     justify-content: center;
-    
     width: 44px; 
     height: 44px;
     padding: 0;
@@ -203,20 +200,17 @@ input:focus { border-color: var(--accent); }
 .del-task-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
 .text-green { color: var(--green); } .text-red { color: var(--red); } .text-yellow { color: var(--yellow); } .text-muted { color: var(--text-muted); }
 
-/* --- HOLIDAY CARD (UPDATED) --- */
+/* --- HOLIDAY CARD --- */
 .holiday-card {
     border: 2px dashed var(--holiday-border);
-    background-color: rgba(30, 41, 59, 0.5); /* Slate Blue Tint */
+    background-color: rgba(30, 41, 59, 0.5); 
     border-radius: 16px;
     padding: 30px 20px;
     text-align: center;
     color: var(--text-main);
-    
-    /* Fixed spacing issue */
     margin-bottom: 24px;
     margin-top: 10px;
 }
-/* Reusing existing inner classes for holiday content */
 .weekend-icon { font-size: 48px; margin-bottom: 12px; display: block; animation: float 3s ease-in-out infinite; }
 .weekend-title { font-size: 18px; color: var(--text-main); font-weight: 700; margin-bottom: 4px; }
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-6px); } 100% { transform: translateY(0px); } }
@@ -312,10 +306,7 @@ input:focus { border-color: var(--accent); }
         <div id="cloudLoggedOut">
             <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">Sign in to backup your data to the cloud and sync across devices.</p>
             <button class="btn-block btn-google" onclick="loginWithGoogle()">
-                <span style="display:flex; align-items:center; gap:8px;">
-                    <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.715H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.159 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
-                    Sign in with Google
-                </span>
+                Sign in with Google
             </button>
         </div>
 
@@ -430,6 +421,8 @@ input:focus { border-color: var(--accent); }
     </select>
 
     <div id="editContainer"></div>
+    <datalist id="subjectSuggestions"></datalist>
+
     <div style="display:flex; gap:10px; margin-top:15px;">
         <button class="btn-block btn-secondary" onclick="addEditRow()">+ Slot</button>
         <button class="btn-block btn-primary" onclick="saveNewTimetable()">Save Timetable</button>
@@ -568,7 +561,6 @@ function syncToCloud() {
     const updateStatus = document.getElementById("syncStatus");
     updateStatus.innerText = "Syncing...";
     
-    // Package all local data
     const payload = {
         attendance: data,
         settings: {
@@ -597,10 +589,8 @@ function checkForCloudUpdates() {
             const cloudData = doc.data();
             const localTime = parseInt(localStorage.getItem("last_sync_time") || "0");
             
-            // If cloud data is significantly newer (more than 1 min difference to avoid loops)
             if(cloudData.lastUpdated > localTime + 1000) {
                  showConfirm("Cloud Data Found", "Newer data found on cloud. Restore?", () => {
-                     // RESTORE
                      if(cloudData.attendance) data = cloudData.attendance;
                      if(cloudData.settings) {
                          if(cloudData.settings.target) {
@@ -613,8 +603,8 @@ function checkForCloudUpdates() {
                              localStorage.setItem("custom_timetable", JSON.stringify(timetable));
                          }
                      }
-                     save(false); // Save without triggering sync loop
-                     localStorage.setItem("last_sync_time", cloudData.lastUpdated); // Update local time
+                     save(false);
+                     localStorage.setItem("last_sync_time", cloudData.lastUpdated);
                      render();
                      showToast("Restored from Cloud");
                  });
@@ -628,7 +618,6 @@ function forceCloudSync() { syncToCloud(); showToast("Backup started"); }
 // --- CUSTOM DROPDOWN ENGINE ---
 function setupCustomSelects() {
     document.querySelectorAll('.custom-select-source').forEach(select => {
-        // Fix for multiple wrappers
         if (select.parentNode.classList.contains('custom-select-wrapper')) return;
         
         const wrapper = document.createElement('div');
@@ -751,7 +740,6 @@ if(!data.tasks) data.tasks = [];
 if(!data.holidays) data.holidays = [];
 let timetable = JSON.parse(localStorage.getItem("custom_timetable")) || JSON.parse(JSON.stringify(defaultTimetable));
 
-// MODIFIED SAVE FUNCTION (WITH CLOUD)
 function save(triggerSync = true){ 
     localStorage.setItem("attendance",JSON.stringify(data)); 
     if(triggerSync) {
@@ -859,7 +847,6 @@ function loadLectures(){
   const container = document.getElementById("lectures");
   container.innerHTML = "";
   
-  // 1. CHECK FOR HOLIDAY (UPDATED: Removed Pink Inline Styles)
   const activeHoliday = getHolidayForDate(dateKey);
   if (activeHoliday) {
       container.innerHTML = `
@@ -913,7 +900,6 @@ function closeNoteModal() {
     document.getElementById('noteModal').style.display = 'none'; 
 }
 
-// Bind the note save button
 document.getElementById('saveNoteBtn').onclick = function() {
     const text = document.getElementById('noteInput').value.trim();
     if(text) {
@@ -981,16 +967,15 @@ function renderSummary(){
     const percent = t ? Math.round((p / t) * 100) : 0;
     tp += p; tt += t;
 
-    // GRADIENT LOGIC
     let gradient = "";
     if(percent >= MIN_ATTENDANCE) {
-        gradient = "linear-gradient(90deg, #10b981 0%, #34d399 100%)"; // Greenish
+        gradient = "linear-gradient(90deg, #10b981 0%, #34d399 100%)"; 
     } else if (percent >= (MIN_ATTENDANCE - 15)) {
-        gradient = "linear-gradient(90deg, #84cc16 0%, #a3e635 100%)"; // Yellow-Green
+        gradient = "linear-gradient(90deg, #84cc16 0%, #a3e635 100%)"; 
     } else if (percent >= (MIN_ATTENDANCE - 25)) {
-        gradient = "linear-gradient(90deg, #f97316 0%, #fb923c 100%)"; // Orange
+        gradient = "linear-gradient(90deg, #f97316 0%, #fb923c 100%)"; 
     } else {
-        gradient = "linear-gradient(90deg, #ef4444 0%, #f87171 100%)"; // Red
+        gradient = "linear-gradient(90deg, #ef4444 0%, #f87171 100%)"; 
     }
 
     let statusMsg = "", statusColor = "text-muted", statusIcon = "";
@@ -1026,13 +1011,11 @@ function undo(d,i){
   delete data.locks[key];
   if(h.status!=="Cancelled"){ data.totals[h.subject].t--; if(h.status==="Present") data.totals[h.subject].p--; }
   data.history[d].splice(i,1); save(); render(); showToast("Entry Undone");
-  // Refresh undo list
-  toggleUndo(); toggleUndo(); // quick hack to refresh or just manually re-render
-  document.getElementById("undoSection").style.display="none"; // close it
+  toggleUndo(); toggleUndo(); 
+  document.getElementById("undoSection").style.display="none"; 
 }
 
 function triggerReset(){
-  // Replaced prompt with custom modal
   const modal = document.getElementById('passwordModal');
   const input = document.getElementById('resetPasswordInput');
   const btn = document.getElementById('submitPasswordBtn');
@@ -1046,7 +1029,7 @@ function triggerReset(){
           closePasswordModal();
           showConfirm("Factory Reset?", "All data will be lost permanently.", () => {
               localStorage.removeItem("attendance"); 
-              localStorage.removeItem("target_percent"); // Clear target too
+              localStorage.removeItem("target_percent"); 
               location.reload();
           });
       } else {
@@ -1063,7 +1046,7 @@ function initExtra(){
     setupCustomSelects();
 }
 
-// --- PAST ATTENDANCE ENGINE (UPDATED: EDIT MODE) ---
+// --- PAST ATTENDANCE ENGINE ---
 let pastBuffer = [], pastDateKey = "", pastDay = "";
 
 function loadPastTimetable(){
@@ -1081,7 +1064,6 @@ function loadPastTimetable(){
   const selectedDate = new Date(val);
   const todayDate = new Date(today.toDateString());
   
-  // Prevent selecting future dates
   if(selectedDate >= todayDate){ 
       showToast("Cannot edit future/today here", "error"); 
       input.value = ""; 
@@ -1091,7 +1073,6 @@ function loadPastTimetable(){
   pastDateKey = val;
   pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
   
-  // CHECK HOLIDAY (UPDATED: Removed Pink Inline Styles)
   const pastHoliday = getHolidayForDate(pastDateKey);
   if(pastHoliday) {
       container.innerHTML = `
@@ -1100,9 +1081,7 @@ function loadPastTimetable(){
         <div class="weekend-title">${pastHoliday.name}</div>
         <div style="font-size:13px; opacity:0.8;">This date is marked as a holiday.</div>
       </div>`;
-      // Don't return, allow extra classes below
   } else {
-      // 1. CHECK IF DATA EXISTS
       let existingData = data.history[pastDateKey] || [];
       let isEditMode = existingData.length > 0;
 
@@ -1111,7 +1090,6 @@ function loadPastTimetable(){
           pastBuffer = [...existingData];
       }
 
-      // 2. LOAD LECTURES (Standard Timetable)
       const lectures = timetable[pastDay] || []; 
       if(lectures.length === 0){ container.innerHTML = "<div style='text-align:center; padding:10px; opacity:0.6;'>No lectures scheduled 😴</div>"; }
       
@@ -1119,7 +1097,6 @@ function loadPastTimetable(){
         const div = document.createElement("div"); 
         div.className = "card";
         
-        // Check if this specific lecture was already marked in history
         const savedState = existingData.find(h => h.subject === subject && h.time === time);
         const status = savedState ? savedState.status : "";
 
@@ -1136,7 +1113,6 @@ function loadPastTimetable(){
       });
   }
 
-  // 3. LOAD EXTRA CLASSES (If any existed)
   const existingExtras = (data.history[pastDateKey] || []).filter(h => h.time === "Extra");
   let extraHTML = "";
   if(existingExtras.length > 0) {
@@ -1160,48 +1136,38 @@ function loadPastTimetable(){
         <button class="btn-pill btn-secondary" onclick="addPastExtra('Absent')">Absent</button>
     </div>`;
     
-  setupCustomSelects(); // Re-init dropdowns
+  setupCustomSelects(); 
 }
 
 function pastMark(sub, time, stat, btn){
-    // Update Buffer
-    // Remove old entry for this specific subject/time if exists
     pastBuffer = pastBuffer.filter(x => !(x.subject === sub && x.time === time));
-    // Add new status
     pastBuffer.push({ subject: sub, time: time, status: stat });
 
-    // Update UI (Visual Feedback)
     const parent = btn.parentElement;
     parent.querySelectorAll('.btn-pill').forEach(b => {
-        b.className = 'btn-pill btn-secondary'; // Reset all
+        b.className = 'btn-pill btn-secondary'; 
     });
-    // Set active class
     let activeClass = stat === "Present" ? "present" : (stat === "Absent" ? "absent" : "cancelled");
     btn.className = `btn-pill ${activeClass}`;
 }
 
 function addPastExtra(status){
   const subject = document.getElementById("pastExtraSubject").value;
-  // Check if already in buffer
   if(pastBuffer.find(x=>x.subject===subject && x.time==="Extra")){ showToast("Already in list", "error"); return; }
-  
   pastBuffer.push({subject, time:"Extra", status});
-  
-  // Add to visual list
   const list = document.getElementById("existingExtrasList");
   list.innerHTML += `<div class="task-item" style="margin-bottom:5px;"><span>${subject} (Extra)</span> <span class="${status==='Present'?'text-green':'text-red'}">${status}</span></div>`;
 }
 
 function removePastExtra(subject){
     pastBuffer = pastBuffer.filter(x => !(x.subject === subject && x.time === "Extra"));
-    loadPastTimetable(); // Reload UI
+    loadPastTimetable(); 
 }
 
 function savePastAttendance(){
   if(!pastDateKey){ showToast("Select a date", "error"); return; }
   if(pastBuffer.length === 0){ showToast("No data to save", "error"); return; }
 
-  // 1. REVERSE OLD STATS (If we are editing)
   if(data.history[pastDateKey]) {
       data.history[pastDateKey].forEach(oldEntry => {
           if(oldEntry.status !== "Cancelled" && data.totals[oldEntry.subject]){
@@ -1211,17 +1177,14 @@ function savePastAttendance(){
       });
   }
 
-  // 2. APPLY NEW STATS
-  data.history[pastDateKey] = pastBuffer; // Overwrite history
+  data.history[pastDateKey] = pastBuffer; 
   
   pastBuffer.forEach(h => {
-      // Re-add to totals
       if(h.status !== "Cancelled"){ 
           data.totals[h.subject] ??= {p:0,t:0}; 
           data.totals[h.subject].t++; 
           if(h.status === "Present") data.totals[h.subject].p++; 
       }
-      // Ensure locks exist so main page shows them if we view that date
       const lockKey = pastDateKey + "_" + h.subject + "_" + h.time;
       data.locks[lockKey] = true; 
   });
@@ -1230,7 +1193,6 @@ function savePastAttendance(){
   render(); 
   showToast("History Updated ✅");
   
-  // Clear inputs
   document.getElementById("pastDate").value = "";
   document.getElementById("pastLectures").innerHTML = "";
   document.getElementById("pastExtra").innerHTML = "";
@@ -1238,10 +1200,7 @@ function savePastAttendance(){
 
 function toggleUndo(){
   const sec = document.getElementById("undoSection");
-  // Toggle Visibility
   sec.style.display = (sec.style.display === "none" || sec.style.display === "") ? "block" : "none";
-  
-  // Populate content if visible
   if(sec.style.display === "block"){
       sec.innerHTML = "";
       if(!data.history[dateKey] || data.history[dateKey].length === 0){ 
@@ -1351,11 +1310,9 @@ function saveSettings() {
     const startVal = document.getElementById("semStartInput").value;
     localStorage.setItem("sem_start_date", startVal);
     
-    // Apply limit immediately
     const pastInput = document.getElementById("pastDate");
     if(pastInput && startVal) pastInput.min = startVal;
     
-    // Re-render everything
     render(); 
     closeSettings();
     showToast("Settings Saved");
@@ -1364,30 +1321,49 @@ function saveSettings() {
 function openSettings() { 
     modal.style.display = "flex"; 
     
-    // Load current values
     document.getElementById("targetInput").value = MIN_ATTENDANCE;
     document.getElementById("semStartInput").value = localStorage.getItem("sem_start_date") || "";
     document.getElementById("editDaySelect").value = day; 
     
-    // RENDER HOLIDAY LIST
     renderHolidays(); 
-
     renderEditRows(); 
     setupCustomSelects(); 
 }
 
 function closeSettings() { modal.style.display = "none"; }
+
+// --- UPDATED EDIT LOGIC START ---
 function renderEditRows() {
   const selectedDay = document.getElementById("editDaySelect").value;
   const container = document.getElementById("editContainer");
   container.innerHTML = "";
+  
+  // Create Suggestions for Subjects based on existing data
+  const existingSubjects = Object.keys(data.totals).sort();
+  const datalist = document.getElementById("subjectSuggestions");
+  datalist.innerHTML = existingSubjects.map(s => `<option value="${s}">`).join("");
+
   const lectures = timetable[selectedDay] || [];
   lectures.forEach((lec, index) => {
-    container.innerHTML += `<div class="edit-row"><input type="text" class="edit-input" style="width:30%" value="${lec[0]}" id="time_${index}"><input type="text" class="edit-input" style="width:70%" value="${lec[1]}" id="sub_${index}"><button style="background:var(--red); color:white; border:none; border-radius:4px; padding:0 8px;" onclick="delEditRow(${index})">${ICONS.trash}</button></div>`;
+    container.innerHTML += `
+    <div class="edit-row">
+        <input type="text" class="edit-input" style="width:30%" value="${lec[0]}" id="time_${index}" placeholder="Time">
+        <input type="text" class="edit-input" style="width:70%" value="${lec[1]}" id="sub_${index}" list="subjectSuggestions" placeholder="Subject">
+        <button style="background:var(--red); color:white; border:none; border-radius:4px; padding:0 8px;" onclick="delEditRow(${index})">${ICONS.trash}</button>
+    </div>`;
   });
 }
-function addEditRow() { const selectedDay = document.getElementById("editDaySelect").value; timetable[selectedDay] ??= []; timetable[selectedDay].push(["00:00-00:00", "New Subject"]); renderEditRows(); }
-function delEditRow(index) { const selectedDay = document.getElementById("editDaySelect").value; timetable[selectedDay].splice(index, 1); renderEditRows(); }
+function addEditRow() { 
+    const selectedDay = document.getElementById("editDaySelect").value; 
+    timetable[selectedDay] ??= []; 
+    timetable[selectedDay].push(["00:00-00:00", "New Subject"]); 
+    renderEditRows(); 
+}
+function delEditRow(index) { 
+    const selectedDay = document.getElementById("editDaySelect").value; 
+    timetable[selectedDay].splice(index, 1); 
+    renderEditRows(); 
+}
 function saveNewTimetable() {
   const selectedDay = document.getElementById("editDaySelect").value;
   const container = document.getElementById("editContainer");
@@ -1395,13 +1371,16 @@ function saveNewTimetable() {
   const newDaySchedule = [];
   rows.forEach((row, index) => {
     const t = document.getElementById(`time_${index}`).value;
-    const s = document.getElementById(`sub_${index}`).value;
+    // KEY FIX: Trim whitespace to prevent "New Subject" bug
+    const s = document.getElementById(`sub_${index}`).value.trim(); 
     if(t && s) newDaySchedule.push([t, s]);
   });
   timetable[selectedDay] = newDaySchedule;
   localStorage.setItem("custom_timetable", JSON.stringify(timetable));
   showToast(`Saved ${selectedDay}`); initExtra(); render();
 }
+// --- UPDATED EDIT LOGIC END ---
+
 function triggerRestore() {
   showConfirm("Reset Timetable?", "This reverts all schedule edits.", () => {
     localStorage.removeItem("custom_timetable");
