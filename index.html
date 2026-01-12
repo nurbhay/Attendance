@@ -346,7 +346,6 @@ input:focus { border-color: var(--accent); }
         <div class="card-header">
             <h3 class="card-title"><span class="icon-db"></span> Data & Backup</h3>
         </div>
-        
         <button class="btn-block btn-secondary" onclick="exportBackup()">Export Backup File</button>
         <input type="file" id="importFile" accept=".json" style="display:none">
         <button class="btn-block btn-secondary" onclick="document.getElementById('importFile').click()">Import Backup File</button>
@@ -424,20 +423,12 @@ input:focus { border-color: var(--accent); }
     <div id="editContainer"></div>
     <datalist id="subjectSuggestions"></datalist>
 
-    <div style="display:flex; gap:10px; margin-top:15px; margin-bottom: 25px;">
+    <div style="display:flex; gap:10px; margin-top:15px;">
         <button class="btn-block btn-secondary" onclick="addEditRow()">+ Slot</button>
         <button class="btn-block btn-primary" onclick="saveNewTimetable()">Save Timetable</button>
     </div>
     
-    <div style="border-top: 1px solid #334155; padding-top: 20px; margin-top: 10px;">
-        <label style="font-size:11px; font-weight:700; color:var(--accent); letter-spacing:1px;">SEMESTER MANAGEMENT</label>
-        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; border-radius: 8px; padding: 12px; margin-top: 10px;">
-            <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0;">Starting a new semester? Archive old stats and start fresh.</p>
-            <button class="btn-block btn-primary" onclick="startNewSemester()">Start New Semester</button>
-        </div>
-    </div>
-    
-    <button class="btn-block btn-secondary" style="margin-top: 25px;" onclick="saveSettings()">Close Settings</button>
+    <button class="btn-block btn-primary" style="margin-top: 25px;" onclick="saveSettings()">Save Settings</button>
 
     <button class="btn-block" style="background:transparent; border: 1px solid #ef4444; color: #ef4444; margin-top: 24px; font-size:13px;" onclick="triggerRestore()">Restore Default Timetable</button>
   </div>
@@ -852,12 +843,6 @@ function renderHolidays() {
     });
 }
 
-// FIX FOR UNCLICKABLE BUTTONS
-function safeStr(str) {
-    // Escapes single quotes so they don't break the HTML onclick attribute
-    return str.replace(/'/g, "\\'");
-}
-
 function loadLectures(){
   const container = document.getElementById("lectures");
   container.innerHTML = "";
@@ -879,10 +864,6 @@ function loadLectures(){
     const div = document.createElement("div");
     div.className = "card lecture-card "+(locked?"locked":"");
     let statusHTML = "";
-    
-    // Safety check for subject string in onclick
-    const safeSubject = safeStr(subject);
-
     if(locked && data.history[dateKey]){
       const entry = data.history[dateKey].find(h => h.subject === subject && h.time === time);
       if(entry){
@@ -894,12 +875,12 @@ function loadLectures(){
       }
     }
     div.innerHTML = `
-        <div class="lec-top"><span class="lec-time">${time}</span><div class="lec-subject">${subject}</div><button class="note-btn" onclick="event.stopPropagation(); addNote('${safeSubject}')">${ICONS.note}</button></div>
+        <div class="lec-top"><span class="lec-time">${time}</span><div class="lec-subject">${subject}</div><button class="note-btn" onclick="event.stopPropagation(); addNote('${subject}')">${ICONS.note}</button></div>
         ${statusHTML}
         <div class="action-row" style="display:${locked ? 'none' : 'flex'}">
-            <button class="btn-pill present" onclick="markAttendance('${safeSubject}', '${time}', 'Present')">Present</button>
-            <button class="btn-pill absent" onclick="markAttendance('${safeSubject}', '${time}', 'Absent')">Absent</button>
-            <button class="btn-pill cancelled" onclick="markAttendance('${safeSubject}', '${time}', 'Cancelled')">Off</button>
+            <button class="btn-pill present" onclick="markAttendance('${subject}', '${time}', 'Present')">Present</button>
+            <button class="btn-pill absent" onclick="markAttendance('${subject}', '${time}', 'Absent')">Absent</button>
+            <button class="btn-pill cancelled" onclick="markAttendance('${subject}', '${time}', 'Cancelled')">Off</button>
         </div>`;
     container.appendChild(div);
   });
@@ -1057,32 +1038,6 @@ function triggerReset(){
           input.focus();
       }
   };
-}
-
-// NEW FUNCTION: START NEW SEMESTER
-function startNewSemester() {
-    showConfirm("Start New Semester?", "This archives current data and resets stats.", () => {
-        // 1. Auto Backup
-        exportBackup();
-        
-        // 2. Clear Attendance Stats
-        data = { totals:{}, history:{}, locks:{}, tasks:data.tasks||[], holidays:data.holidays||[] };
-        save();
-        
-        // 3. UI Feedback
-        render();
-        showToast("Stats Reset! Ready for new semester.");
-        
-        // 4. Prompt for Timetable
-        setTimeout(() => {
-             showConfirm("Reset Timetable too?", "Do you want to clear the schedule?", () => {
-                localStorage.removeItem("custom_timetable");
-                timetable = JSON.parse(JSON.stringify(defaultTimetable));
-                showToast("Timetable Reset");
-                location.reload();
-             });
-        }, 1500);
-    });
 }
 
 function getAllSubjects() { const set = new Set(); Object.values(timetable).flat().forEach(x => set.add(x[1])); return [...set].sort(); }
@@ -1377,12 +1332,13 @@ function openSettings() {
 
 function closeSettings() { modal.style.display = "none"; }
 
-// --- UPDATED EDIT LOGIC ---
+// --- UPDATED EDIT LOGIC START ---
 function renderEditRows() {
   const selectedDay = document.getElementById("editDaySelect").value;
   const container = document.getElementById("editContainer");
   container.innerHTML = "";
   
+  // Create Suggestions for Subjects based on existing data
   const existingSubjects = Object.keys(data.totals).sort();
   const datalist = document.getElementById("subjectSuggestions");
   datalist.innerHTML = existingSubjects.map(s => `<option value="${s}">`).join("");
@@ -1415,6 +1371,7 @@ function saveNewTimetable() {
   const newDaySchedule = [];
   rows.forEach((row, index) => {
     const t = document.getElementById(`time_${index}`).value;
+    // KEY FIX: Trim whitespace to prevent "New Subject" bug
     const s = document.getElementById(`sub_${index}`).value.trim(); 
     if(t && s) newDaySchedule.push([t, s]);
   });
@@ -1422,6 +1379,7 @@ function saveNewTimetable() {
   localStorage.setItem("custom_timetable", JSON.stringify(timetable));
   showToast(`Saved ${selectedDay}`); initExtra(); render();
 }
+// --- UPDATED EDIT LOGIC END ---
 
 function triggerRestore() {
   showConfirm("Reset Timetable?", "This reverts all schedule edits.", () => {
