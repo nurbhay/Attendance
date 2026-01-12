@@ -385,6 +385,22 @@ input:focus { border-color: var(--accent); }
     <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">SEMESTER START DATE</label>
     <input type="date" id="semStartInput" style="margin-top: 8px; margin-bottom: 24px;">
 
+    <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">HOLIDAYS & BREAKS</label>
+    <div style="background:rgba(255,255,255,0.05); padding:12px; border-radius:8px; margin-top:8px; margin-bottom:24px; border:1px solid #334155;">
+        <input type="text" id="holidayName" placeholder="Holiday Name (e.g. Diwali)" style="margin-bottom:8px;">
+        <div style="display:flex; gap:8px;">
+            <div style="flex:1;">
+                <label style="font-size:10px; color:#94a3b8;">From</label>
+                <input type="date" id="holidayStart" style="margin-bottom:0;">
+            </div>
+            <div style="flex:1;">
+                <label style="font-size:10px; color:#94a3b8;">To</label>
+                <input type="date" id="holidayEnd" style="margin-bottom:0;">
+            </div>
+        </div>
+        <button class="btn-block btn-primary" onclick="addHoliday()" style="margin-top:10px;">+ Add Holiday</button>
+        <div id="holidayList" style="margin-top:15px; max-height:150px; overflow-y:auto;"></div>
+    </div>
     <label style="font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px;">NOTIFICATIONS</label>
     <button class="btn-block" style="background: #0ea5e9; color: white; margin-bottom: 24px;" onclick="requestNotificationPermission()">Enable Daily Reminders</button>
     
@@ -455,7 +471,6 @@ const ICONS = {
     home: '<svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
     stats: '<svg class="icon icon-lg" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>',
     tools: '<svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>',
-    // Note: 'gear' is now hardcoded in HTML to prevent flickering/undefined issues
     note: '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>',
     check: '<svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>',
     x: '<svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
@@ -468,7 +483,8 @@ const ICONS = {
     calendar: '<svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
     db: '<svg class="icon icon-lg" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>',
     task: '<svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
-    slot: '<svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>'
+    slot: '<svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>',
+    gear: '<svg class="icon icon-lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0 .33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>'
 };
 
 document.getElementById('navHome').innerHTML = ICONS.home;
@@ -717,8 +733,9 @@ if(savedStart && document.getElementById("pastDate")) {
     document.getElementById("pastDate").min = savedStart;
 }
 
-let data = JSON.parse(localStorage.getItem("attendance")) || { totals:{}, history:{}, locks:{}, tasks:[] };
+let data = JSON.parse(localStorage.getItem("attendance")) || { totals:{}, history:{}, locks:{}, tasks:[], holidays:[] };
 if(!data.tasks) data.tasks = [];
+if(!data.holidays) data.holidays = [];
 let timetable = JSON.parse(localStorage.getItem("custom_timetable")) || JSON.parse(JSON.stringify(defaultTimetable));
 
 // MODIFIED SAVE FUNCTION (WITH CLOUD)
@@ -761,6 +778,9 @@ function startBackgroundCheck() {
         if(now.getHours() === 17 && now.getMinutes() === 0) {
              const d = now.toLocaleDateString("en-US",{ weekday:"long" });
              if(d === "Saturday" || d === "Sunday") return;
+             // Also skip if today is holiday
+             if(getHolidayForDate(dateKey)) return;
+             
              const todaysLocks = Object.keys(data.locks).some(k => k.startsWith(dateKey));
              if(!todaysLocks) {
                  sendNotification("Attendance Reminder", "You haven't marked your attendance today!");
@@ -771,9 +791,73 @@ function startBackgroundCheck() {
 }
 startBackgroundCheck();
 
+// --- HOLIDAY LOGIC ---
+function getHolidayForDate(dateStr) {
+    if(!data.holidays) return null;
+    const target = new Date(dateStr);
+    return data.holidays.find(h => {
+        const start = new Date(h.start);
+        const end = new Date(h.end);
+        return target >= start && target <= end;
+    });
+}
+
+function addHoliday() {
+    const name = document.getElementById("holidayName").value.trim();
+    const start = document.getElementById("holidayStart").value;
+    const end = document.getElementById("holidayEnd").value;
+
+    if(!name || !start || !end) return showToast("Fill all fields", "error");
+    if(new Date(start) > new Date(end)) return showToast("End date cannot be before start", "error");
+
+    data.holidays.push({ id: Date.now(), name, start, end });
+    save();
+    renderHolidays();
+    document.getElementById("holidayName").value = "";
+    showToast("Holiday Added");
+}
+
+function deleteHoliday(id) {
+    data.holidays = data.holidays.filter(h => h.id !== id);
+    save();
+    renderHolidays();
+}
+
+function renderHolidays() {
+    const list = document.getElementById("holidayList");
+    list.innerHTML = "";
+    if(!data.holidays || data.holidays.length === 0) {
+        list.innerHTML = "<div style='font-size:12px; color:#94a3b8; text-align:center;'>No holidays added</div>";
+        return;
+    }
+    data.holidays.sort((a,b) => new Date(a.start) - new Date(b.start)).forEach(h => {
+        list.innerHTML += `
+        <div class="task-item" style="border-left: 3px solid #f472b6;">
+            <div style="flex:1;">
+                <div style="font-size:13px; font-weight:600;">${h.name}</div>
+                <div style="font-size:11px; color:#94a3b8;">${formatDateDDMMYYYY(h.start)} - ${formatDateDDMMYYYY(h.end)}</div>
+            </div>
+            <button class="del-task-btn" onclick="deleteHoliday(${h.id})">${ICONS.trash}</button>
+        </div>`;
+    });
+}
+
 function loadLectures(){
   const container = document.getElementById("lectures");
   container.innerHTML = "";
+  
+  // 1. CHECK FOR HOLIDAY
+  const activeHoliday = getHolidayForDate(dateKey);
+  if (activeHoliday) {
+      container.innerHTML = `
+      <div class="weekend-card" style="border-color: #f472b6; background: rgba(244, 114, 182, 0.05);">
+        <div class="weekend-icon">🎉</div>
+        <div class="weekend-title">${activeHoliday.name}</div>
+        <div style="font-size:13px; opacity:0.8;">No classes today. Enjoy your break!</div>
+      </div>`;
+      return;
+  }
+
   (timetable[day] || []).forEach(([time,subject])=>{
     const lockKey = dateKey+"_"+subject+"_"+time;
     const locked = data.locks[lockKey];
@@ -994,47 +1078,53 @@ function loadPastTimetable(){
   pastDateKey = val;
   pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
   
-  // 1. CHECK IF DATA EXISTS
-  let existingData = data.history[pastDateKey] || [];
-  let isEditMode = existingData.length > 0;
+  // CHECK HOLIDAY
+  const pastHoliday = getHolidayForDate(pastDateKey);
+  if(pastHoliday) {
+      container.innerHTML = `
+      <div style="text-align:center; padding:30px; border:1px dashed #f472b6; border-radius:12px; color:#f472b6;">
+        <div style="font-size:24px; margin-bottom:10px;">🎉</div>
+        <strong>${pastHoliday.name}</strong>
+        <div style="font-size:12px; margin-top:5px; color:#94a3b8;">This date is marked as a holiday.</div>
+      </div>`;
+      // Don't return, allow extra classes below
+  } else {
+      // 1. CHECK IF DATA EXISTS
+      let existingData = data.history[pastDateKey] || [];
+      let isEditMode = existingData.length > 0;
 
-  if(isEditMode) {
-      showToast("Editing saved record ✏️");
-      // Pre-fill buffer with existing data so we don't lose it if we just click save
-      pastBuffer = [...existingData];
+      if(isEditMode) {
+          showToast("Editing saved record ✏️");
+          pastBuffer = [...existingData];
+      }
+
+      // 2. LOAD LECTURES (Standard Timetable)
+      const lectures = timetable[pastDay] || []; 
+      if(lectures.length === 0){ container.innerHTML = "<div style='text-align:center; padding:10px; opacity:0.6;'>No lectures scheduled 😴</div>"; }
+      
+      lectures.forEach(([time,subject])=>{
+        const div = document.createElement("div"); 
+        div.className = "card";
+        
+        // Check if this specific lecture was already marked in history
+        const savedState = existingData.find(h => h.subject === subject && h.time === time);
+        const status = savedState ? savedState.status : "";
+
+        div.innerHTML = `
+            <div style="font-weight:600; margin-bottom:5px;">${subject}</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">${time}</div>
+            <div class="action-row" id="btns_${subject.replace(/\s/g,'')}">
+                <button class="btn-pill ${status==='Present'?'present':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Present', this)">Present</button>
+                <button class="btn-pill ${status==='Absent'?'absent':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Absent', this)">Absent</button>
+                <button class="btn-pill ${status==='Cancelled'?'cancelled':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Cancelled', this)">Off</button>
+            </div>`;
+        
+        container.appendChild(div);
+      });
   }
 
-  // 2. LOAD LECTURES (Standard Timetable)
-  const lectures = timetable[pastDay] || []; 
-  if(lectures.length === 0){ container.innerHTML = "<div style='text-align:center; padding:10px; opacity:0.6;'>No lectures scheduled 😴</div>"; }
-  
-  lectures.forEach(([time,subject])=>{
-    const div = document.createElement("div"); 
-    div.className = "card";
-    
-    // Check if this specific lecture was already marked in history
-    const savedState = existingData.find(h => h.subject === subject && h.time === time);
-    const status = savedState ? savedState.status : "";
-
-    // Highlight the saved button
-    const pClass = status === "Present" ? "present" : (status ? "btn-secondary" : "btn-secondary");
-    const aClass = status === "Absent" ? "absent" : (status ? "btn-secondary" : "btn-secondary");
-    const cClass = status === "Cancelled" ? "cancelled" : (status ? "btn-secondary" : "btn-secondary");
-
-    div.innerHTML = `
-        <div style="font-weight:600; margin-bottom:5px;">${subject}</div>
-        <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">${time}</div>
-        <div class="action-row" id="btns_${subject.replace(/\s/g,'')}">
-            <button class="btn-pill ${status==='Present'?'present':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Present', this)">Present</button>
-            <button class="btn-pill ${status==='Absent'?'absent':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Absent', this)">Absent</button>
-            <button class="btn-pill ${status==='Cancelled'?'cancelled':'btn-secondary'}" onclick="pastMark('${subject}', '${time}', 'Cancelled', this)">Off</button>
-        </div>`;
-    
-    container.appendChild(div);
-  });
-
   // 3. LOAD EXTRA CLASSES (If any existed)
-  const existingExtras = existingData.filter(h => h.time === "Extra");
+  const existingExtras = (data.history[pastDateKey] || []).filter(h => h.time === "Extra");
   let extraHTML = "";
   if(existingExtras.length > 0) {
       existingExtras.forEach(ex => {
@@ -1264,8 +1354,11 @@ function openSettings() {
     // Load current values
     document.getElementById("targetInput").value = MIN_ATTENDANCE;
     document.getElementById("semStartInput").value = localStorage.getItem("sem_start_date") || "";
-    
     document.getElementById("editDaySelect").value = day; 
+    
+    // RENDER HOLIDAY LIST
+    renderHolidays(); 
+
     renderEditRows(); 
     setupCustomSelects(); 
 }
