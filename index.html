@@ -25,6 +25,7 @@
     --red: #ef4444;
     --yellow: #f59e0b;
     --nav-height: 64px;
+    --holiday-border: rgba(255, 255, 255, 0.2); /* Theme matching border */
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -202,8 +203,20 @@ input:focus { border-color: var(--accent); }
 .del-task-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
 .text-green { color: var(--green); } .text-red { color: var(--red); } .text-yellow { color: var(--yellow); } .text-muted { color: var(--text-muted); }
 
-/* --- WEEKEND CARD --- */
-.weekend-card { text-align: center; padding: 30px 20px; color: var(--text-muted); border: 1px dashed #334155; border-radius: 16px; margin-top: 10px; background: rgba(245, 158, 11, 0.05); }
+/* --- HOLIDAY CARD (UPDATED) --- */
+.holiday-card {
+    border: 2px dashed var(--holiday-border);
+    background-color: rgba(30, 41, 59, 0.5); /* Slate Blue Tint */
+    border-radius: 16px;
+    padding: 30px 20px;
+    text-align: center;
+    color: var(--text-main);
+    
+    /* Fixed spacing issue */
+    margin-bottom: 24px;
+    margin-top: 10px;
+}
+/* Reusing existing inner classes for holiday content */
 .weekend-icon { font-size: 48px; margin-bottom: 12px; display: block; animation: float 3s ease-in-out infinite; }
 .weekend-title { font-size: 18px; color: var(--text-main); font-weight: 700; margin-bottom: 4px; }
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-6px); } 100% { transform: translateY(0px); } }
@@ -846,11 +859,11 @@ function loadLectures(){
   const container = document.getElementById("lectures");
   container.innerHTML = "";
   
-  // 1. CHECK FOR HOLIDAY
+  // 1. CHECK FOR HOLIDAY (UPDATED: Removed Pink Inline Styles)
   const activeHoliday = getHolidayForDate(dateKey);
   if (activeHoliday) {
       container.innerHTML = `
-      <div class="weekend-card" style="border-color: #f472b6; background: rgba(244, 114, 182, 0.05);">
+      <div class="holiday-card">
         <div class="weekend-icon">🎉</div>
         <div class="weekend-title">${activeHoliday.name}</div>
         <div style="font-size:13px; opacity:0.8;">No classes today. Enjoy your break!</div>
@@ -1078,14 +1091,14 @@ function loadPastTimetable(){
   pastDateKey = val;
   pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
   
-  // CHECK HOLIDAY
+  // CHECK HOLIDAY (UPDATED: Removed Pink Inline Styles)
   const pastHoliday = getHolidayForDate(pastDateKey);
   if(pastHoliday) {
       container.innerHTML = `
-      <div style="text-align:center; padding:30px; border:1px dashed #f472b6; border-radius:12px; color:#f472b6;">
-        <div style="font-size:24px; margin-bottom:10px;">🎉</div>
-        <strong>${pastHoliday.name}</strong>
-        <div style="font-size:12px; margin-top:5px; color:#94a3b8;">This date is marked as a holiday.</div>
+      <div class="holiday-card">
+        <div class="weekend-icon">🎉</div>
+        <div class="weekend-title">${pastHoliday.name}</div>
+        <div style="font-size:13px; opacity:0.8;">This date is marked as a holiday.</div>
       </div>`;
       // Don't return, allow extra classes below
   } else {
