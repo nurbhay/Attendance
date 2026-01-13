@@ -39,6 +39,9 @@ body {
     padding-top: 60px;
     -webkit-user-select: none;
     user-select: none;
+    /* FIX #3: iOS Scroll Polish */
+    min-height: 100vh;
+    overscroll-behavior-y: none;
 }
 
 /* --- ICONS --- */
@@ -369,7 +372,7 @@ input:focus { border-color: var(--accent); }
                 </div>
                 <button onclick="logout()" style="background:none; border:none; color:var(--red); font-size:11px; font-weight:600; cursor:pointer;">LOGOUT</button>
             </div>
-            <button class="btn-block btn-secondary" onclick="forceCloudSync()">Force Backup to Cloud</button>
+            <button class="btn-block btn-secondary" onclick="forceCloudSync()">Backup to Cloud</button>
         </div>
     </div>
 
@@ -421,7 +424,7 @@ input:focus { border-color: var(--accent); }
 <div id="settingsModal">
     <header class="settings-header">
         <button onclick="closeSettings()" style="background:none; border:none; color:var(--text-main); padding:0; display:flex;">
-            <svg class="icon-lg" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <svg class="icon icon-lg" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
         <span style="font-size: 18px; font-weight: 600;">Settings</span>
     </header>
@@ -436,7 +439,25 @@ input:focus { border-color: var(--accent); }
             <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:6px; margin-top:12px;">Semester Start Date</label>
             <input type="date" id="semStartInput">
 
+            <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:6px; margin-top:12px;">Semester End Date</label>
+            <input type="date" id="semEndInput">
+
             <button class="btn-block btn-primary" onclick="saveSettings()" style="margin-top:15px;">Save Preferences</button>
+        </div>
+
+        <div class="settings-section-title">Manage Subjects</div>
+        <div class="card">
+            <p style="font-size:12px; color:var(--text-muted); margin-top:-5px; margin-bottom:12px;">Rename or merge subjects without losing history.</p>
+            <select id="renameOldSubject" class="custom-select-source"></select>
+            <input type="text" id="renameNewName" placeholder="New Name (e.g. Mathematics)" style="margin-top:12px;">
+            <button class="btn-block btn-secondary" onclick="renameSubject()">Rename / Merge</button>
+        </div>
+
+        <div class="settings-section-title">Security</div>
+        <div class="card">
+            <p style="font-size:12px; color:var(--text-muted); margin-top:-5px; margin-bottom:12px;">Set a PIN to protect Factory Reset.</p>
+            <input type="password" id="newPinInput" placeholder="Enter New 4-digit PIN" maxlength="4" style="text-align:center;">
+            <button class="btn-block btn-secondary" onclick="setNewPin()">Set PIN</button>
         </div>
 
         <div class="settings-section-title">Timetable Editor</div>
@@ -530,8 +551,8 @@ input:focus { border-color: var(--accent); }
 <div id="passwordModal" class="confirm-overlay">
     <div class="confirm-box">
         <div class="confirm-title">Security Check</div>
-        <div class="confirm-desc">Enter password to reset data.</div>
-        <input type="password" id="resetPasswordInput" placeholder="Enter Password" style="text-align:center;">
+        <div class="confirm-desc">Enter PIN to reset data.</div>
+        <input type="password" id="resetPasswordInput" placeholder="Enter PIN" maxlength="4" style="text-align:center;">
         <div class="confirm-actions">
             <button class="btn-pill btn-secondary" onclick="closePasswordModal()">Cancel</button>
             <button class="btn-pill btn-danger" id="submitPasswordBtn">Reset</button>
@@ -586,7 +607,6 @@ const firebaseConfig = {
   measurementId: "G-Z3H01YF20Z"
 };
 
-// Initialize Firebase
 let auth, db, currentUser;
 
 try {
@@ -594,7 +614,6 @@ try {
     auth = firebase.auth();
     db = firebase.firestore();
     
-    // Auth Listener
     auth.onAuthStateChanged(user => {
         currentUser = user;
         const loginDiv = document.getElementById("cloudLoggedOut");
@@ -605,7 +624,7 @@ try {
             statusDiv.style.display = "block";
             document.getElementById("userName").innerText = user.displayName || "User";
             if(user.photoURL) document.getElementById("userAvatar").innerHTML = `<img src="${user.photoURL}">`;
-            checkForCloudUpdates(); // Check on login
+            checkForCloudUpdates(); 
         } else {
             loginDiv.style.display = "block";
             statusDiv.style.display = "none";
@@ -623,12 +642,30 @@ function logout() {
     auth.signOut().then(() => showToast("Logged Out"));
 }
 
-// MAIN DATA SYNC
-function syncToCloud() {
+// SAFE DATA SYNC (Prevents Overwrite)
+function forceCloudSync() {
     if(!currentUser || !db) return;
     const updateStatus = document.getElementById("syncStatus");
+    updateStatus.innerText = "Checking...";
+
+    db.collection("users").doc(currentUser.uid).get().then(doc => {
+        const localTime = parseInt(localStorage.getItem("last_sync_time") || "0");
+        
+        if(doc.exists && doc.data().lastUpdated > localTime) {
+            showConfirm("Sync Conflict", "Cloud data is newer than your current data. Overwrite cloud data anyway?", () => {
+                pushToCloud(updateStatus);
+            });
+        } else {
+            pushToCloud(updateStatus);
+        }
+    }).catch(e => {
+        console.error(e);
+        pushToCloud(updateStatus); // Fallback force push
+    });
+}
+
+function pushToCloud(updateStatus) {
     updateStatus.innerText = "Syncing...";
-    
     const payload = {
         attendance: data,
         settings: {
@@ -642,12 +679,20 @@ function syncToCloud() {
     db.collection("users").doc(currentUser.uid).set(payload, { merge: true })
       .then(() => {
           updateStatus.innerText = "Synced just now";
+          localStorage.setItem("last_sync_time", payload.lastUpdated);
           setTimeout(() => updateStatus.innerText = "Synced", 2000);
       })
       .catch(e => {
           console.error(e);
           updateStatus.innerText = "Sync Failed";
       });
+}
+
+function syncToCloud() {
+    // Auto-sync still happens, but we trust logic elsewhere to be consistent
+    // For manual actions, we use forceCloudSync
+    if(!currentUser || !db) return;
+    pushToCloud(document.getElementById("syncStatus"));
 }
 
 function checkForCloudUpdates() {
@@ -680,7 +725,6 @@ function checkForCloudUpdates() {
         }
     });
 }
-function forceCloudSync() { syncToCloud(); showToast("Backup started"); }
 
 
 // --- CUSTOM DROPDOWN ENGINE ---
@@ -765,7 +809,7 @@ function closePasswordModal() {
 }
 
 // --- LOGIC ---
-const PASSWORD = "Nir@2006";
+let USER_PIN = localStorage.getItem("user_pin") || "0000";
 let MIN_ATTENDANCE = parseInt(localStorage.getItem("target_percent")) || 75;
 
 const defaultTimetable = {
@@ -796,12 +840,6 @@ function getStorageDateKey(date) {
 const today = new Date();
 const day = today.toLocaleDateString("en-US",{ weekday:"long" });
 const dateKey = getStorageDateKey(today);
-
-// Apply limit on load
-const savedStart = localStorage.getItem("sem_start_date");
-if(savedStart && document.getElementById("pastDate")) {
-    document.getElementById("pastDate").min = savedStart;
-}
 
 let data = JSON.parse(localStorage.getItem("attendance")) || { totals:{}, history:{}, locks:{}, tasks:[], holidays:[] };
 if(!data.tasks) data.tasks = [];
@@ -847,7 +885,6 @@ function startBackgroundCheck() {
         if(now.getHours() === 17 && now.getMinutes() === 0) {
              const d = now.toLocaleDateString("en-US",{ weekday:"long" });
              if(d === "Saturday" || d === "Sunday") return;
-             // Also skip if today is holiday
              if(getHolidayForDate(dateKey)) return;
              
              const todaysLocks = Object.keys(data.locks).some(k => k.startsWith(dateKey));
@@ -1024,11 +1061,44 @@ function markExtra(status){
   save(); render(); showToast("Extra Class Added");
 }
 
+function getRemainingFutureSlots() {
+    const semEndStr = localStorage.getItem("sem_end_date");
+    if (!semEndStr) return {}; 
+
+    const end = new Date(semEndStr);
+    const cursor = new Date();
+    cursor.setDate(cursor.getDate() + 1); 
+
+    const subjectCounts = {};
+
+    while (cursor <= end) {
+        const dStr = getStorageDateKey(cursor);
+        if (!getHolidayForDate(dStr)) {
+            const dayName = cursor.toLocaleDateString("en-US", { weekday: "long" });
+            const lectures = timetable[dayName] || [];
+            lectures.forEach(lec => {
+                const sub = lec[1];
+                if(!subjectCounts[sub]) subjectCounts[sub] = 0;
+                subjectCounts[sub]++;
+            });
+        }
+        cursor.setDate(cursor.getDate() + 1);
+    }
+    return subjectCounts;
+}
+
 function renderSummary(){
   const div = document.getElementById("summary");
   div.innerHTML = "";
-  let tp = 0, tt = 0;
+  
+  let tp = 0, tt = 0; 
   const target = MIN_ATTENDANCE / 100;
+  
+  const futureSlots = getRemainingFutureSlots(); 
+  
+  let totalRemaining = 0;
+  Object.values(futureSlots).forEach(count => totalRemaining += count);
+  const semEndDateExists = !!localStorage.getItem("sem_end_date");
 
   for(let s in data.totals){
     const { p, t } = data.totals[s];
@@ -1047,12 +1117,29 @@ function renderSummary(){
     }
 
     let statusMsg = "", statusColor = "text-muted", statusIcon = "";
+    
+    const remaining = futureSlots[s] || 0;
+    const maxPossibleP = p + remaining;
+    const maxPossibleT = t + remaining;
+    const maxPossiblePercent = maxPossibleT ? (maxPossibleP / maxPossibleT) : 0;
+
     if (t > 0) {
         if (percent >= MIN_ATTENDANCE) {
             const bunkable = Math.floor((p / target) - t);
             if(bunkable > 0){ statusMsg = `Safe to bunk <b>${bunkable}</b>`; statusColor = "text-green"; statusIcon = ICONS.check; } 
             else { if(percent === 100){ statusMsg = `Perfect record`; statusColor = "text-green"; statusIcon = ICONS.check; } else { statusMsg = `Don't miss next`; statusColor = "text-yellow"; statusIcon = ICONS.x; } }
-        } else { const needed = Math.ceil( (target * t - p) / (1 - target) ); statusMsg = `Attend next <b>${needed}</b>`; statusColor = "text-red"; statusIcon = ICONS.x; }
+        } else {
+            if (semEndDateExists && maxPossiblePercent < target) {
+                 statusMsg = `<b>Impossible</b> (Max: ${Math.round(maxPossiblePercent * 100)}%)`;
+                 statusColor = "text-red";
+                 statusIcon = ICONS.x;
+            } else {
+                 const needed = Math.ceil( (target * t - p) / (1 - target) );
+                 statusMsg = `Attend next <b>${needed}</b>`;
+                 statusColor = "text-red";
+                 statusIcon = ICONS.x; 
+            }
+        }
     } else { statusMsg = "No data"; }
 
     div.innerHTML += `
@@ -1066,10 +1153,31 @@ function renderSummary(){
   }
 
   const overall = tt ? Math.round((tp / tt) * 100) : 0;
-  let overallColor = "text-green"; if(overall < MIN_ATTENDANCE) overallColor = "text-red"; else if(overall < MIN_ATTENDANCE + 10) overallColor = "text-yellow";
+  let overallColor = "text-green"; 
+  if(overall < MIN_ATTENDANCE) overallColor = "text-red"; 
+  else if(overall < MIN_ATTENDANCE + 10) overallColor = "text-yellow";
+  
   let overallMsg = "";
-  if(tt>0 && overall < MIN_ATTENDANCE){ const overallNeeded = Math.ceil( (target * tt - tp) / (1 - target) ); overallMsg = `Attend next ${overallNeeded} to hit ${MIN_ATTENDANCE}%`; } 
-  else if (tt>0) { const overallBunk = Math.floor((tp / target) - tt); if(overallBunk > 0) overallMsg = `Can bunk ${overallBunk} in total`; }
+
+  if(tt > 0) {
+      if (overall < MIN_ATTENDANCE) {
+          const overallMaxPossibleP = tp + totalRemaining;
+          const overallMaxPossibleT = tt + totalRemaining;
+          const overallMaxPercent = overallMaxPossibleT ? (overallMaxPossibleP / overallMaxPossibleT) : 0;
+
+          if(semEndDateExists && overallMaxPercent < target) {
+              overallMsg = `Impossible to reach ${MIN_ATTENDANCE}% (Max possible: ${Math.round(overallMaxPercent * 100)}%)`;
+          } else {
+              const overallNeeded = Math.ceil( (target * tt - tp) / (1 - target) ); 
+              overallMsg = `Attend next ${overallNeeded} classes to hit ${MIN_ATTENDANCE}%`; 
+          }
+      } else { 
+          const overallBunk = Math.floor((tp / target) - tt); 
+          if(overallBunk > 0) overallMsg = `Can bunk ${overallBunk} classes in total`;
+          else overallMsg = "Don't miss any upcoming classes";
+      }
+  }
+
   div.innerHTML = `<div class="overall-card card"><div style="font-size:12px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Overall Attendance</div><div class="overall-percent ${overallColor}">${overall}%</div><div style="font-size:13px; color:#94a3b8;">${overallMsg}</div></div>` + div.innerHTML;
 }
 
@@ -1093,15 +1201,18 @@ function triggerReset(){
   input.focus();
 
   btn.onclick = () => {
-      if(input.value === PASSWORD) {
+      if(input.value === USER_PIN) {
           closePasswordModal();
           showConfirm("Factory Reset?", "All data will be lost permanently.", () => {
               localStorage.removeItem("attendance"); 
               localStorage.removeItem("target_percent"); 
+              localStorage.removeItem("user_pin");
+              localStorage.removeItem("sem_start_date");
+              localStorage.removeItem("sem_end_date");
               location.reload();
           });
       } else {
-          showToast("Wrong Password", "error");
+          showToast("Wrong PIN", "error");
           input.value = "";
           input.focus();
       }
@@ -1109,8 +1220,15 @@ function triggerReset(){
 }
 
 function getAllSubjects() { const set = new Set(); Object.values(timetable).flat().forEach(x => set.add(x[1])); return [...set].sort(); }
+
 function initExtra(){ 
-    document.getElementById("extraSubject").innerHTML = getAllSubjects().map(s=>`<option>${s}</option>`).join("");
+    const select = document.getElementById("extraSubject");
+    if (select.parentNode.classList.contains("custom-select-wrapper")) {
+        const wrapper = select.parentNode;
+        wrapper.parentNode.insertBefore(select, wrapper);
+        wrapper.remove();
+    }
+    select.innerHTML = getAllSubjects().map(s=>`<option>${s}</option>`).join("");
     setupCustomSelects();
 }
 
@@ -1123,22 +1241,30 @@ function loadPastTimetable(){
   const container = document.getElementById("pastLectures");
   const extraDiv = document.getElementById("pastExtra");
   
+  const semStart = localStorage.getItem("sem_start_date");
+  const semEnd = localStorage.getItem("sem_end_date");
+  const todayStr = new Date().toISOString().split('T')[0];
+  
+  if(semStart) input.min = semStart;
+  
+  let maxDate = todayStr;
+  if(semEnd && semEnd < todayStr) maxDate = semEnd;
+  input.max = maxDate;
+
   container.innerHTML = ""; 
   extraDiv.innerHTML = ""; 
   pastBuffer = [];
 
   if(!val) return;
-
-  const selectedDate = new Date(val);
-  const todayDate = new Date(today.toDateString());
   
-  if(selectedDate >= todayDate){ 
-      showToast("Cannot edit future/today here", "error"); 
-      input.value = ""; 
-      return; 
+  if (val > maxDate) {
+      showToast("Cannot edit future / beyond semester", "error");
+      input.value = "";
+      return;
   }
 
   pastDateKey = val;
+  const selectedDate = new Date(val);
   pastDay = selectedDate.toLocaleDateString("en-US",{weekday:"long"});
   
   const pastHoliday = getHolidayForDate(pastDateKey);
@@ -1344,25 +1470,48 @@ function exportBackup(){
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `attendance_backup_${dateKey}.json`; a.click(); URL.revokeObjectURL(a.href);
   showToast("Backup Downloaded");
 }
+
+// FIX #2: ROBUST IMPORT VALIDATION
 document.getElementById("importFile").addEventListener("change", function(e){
-  const file = e.target.files[0]; if(!file) return;
+  const file = e.target.files[0]; 
+  if(!file) return;
+  
   const reader = new FileReader();
   reader.onload = function(){
-    try{ const backup = JSON.parse(reader.result); if(!backup.data){ showToast("Invalid file", "error"); return; }
-      showConfirm("Overwrite Data?", "This will replace all current data.", () => {
-          data = backup.data; if(!data.tasks) data.tasks = []; if(!data.history) data.history = {}; if(!data.totals) data.totals = {}; if(!data.locks) data.locks = {};
-          save(); render(); showToast("Restored successfully");
-      });
-    } catch(err){ console.error(err); showToast("Error importing", "error"); }
-    e.target.value = '';
-  }; reader.readAsText(file);
+    try { 
+        const backup = JSON.parse(reader.result);
+        
+        // SECURITY CHECK: Validate Schema
+        if (!backup.data || typeof backup.data.history !== 'object' || typeof backup.data.totals !== 'object') {
+            throw new Error("Invalid file structure");
+        }
+
+        showConfirm("Overwrite Data?", "This will replace all current data.", () => {
+            data = backup.data; 
+            // Safety initialization to prevent crashes
+            if(!data.tasks) data.tasks = []; 
+            if(!data.history) data.history = {}; 
+            if(!data.totals) data.totals = {}; 
+            if(!data.locks) data.locks = {}; 
+            if(!data.holidays) data.holidays = [];
+            
+            save(); 
+            render(); 
+            showToast("Restored successfully");
+        });
+    } catch(err) { 
+        console.error(err); 
+        showToast("Invalid/Corrupt Backup File", "error"); 
+    }
+    e.target.value = ''; 
+  }; 
+  reader.readAsText(file);
 });
 
 // SETTINGS & CHART
 const modal = document.getElementById("settingsModal");
 
 function saveSettings() {
-    // 1. Save Target
     const input = document.getElementById("targetInput");
     const val = parseInt(input.value);
     
@@ -1374,12 +1523,20 @@ function saveSettings() {
     MIN_ATTENDANCE = val;
     localStorage.setItem("target_percent", val);
 
-    // 2. Save Semester Start Date
     const startVal = document.getElementById("semStartInput").value;
     localStorage.setItem("sem_start_date", startVal);
+
+    const endVal = document.getElementById("semEndInput").value;
+    localStorage.setItem("sem_end_date", endVal);
     
     const pastInput = document.getElementById("pastDate");
-    if(pastInput && startVal) pastInput.min = startVal;
+    const todayStr = new Date().toISOString().split('T')[0];
+    if(pastInput) {
+        if(startVal) pastInput.min = startVal;
+        let maxDate = todayStr;
+        if(endVal && endVal < todayStr) maxDate = endVal;
+        pastInput.max = maxDate;
+    }
     
     render(); 
     closeSettings();
@@ -1391,8 +1548,20 @@ function openSettings() {
     
     document.getElementById("targetInput").value = MIN_ATTENDANCE;
     document.getElementById("semStartInput").value = localStorage.getItem("sem_start_date") || "";
+    document.getElementById("semEndInput").value = localStorage.getItem("sem_end_date") || "";
     document.getElementById("editDaySelect").value = day; 
     
+    // --- FIX: Refresh the Rename Dropdown ---
+    const renameSelect = document.getElementById("renameOldSubject");
+    if (renameSelect.parentNode.classList.contains("custom-select-wrapper")) {
+        const wrapper = renameSelect.parentNode;
+        wrapper.parentNode.insertBefore(renameSelect, wrapper); 
+        wrapper.remove(); 
+    }
+    const subjectList = getAllSubjects();
+    renameSelect.innerHTML = subjectList.map(s => `<option value="${s}">${s}</option>`).join("");
+    // ----------------------------------------
+
     renderHolidays(); 
     renderEditRows(); 
     setupCustomSelects(); 
@@ -1400,13 +1569,66 @@ function openSettings() {
 
 function closeSettings() { modal.style.display = "none"; }
 
+// --- RENAME / MERGE LOGIC ---
+function renameSubject() {
+    const oldName = document.getElementById("renameOldSubject").value;
+    const newName = document.getElementById("renameNewName").value.trim();
+
+    if(!oldName || !newName) return showToast("Enter new name", "error");
+    if(oldName === newName) return showToast("Names are same", "error");
+
+    showConfirm("Rename / Merge?", `This will change '${oldName}' to '${newName}' in all history and timetable.`, () => {
+        if(!data.totals[newName]) data.totals[newName] = { p:0, t:0 };
+        if(data.totals[oldName]) {
+            data.totals[newName].p += data.totals[oldName].p;
+            data.totals[newName].t += data.totals[oldName].t;
+            delete data.totals[oldName];
+        }
+
+        Object.keys(data.history).forEach(date => {
+            data.history[date].forEach(entry => {
+                if(entry.subject === oldName) entry.subject = newName;
+            });
+            Object.keys(data.locks).forEach(lockKey => {
+                if(lockKey.includes(`_${oldName}_`)) {
+                    data.locks[lockKey.replace(`_${oldName}_`, `_${newName}_`)] = true;
+                    delete data.locks[lockKey];
+                }
+            });
+        });
+
+        data.tasks.forEach(t => { if(t.subject === oldName) t.subject = newName; });
+
+        Object.keys(timetable).forEach(d => {
+            timetable[d].forEach(slot => {
+                if(slot[1] === oldName) slot[1] = newName;
+            });
+        });
+        localStorage.setItem("custom_timetable", JSON.stringify(timetable));
+
+        save();
+        document.getElementById("renameNewName").value = "";
+        openSettings(); 
+        showToast("Renamed successfully");
+    });
+}
+
+// --- SECURITY LOGIC ---
+function setNewPin() {
+    const pin = document.getElementById("newPinInput").value;
+    if(pin.length !== 4 || isNaN(pin)) return showToast("Enter 4-digit PIN", "error");
+    USER_PIN = pin;
+    localStorage.setItem("user_pin", pin);
+    document.getElementById("newPinInput").value = "";
+    showToast("Security PIN Updated");
+}
+
 // --- UPDATED EDIT LOGIC START ---
 function renderEditRows() {
   const selectedDay = document.getElementById("editDaySelect").value;
   const container = document.getElementById("editContainer");
   container.innerHTML = "";
   
-  // Create Suggestions for Subjects based on existing data
   const existingSubjects = Object.keys(data.totals).sort();
   const datalist = document.getElementById("subjectSuggestions");
   datalist.innerHTML = existingSubjects.map(s => `<option value="${s}">`).join("");
@@ -1439,7 +1661,6 @@ function saveNewTimetable() {
   const newDaySchedule = [];
   rows.forEach((row, index) => {
     const t = document.getElementById(`time_${index}`).value;
-    // KEY FIX: Trim whitespace to prevent "New Subject" bug
     const s = document.getElementById(`sub_${index}`).value.trim(); 
     if(t && s) newDaySchedule.push([t, s]);
   });
@@ -1447,7 +1668,6 @@ function saveNewTimetable() {
   localStorage.setItem("custom_timetable", JSON.stringify(timetable));
   showToast(`Saved ${selectedDay}`); initExtra(); render();
 }
-// --- UPDATED EDIT LOGIC END ---
 
 function triggerRestore() {
   showConfirm("Reset Timetable?", "This reverts all schedule edits.", () => {
@@ -1516,7 +1736,7 @@ function render(){
     document.getElementById("extraInfo").innerText = "✔ No extra lectures today";
   }
 }
- 
+
 initExtra();
 render();
 </script>
