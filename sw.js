@@ -1,4 +1,4 @@
-const CACHE_NAME = "attendance-pro-v10-fixed"; 
+const CACHE_NAME = "attendance-pro-v12-final"; 
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -23,16 +23,24 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
-  // FIX: Ignore Firebase/Google requests to prevent "Network First" hang
-  if (e.request.url.includes("firebase") || e.request.url.includes("googleapis")) return;
+  // CRITICAL FIX: Ignore Firebase requests so they don't fail offline
+  if (e.request.url.includes("firebase") || 
+      e.request.url.includes("googleapis") || 
+      e.request.url.includes("firestore")) {
+      return; 
+  }
 
   e.respondWith(
     fetch(e.request)
       .then((res) => {
+        // Cache successful network requests
         const resClone = res.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(e.request, resClone));
         return res;
       })
-      .catch(() => caches.match(e.request))
+      .catch(() => {
+        // Fallback to cache if offline
+        return caches.match(e.request);
+      })
   );
 });
