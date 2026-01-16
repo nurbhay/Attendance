@@ -260,6 +260,10 @@ try {
     firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
     db = firebase.firestore();
+    db.settings({
+        experimentalForceLongPolling: true, 
+        experimentalAutoDetectLongPolling: false 
+    });
     db.enablePersistence({ synchronizeTabs: true })
         .catch((err) => {
             if (err.code == 'failed-precondition') {
