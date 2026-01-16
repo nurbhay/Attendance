@@ -31,7 +31,7 @@
     --holiday-border: rgba(255, 255, 255, 0.2);
 }
 
-/* --- GLOBAL RESET & SCROLLBAR HIDING --- */
+/* --- GLOBAL RESET --- */
 * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
@@ -67,153 +67,103 @@ body {
     user-select: none;
 }
 
-/* --- PROFESSIONAL SPLASH SCREEN --- */
+/* --- PROFESSIONAL SPLASH SCREEN (Fixed) --- */
 #app-splash {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: #0f172a; /* Matches App Theme */
-    z-index: 99999; /* Stays on top of everything */
+    background: #0f172a; /* Matches Manifest background for seamlessness */
+    z-index: 99999;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.4s ease-out, visibility 0.4s;
+    transition: opacity 0.5s ease-out, visibility 0.5s;
 }
 
 .splash-logo-container {
-    width: 80px;
-    height: 80px;
-    background: #1e293b;
-    border-radius: 20px; /* Makes edges smooth/rounded */
+    width: 90px;
+    height: 90px;
+    background: transparent; /* No box, just the logo */
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     margin-bottom: 20px;
-    border: 1px solid #334155;
-    animation: floatLogo 3s ease-in-out infinite;
+    animation: pulseLogo 2s infinite ease-in-out;
 }
 
-.splash-logo-icon {
-    width: 40px;
-    height: 40px;
-    stroke: var(--accent);
-    stroke-width: 2.5;
-    fill: none;
-    stroke-linecap: round; 
-    stroke-linejoin: round;
+/* This puts your actual icon.png on the screen */
+.splash-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 18px; /* Smooth corners for the image itself */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 .splash-text {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     color: white;
     letter-spacing: 0.5px;
     opacity: 0;
-    animation: fadeInText 0.8s ease-out forwards 0.3s;
+    animation: slideUpText 0.6s ease-out forwards 0.2s;
 }
 
-.splash-spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid rgba(59, 130, 246, 0.3);
-    border-top: 2px solid var(--accent);
-    border-radius: 50%;
+.splash-bar {
+    width: 120px;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
     margin-top: 30px;
-    animation: spin 1s linear infinite;
+    overflow: hidden;
+    position: relative;
 }
 
-@keyframes floatLogo { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-@keyframes fadeInText { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.splash-bar::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 40%;
+    background: var(--accent);
+    border-radius: 2px;
+    animation: loadBar 1.5s infinite linear;
+}
 
-/* --- INPUTS & BUTTONS --- */
+@keyframes pulseLogo { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes slideUpText { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes loadBar { 0% { left: -40%; } 100% { left: 100%; } }
+
+
+/* --- REST OF CSS (Inputs, Icons, Cards) --- */
 input, select, textarea {
-    width: 100%; 
-    padding: 12px 14px; 
-    background: #0f172a; 
-    border: 1px solid #334155; 
-    color: white; 
-    border-radius: 8px; 
-    margin-bottom: 12px; 
-    font-size: 14px; 
-    outline: none; 
-    -webkit-user-select: text; 
-    user-select: text; 
+    width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid #334155; 
+    color: white; border-radius: 8px; margin-bottom: 12px; font-size: 14px; 
+    outline: none; -webkit-user-select: text; user-select: text; 
 }
 input:focus { border-color: var(--accent); }
 
-img, a {
-    -webkit-touch-callout: none;
-    -webkit-user-drag: none;
-    pointer-events: none;
-}
-
-/* --- ICONS --- */
+img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: none; }
 .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .icon-sm { width: 16px; height: 16px; }
 .icon-lg { width: 24px; height: 24px; }
 
-/* --- APP BAR --- */
-.app-header {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 60px;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    z-index: 100;
-    border-bottom: 1px solid #334155;
-    padding-top: env(safe-area-inset-top);
-}
+.app-header { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 100; border-bottom: 1px solid #334155; padding-top: env(safe-area-inset-top); }
 .app-title { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
 
-.settings-btn { 
-    background: none; border: none; color: var(--text-main); cursor: pointer; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    width: 44px; height: 44px; padding: 0; transition: background 0.2s;
-}
+.settings-btn { background: none; border: none; color: var(--text-main); cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; transition: background 0.2s; }
 .settings-btn:active { background: rgba(255,255,255,0.1); }
 
-/* --- NAVIGATION --- */
-.bottom-nav {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    height: var(--nav-height);
-    background: #1e293b;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    border-top: 1px solid #334155;
-    z-index: 100;
-    padding-bottom: env(safe-area-inset-bottom);
-}
-.nav-item {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 500; color: var(--text-muted); background: none; border: none; cursor: pointer;
-    width: 33%; height: 100%; transition: transform 0.1s, opacity 0.1s;
-}
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height); background: #1e293b; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #334155; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
+.nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; color: var(--text-muted); background: none; border: none; cursor: pointer; width: 33%; height: 100%; transition: transform 0.1s, opacity 0.1s; }
 .nav-item.active { color: var(--accent); }
 .nav-item svg { margin-bottom: 4px; }
 .nav-item:active { opacity: 0.7; transform: scale(0.95); }
 
-/* --- TABS & CARDS --- */
 .tab-content { display: none; padding: 15px; animation: fadeIn 0.2s ease-out; }
 .tab-content.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-.card {
-    background: var(--card-bg);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    border: 1px solid #334155;
-}
+.card { background: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #334155; }
 .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .card-title { font-size: 16px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px; margin: 0; }
 
@@ -223,7 +173,6 @@ img, a {
 .lecture-absent::before { background: var(--red); }
 .lecture-cancelled::before { background: var(--text-muted); }
 .lecture-card.locked { opacity: 0.6; pointer-events: none; }
-
 .lec-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
 .lec-time { font-size: 11px; color: var(--accent); font-weight: 700; background: rgba(59, 130, 246, 0.1); padding: 3px 8px; border-radius: 6px; }
 .lec-subject { font-size: 15px; font-weight: 600; line-height: 1.4; flex: 1; margin-right: 10px; }
@@ -236,7 +185,7 @@ img, a {
 .cancelled { background: #334155; color: var(--text-muted); }
 .note-btn { background: transparent; color: var(--text-muted); border: 1px solid #334155; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-/* --- CUSTOM DROPDOWNS --- */
+/* Custom Dropdown */
 .custom-select-wrapper { position: relative; user-select: none; margin-bottom: 12px; }
 .custom-select-wrapper select { display: none; }
 .custom-select-trigger { position: relative; display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 14px; font-size: 14px; font-weight: 400; color: #fff; background: #0f172a; border: 1px solid #334155; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
@@ -297,19 +246,16 @@ img, a {
 .settings-section-title { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px 4px; }
 @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .edit-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
-
 </style>
 </head>
 <body>
 
 <div id="app-splash">
     <div class="splash-logo-container">
-        <svg class="splash-logo-icon" viewBox="0 0 24 24">
-            <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
+        <img src="icon.png" alt="Logo" class="splash-logo-img">
     </div>
     <div class="splash-text">Attendance Pro</div>
-    <div class="splash-spinner"></div>
+    <div class="splash-bar"></div>
 </div>
 
 <header class="app-header">
