@@ -1,4 +1,4 @@
-const CACHE_NAME = "attendance-v7-final"; // Increment version
+const CACHE_NAME = "attendance-pro-v10-fixed"; 
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -12,44 +12,27 @@ const ASSETS_TO_CACHE = [
 
 self.addEventListener("install", (e) => {
   self.skipWaiting(); 
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
-  );
+  e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE)));
 });
 
 self.addEventListener("activate", (e) => {
-  e.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(keyList.map((key) => {
-        if (key !== CACHE_NAME) return caches.delete(key);
-      }));
-    })
-  );
+  e.waitUntil(caches.keys().then((keyList) => Promise.all(keyList.map((key) => {
+    if (key !== CACHE_NAME) return caches.delete(key);
+  }))));
   return self.clients.claim();
 });
 
 self.addEventListener("fetch", (e) => {
-  const url = e.request.url;
+  // FIX: Ignore Firebase/Google requests to prevent "Network First" hang
+  if (e.request.url.includes("firebase") || e.request.url.includes("googleapis")) return;
 
-  // 1. IGNORE Firebase & Google API requests (Let browser handle them)
-  // This prevents the app from hanging while waiting for auth/db when connection is poor.
-  if (url.includes("firebase") || url.includes("googleapis") || url.includes("firestore")) {
-      return; 
-  }
-
-  // 2. Stale-While-Revalidate for App Shell (Instant Load + Background Update)
   e.respondWith(
-    caches.match(e.request).then((cachedResponse) => {
-      const fetchPromise = fetch(e.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-           const resClone = networkResponse.clone();
-           caches.open(CACHE_NAME).then((cache) => cache.put(e.request, resClone));
-        }
-        return networkResponse;
-      }).catch(() => {
-          // Fallback if offline and not in cache
-      });
-      return cachedResponse || fetchPromise;
-    })
+    fetch(e.request)
+      .then((res) => {
+        const resClone = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, resClone));
+        return res;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
