@@ -418,7 +418,14 @@ let USER_PIN = localStorage.getItem("user_pin") || "0000";
 let MIN_ATTENDANCE = parseInt(localStorage.getItem("target_percent")) || 75;
 const defaultTimetable = { Monday: [ ["11:00-12:00","Introduction to Cyber Law"], ["12:00-01:00","Artificial Intelligence"], ["01:30-03:30","Operating Systems Lab"], ["03:30-04:30","Operating Systems"], ["04:30-05:30","Entrepreneurship and Start-ups"] ], Tuesday: [ ["11:00-12:00","Introduction to Cyber Law"], ["12:00-01:00","Theory of Computation"], ["01:30-03:30","Artificial Intelligence Lab"], ["03:30-04:30","Operating Systems"], ["04:30-05:30","Business Communication"] ], Wednesday: [ ["11:00-01:00","Computer Skill Lab-1"], ["01:30-02:30","Theory of Computation"], ["02:30-03:30","Introduction to Cyber Law"], ["03:30-04:30","Artificial Intelligence"], ["04:30-05:30","Business Communication"] ], Thursday: [ ["11:00-12:00","Software Requirement Engineering"], ["12:00-01:00","Theory of Computation"], ["01:30-02:30","Operating Systems"], ["02:30-03:30","Artificial Intelligence"], ["03:30-04:30","Entrepreneurship and Start-ups"] ], Friday: [ ["11:00-01:00","Software Requirement Engineering"], ["01:30-02:30","Theory of Computation"], ["02:30-04:30","Report Writing & Presentation Skill"] ] };
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+// OLD LINE: navigator.serviceWorker.register("./sw.js");
+
+// NEW LINE (Forces browser to download the new version):
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js?v=" + new Date().getTime())
+    .then(reg => console.log("SW Updated", reg))
+    .catch(err => console.log("SW Fail", err));
+}
 
 function getStorageDateKey(date) { const y = date.getFullYear(); const m = String(date.getMonth() + 1).padStart(2, '0'); const d = String(date.getDate()).padStart(2, '0'); return `${y}-${m}-${d}`; }
 const today = new Date(); const day = today.toLocaleDateString("en-US",{ weekday:"long" }); const dateKey = getStorageDateKey(today);
