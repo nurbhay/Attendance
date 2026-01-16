@@ -260,11 +260,14 @@ try {
     firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
     db = firebase.firestore();
-    db.settings({
-    experimentalForceLongPolling: true,
-    experimentalAutoDetectLongPolling: false, // <--- This line fixes the error
-    merge: true
-});
+    db.enablePersistence({ synchronizeTabs: true })
+        .catch((err) => {
+            if (err.code == 'failed-precondition') {
+                console.log('Persistence failed: Multiple tabs open');
+            } else if (err.code == 'unimplemented') {
+                console.log('Persistence not supported');
+            }
+        });
     
     // --- UPDATED AUTH LISTENER (SMART SPLASH) ---
     auth.onAuthStateChanged(user => {
