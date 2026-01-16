@@ -260,6 +260,7 @@ try {
     firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
     db = firebase.firestore();
+    db.settings({ experimentalForceLongPolling: true, merge: true });
     
     // --- UPDATED AUTH LISTENER (SMART SPLASH) ---
     auth.onAuthStateChanged(user => {
