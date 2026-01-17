@@ -210,7 +210,7 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 .toast.error { border-left: 4px solid var(--red); }
 @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
-/* FIX: Z-Index bumped to 6000 for all modals */
+/* --- FIX: Z-INDEX INCREASED TO 6000 --- */
 .confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 6000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
 .confirm-box { background: #1e293b; width: 85%; max-width: 320px; padding: 24px; border-radius: 16px; text-align: center; border: 1px solid #475569; animation: popIn 0.2s ease-out; }
 .confirm-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
@@ -840,29 +840,16 @@ function showConfirm(title, desc, onConfirm) {
     document.getElementById('confirmDesc').innerText = desc;
     modal.style.display = "flex";
     
-    // PUSH STATE
-    history.pushState({page: 'modal', modal: 'confirmModal'}, null, '');
-
     const confirmBtn = document.getElementById('confirmYesBtn');
     confirmBtn.onclick = () => {
         onConfirm();
         closeConfirm();
     };
 }
-function closeConfirm() { 
-    if(history.state && history.state.modal === 'confirmModal') {
-        history.back();
-    } else {
-        document.getElementById('confirmModal').style.display = "none";
-    }
-}
+function closeConfirm() { document.getElementById('confirmModal').style.display = "none"; }
 
 function closePasswordModal() {
-    if(history.state && history.state.modal === 'passwordModal') {
-        history.back();
-    } else {
-        document.getElementById('passwordModal').style.display = "none";
-    }
+    document.getElementById('passwordModal').style.display = "none";
 }
 
 // --- LOGIC ---
@@ -911,29 +898,16 @@ function save(triggerSync = true){
     }
 }
 
-// --- OPTIMIZED SWITCH TAB: No Lag ---
-function switchTab(tabId, pushToHistory = true) {
-    // 1. UI Switch (Instant)
+function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     document.getElementById('tab-' + tabId).classList.add('active');
-    
-    // Update nav buttons visually
     const btns = document.querySelectorAll('.nav-item');
     if(tabId === 'home') btns[0].classList.add('active');
     if(tabId === 'stats') btns[1].classList.add('active');
     if(tabId === 'tools') btns[2].classList.add('active');
-
-    // 2. Heavy Logic (Deferred by 10ms)
-    // This allows the browser to paint the new tab first!
-    if(tabId === 'stats') {
-        setTimeout(renderCalendar, 10);
-    }
-
-    // 3. History Push
-    if(pushToHistory && tabId !== 'home') {
-        history.pushState({page: 'tab', tabId: tabId}, null, '');
-    }
+    
+    if(tabId === 'stats') renderCalendar();
 }
 
 function requestNotificationPermission() {
@@ -1073,17 +1047,10 @@ function addNote(subject) {
     document.getElementById('noteInput').value = "";
     document.getElementById('noteModal').style.display = 'flex';
     document.getElementById('noteInput').focus();
-    
-    // NEW: PUSH STATE
-    history.pushState({page: 'modal', modal: 'noteModal'}, null, '');
 }
 
 function closeNoteModal() { 
-    if(history.state && history.state.modal === 'noteModal') {
-        history.back();
-    } else {
-        document.getElementById('noteModal').style.display = 'none'; 
-    }
+    document.getElementById('noteModal').style.display = 'none'; 
 }
 
 document.getElementById('saveNoteBtn').onclick = function() {
@@ -1264,16 +1231,16 @@ function renderSummary(){
   div.innerHTML = `<div class="overall-card card"><div style="font-size:12px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Overall Attendance</div><div class="overall-percent ${overallColor}">${overall}%</div><div style="font-size:13px; color:#94a3b8;">${overallMsg}</div></div>` + div.innerHTML;
 }
 
-// --- OPTIMIZED SUBJECT DETAIL LOGIC ---
+// --- NEW SUBJECT DETAIL LOGIC ---
 function openSubjectDetail(subject) {
     const modal = document.getElementById('subjectDetailModal');
     const title = document.getElementById('subjectDetailTitle');
     const list = document.getElementById('subjectDetailList');
     
     title.innerText = subject;
-    // PERFORMANCE FIX: Don't set innerHTML in loop
-    let htmlBuffer = "";
+    list.innerHTML = "";
     
+    // Sort dates DESC
     const dates = Object.keys(data.history).sort().reverse();
     let found = false;
 
@@ -1282,7 +1249,7 @@ function openSubjectDetail(subject) {
             if(entry.subject === subject) {
                 found = true;
                 let colorClass = entry.status === 'Present' ? 'text-green' : (entry.status === 'Cancelled' ? 'text-muted' : 'text-red');
-                htmlBuffer += `
+                list.innerHTML += `
                 <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #334155;">
                     <div>
                         <div style="font-size:14px; font-weight:600;">${formatDateDDMMYYYY(d)}</div>
@@ -1294,19 +1261,12 @@ function openSubjectDetail(subject) {
         });
     });
 
-    if(!found) htmlBuffer = "<div style='text-align:center; color:#94a3b8; margin-top:20px;'>No history found.</div>";
+    if(!found) list.innerHTML = "<div style='text-align:center; color:#94a3b8; margin-top:20px;'>No history found.</div>";
     
-    list.innerHTML = htmlBuffer;
     modal.style.display = "flex";
-    
-    history.pushState({page: 'modal', modal: 'subjectDetailModal'}, null, '');
 }
 function closeSubjectDetail() {
-    if(history.state && history.state.modal === 'subjectDetailModal') {
-        history.back();
-    } else {
-        document.getElementById('subjectDetailModal').style.display = "none";
-    }
+    document.getElementById('subjectDetailModal').style.display = "none";
 }
 
 function undo(d,i){
@@ -1327,9 +1287,6 @@ function triggerReset(){
   input.value = "";
   modal.style.display = "flex";
   input.focus();
-  
-  // PUSH STATE
-  history.pushState({page: 'modal', modal: 'passwordModal'}, null, '');
 
   btn.onclick = () => {
       if(input.value === USER_PIN) {
@@ -1681,18 +1638,9 @@ function openSettings() {
     renderHolidays(); 
     renderEditRows(); 
     setupCustomSelects(); 
-    
-    // NEW: PUSH STATE
-    history.pushState({page: 'modal', modal: 'settingsModal'}, null, '');
 }
 
-function closeSettings() { 
-    if(history.state && history.state.modal === 'settingsModal') {
-        history.back();
-    } else {
-        modal.style.display = "none";
-    }
-}
+function closeSettings() { modal.style.display = "none"; }
 
 function renameSubject() {
     const oldName = document.getElementById("renameOldSubject").value;
@@ -1810,17 +1758,10 @@ function openImportModal() {
     document.getElementById('importInput').value = "";
     document.getElementById('importModal').style.display = 'flex';
     document.getElementById('importInput').focus();
-    
-    // NEW: PUSH STATE
-    history.pushState({page: 'modal', modal: 'importModal'}, null, '');
 }
 
 function closeImportModal() {
-    if(history.state && history.state.modal === 'importModal') {
-        history.back();
-    } else {
-        document.getElementById('importModal').style.display = 'none';
-    }
+    document.getElementById('importModal').style.display = 'none';
 }
 
 function processImport() {
@@ -2011,7 +1952,7 @@ function render(){
   }
 }
 
-// --- APP LIFECYCLE ---
+// --- FADE OUT SPLASH SCREEN ---
 window.onload = function() {
     const splash = document.getElementById('app-splash');
     setTimeout(() => {
@@ -2019,32 +1960,8 @@ window.onload = function() {
         splash.style.visibility = 'hidden';
     }, 1500); 
     
-    // Initial State
-    history.replaceState({page: 'home'}, null, '');
-    
     initExtra();
     render();
-};
-
-// --- BACK BUTTON HANDLER ---
-window.onpopstate = function(e) {
-    // 1. Close ALL Modals
-    const modals = [
-        'settingsModal', 'confirmModal', 'noteModal', 'subjectDetailModal', 'importModal', 'passwordModal'
-    ];
-    modals.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.style.display = 'none';
-    });
-
-    // 2. Handle Tab Logic
-    if (e.state && e.state.page === 'tab') {
-        // Switch to the tab ID stored in history, NO push
-        switchTab(e.state.tabId, false);
-    } else {
-        // Default to home if no state or 'home' state
-        switchTab('home', false);
-    }
 };
 </script>
 </body>
