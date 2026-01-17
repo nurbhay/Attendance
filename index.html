@@ -231,7 +231,9 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 .del-task-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
 .text-green { color: var(--green); } .text-red { color: var(--red); } .text-yellow { color: var(--yellow); } .text-muted { color: var(--text-muted); }
 
-.holiday-card { border: 2px dashed var(--holiday-border); background-color: rgba(30, 41, 59, 0.5); border-radius: 16px; padding: 30px 20px; text-align: center; color: var(--text-main); margin-bottom: 24px; margin-top: 10px; }
+/* --- FIX: Added weekend-card to the holiday-card style group --- */
+.holiday-card, .weekend-card { border: 2px dashed var(--holiday-border); background-color: rgba(30, 41, 59, 0.5); border-radius: 16px; padding: 30px 20px; text-align: center; color: var(--text-main); margin-bottom: 24px; margin-top: 10px; }
+
 .weekend-icon { font-size: 48px; margin-bottom: 12px; display: block; animation: float 3s ease-in-out infinite; }
 .weekend-title { font-size: 18px; color: var(--text-main); font-weight: 700; margin-bottom: 4px; }
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-6px); } 100% { transform: translateY(0px); } }
@@ -1394,8 +1396,17 @@ function toggleUndo(){
 function lockNoExtra(){ const key = dateKey + "_NO_EXTRA"; if(data.locks[key]) return; data.locks[key] = true; save(); render(); showToast("Locked for today"); }
 function getDayName(dateStr){ const d = new Date(dateStr + "T00:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("en-US", { weekday: "long" }); }
 function formatDateDDMMYYYY(isoDate){ if(!isoDate) return ""; const [y, m, d] = isoDate.split("-"); return `${d}/${m}/${y}`; }
+
+// --- FIX: Check holiday before showing weekend card ---
 function showWeekendMessage(day){
   const statusDiv = document.getElementById("dayStatus");
+  
+  // If today is a holiday, we do NOT show the weekend card. The Holiday card will take precedence in loadLectures().
+  if (getHolidayForDate(dateKey)) {
+      statusDiv.innerHTML = "";
+      return;
+  }
+  
   if(day === "Saturday" || day === "Sunday"){ 
       statusDiv.innerHTML = `
       <div class="weekend-card">
@@ -1405,6 +1416,7 @@ function showWeekendMessage(day){
       </div>`; 
   } else { statusDiv.innerHTML = ""; }
 }
+
 function renderDetailView(){
   const mode = document.getElementById("viewMode").value;
   const filter = document.getElementById("filterArea");
