@@ -840,7 +840,7 @@ function showConfirm(title, desc, onConfirm) {
     document.getElementById('confirmDesc').innerText = desc;
     modal.style.display = "flex";
     
-    // NEW: PUSH STATE
+    // PUSH STATE
     history.pushState({page: 'modal', modal: 'confirmModal'}, null, '');
 
     const confirmBtn = document.getElementById('confirmYesBtn');
@@ -850,8 +850,6 @@ function showConfirm(title, desc, onConfirm) {
     };
 }
 function closeConfirm() { 
-    // OLD: document.getElementById('confirmModal').style.display = "none";
-    // NEW:
     if(history.state && history.state.modal === 'confirmModal') {
         history.back();
     } else {
@@ -913,18 +911,26 @@ function save(triggerSync = true){
     }
 }
 
+// --- OPTIMIZED SWITCH TAB: No Lag ---
 function switchTab(tabId, pushToHistory = true) {
+    // 1. UI Switch (Instant)
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     document.getElementById('tab-' + tabId).classList.add('active');
+    
+    // Update nav buttons visually
     const btns = document.querySelectorAll('.nav-item');
     if(tabId === 'home') btns[0].classList.add('active');
     if(tabId === 'stats') btns[1].classList.add('active');
     if(tabId === 'tools') btns[2].classList.add('active');
-    
-    if(tabId === 'stats') renderCalendar();
 
-    // NEW: PUSH STATE
+    // 2. Heavy Logic (Deferred by 10ms)
+    // This allows the browser to paint the new tab first!
+    if(tabId === 'stats') {
+        setTimeout(renderCalendar, 10);
+    }
+
+    // 3. History Push
     if(pushToHistory && tabId !== 'home') {
         history.pushState({page: 'tab', tabId: tabId}, null, '');
     }
@@ -1258,16 +1264,16 @@ function renderSummary(){
   div.innerHTML = `<div class="overall-card card"><div style="font-size:12px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Overall Attendance</div><div class="overall-percent ${overallColor}">${overall}%</div><div style="font-size:13px; color:#94a3b8;">${overallMsg}</div></div>` + div.innerHTML;
 }
 
-// --- NEW SUBJECT DETAIL LOGIC ---
+// --- OPTIMIZED SUBJECT DETAIL LOGIC ---
 function openSubjectDetail(subject) {
     const modal = document.getElementById('subjectDetailModal');
     const title = document.getElementById('subjectDetailTitle');
     const list = document.getElementById('subjectDetailList');
     
     title.innerText = subject;
-    list.innerHTML = "";
+    // PERFORMANCE FIX: Don't set innerHTML in loop
+    let htmlBuffer = "";
     
-    // Sort dates DESC
     const dates = Object.keys(data.history).sort().reverse();
     let found = false;
 
@@ -1276,7 +1282,7 @@ function openSubjectDetail(subject) {
             if(entry.subject === subject) {
                 found = true;
                 let colorClass = entry.status === 'Present' ? 'text-green' : (entry.status === 'Cancelled' ? 'text-muted' : 'text-red');
-                list.innerHTML += `
+                htmlBuffer += `
                 <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #334155;">
                     <div>
                         <div style="font-size:14px; font-weight:600;">${formatDateDDMMYYYY(d)}</div>
@@ -1288,11 +1294,11 @@ function openSubjectDetail(subject) {
         });
     });
 
-    if(!found) list.innerHTML = "<div style='text-align:center; color:#94a3b8; margin-top:20px;'>No history found.</div>";
+    if(!found) htmlBuffer = "<div style='text-align:center; color:#94a3b8; margin-top:20px;'>No history found.</div>";
     
+    list.innerHTML = htmlBuffer;
     modal.style.display = "flex";
     
-    // NEW: PUSH STATE
     history.pushState({page: 'modal', modal: 'subjectDetailModal'}, null, '');
 }
 function closeSubjectDetail() {
@@ -1322,7 +1328,7 @@ function triggerReset(){
   modal.style.display = "flex";
   input.focus();
   
-  // NEW: PUSH STATE
+  // PUSH STATE
   history.pushState({page: 'modal', modal: 'passwordModal'}, null, '');
 
   btn.onclick = () => {
