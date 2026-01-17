@@ -231,9 +231,7 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 .del-task-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
 .text-green { color: var(--green); } .text-red { color: var(--red); } .text-yellow { color: var(--yellow); } .text-muted { color: var(--text-muted); }
 
-/* --- FIX 1: Group Weekend Card with Holiday Card for styling --- */
 .holiday-card, .weekend-card { border: 2px dashed var(--holiday-border); background-color: rgba(30, 41, 59, 0.5); border-radius: 16px; padding: 30px 20px; text-align: center; color: var(--text-main); margin-bottom: 24px; margin-top: 10px; }
-
 .weekend-icon { font-size: 48px; margin-bottom: 12px; display: block; animation: float 3s ease-in-out infinite; }
 .weekend-title { font-size: 18px; color: var(--text-main); font-weight: 700; margin-bottom: 4px; }
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-6px); } 100% { transform: translateY(0px); } }
@@ -248,6 +246,19 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 .settings-section-title { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px 4px; }
 @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .edit-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+
+/* --- CALENDAR STYLES --- */
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; margin-top:10px; }
+.cal-day-header { font-size: 10px; color: #94a3b8; padding-bottom: 5px; font-weight: 600; text-transform: uppercase; }
+.cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; border-radius: 8px; position: relative; cursor: pointer; transition: background 0.1s; background: rgba(255,255,255,0.03); }
+.cal-day:active { background: #334155; }
+.cal-day.today { border: 1px solid var(--accent); }
+.cal-day.selected { background: #334155; }
+.cal-dot { width: 6px; height: 6px; border-radius: 50%; position: absolute; bottom: 4px; }
+.dot-green { background: var(--green); }
+.dot-red { background: var(--red); }
+.dot-purple { background: #c084fc; } /* Purple for holiday/weekend */
+.dot-gray { background: #475569; }
 </style>
 </head>
 <body>
@@ -307,6 +318,23 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 </div>
 
 <div id="tab-stats" class="tab-content">
+    
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><span class="icon-calendar"></span> Attendance Calendar</h3>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button onclick="changeMonth(-1)" style="background:none;border:none;color:white;cursor:pointer;padding:4px;">&lt;</button>
+                <span id="calMonthYear" style="font-size:14px; font-weight:600;"></span>
+                <button onclick="changeMonth(1)" style="background:none;border:none;color:white;cursor:pointer;padding:4px;">&gt;</button>
+            </div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+        <div id="calSelectedDate" style="margin-top:15px; border-top:1px solid #334155; padding-top:10px; display:none;">
+            <div style="font-size:13px; font-weight:600; color:#f8fafc; margin-bottom:5px;" id="calDateTitle"></div>
+            <div id="calDateDetails"></div>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header">
             <h3 class="card-title"><span class="icon-graph"></span> 30-Day Trend</h3>
@@ -437,6 +465,13 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
             <select id="renameOldSubject" class="custom-select-source"></select>
             <input type="text" id="renameNewName" placeholder="New Name (e.g. Mathematics)" style="margin-top:12px;">
             <button class="btn-block btn-secondary" onclick="renameSubject()">Rename / Merge</button>
+        </div>
+        
+        <div class="settings-section-title">Share Schedule</div>
+        <div class="card">
+            <p style="font-size:12px; color:var(--text-muted); margin-top:-5px; margin-bottom:12px;">Share your timetable with friends.</p>
+            <button class="btn-block btn-secondary" onclick="shareTimetable()">Copy Schedule Code</button>
+            <button class="btn-block btn-secondary" onclick="importTimetable()">Import Schedule Code</button>
         </div>
 
         <div class="settings-section-title">Security</div>
@@ -905,7 +940,7 @@ function addHoliday() {
     data.holidays.push({ id: Date.now(), name, start, end });
     save();
     renderHolidays();
-    render(); // FIX: Refresh background if holiday is today
+    render(); 
     document.getElementById("holidayName").value = "";
     showToast("Holiday Added");
 }
@@ -914,7 +949,7 @@ function deleteHoliday(id) {
     data.holidays = data.holidays.filter(h => h.id !== id);
     save();
     renderHolidays();
-    render(); // FIX: Refresh background if deleted holiday was today
+    render(); 
 }
 
 function renderHolidays() {
@@ -1399,10 +1434,10 @@ function lockNoExtra(){ const key = dateKey + "_NO_EXTRA"; if(data.locks[key]) r
 function getDayName(dateStr){ const d = new Date(dateStr + "T00:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("en-US", { weekday: "long" }); }
 function formatDateDDMMYYYY(isoDate){ if(!isoDate) return ""; const [y, m, d] = isoDate.split("-"); return `${d}/${m}/${y}`; }
 
-// --- FIX 2: Check Holiday before showing weekend card ---
+// --- CHECK HOLIDAY BEFORE WEEKEND MSG ---
 function showWeekendMessage(day){
   const statusDiv = document.getElementById("dayStatus");
-  if (getHolidayForDate(dateKey)) { // FIX: Don't show weekend card if it's a holiday
+  if (getHolidayForDate(dateKey)) { 
       statusDiv.innerHTML = "";
       return;
   }
@@ -1516,7 +1551,6 @@ function saveSettings() {
         if(endVal && endVal < todayStr) maxDate = endVal;
         pastInput.max = maxDate;
     }
-    // FIX: RELOAD TO REFRESH APP
     showToast("Settings Saved");
     setTimeout(() => location.reload(), 500); 
 }
@@ -1575,7 +1609,6 @@ function renameSubject() {
         save();
         document.getElementById("renameNewName").value = "";
         
-        // FIX: RELOAD TO REFRESH APP
         showToast("Renamed successfully");
         setTimeout(() => location.reload(), 500);
     });
@@ -1631,9 +1664,32 @@ function saveNewTimetable() {
   timetable[selectedDay] = newDaySchedule;
   localStorage.setItem("custom_timetable", JSON.stringify(timetable));
   
-  // FIX: RELOAD TO REFRESH APP
   showToast(`Saved ${selectedDay}`); 
   setTimeout(() => location.reload(), 500);
+}
+
+// --- SHARE SCHEDULE FUNCTIONS ---
+function shareTimetable() {
+    const code = btoa(JSON.stringify(timetable));
+    navigator.clipboard.writeText(code).then(() => showToast("Schedule Copied!")).catch(() => showToast("Failed to Copy", "error"));
+}
+
+function importTimetable() {
+    const code = prompt("Paste Schedule Code here:");
+    if (!code) return;
+    try {
+        const newTimetable = JSON.parse(atob(code));
+        if (typeof newTimetable === 'object') {
+            timetable = newTimetable;
+            localStorage.setItem("custom_timetable", JSON.stringify(timetable));
+            showToast("Schedule Imported!");
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            throw new Error("Invalid Format");
+        }
+    } catch (e) {
+        showToast("Invalid Code", "error");
+    }
 }
 
 function triggerRestore() {
@@ -1688,10 +1744,116 @@ function renderChart() {
   });
 }
 
+// --- VISUAL CALENDAR ENGINE ---
+let currentCalDate = new Date();
+
+function renderCalendar() {
+    const grid = document.getElementById('calendarGrid');
+    const monthTitle = document.getElementById('calMonthYear');
+    if (!grid) return;
+    grid.innerHTML = "";
+    
+    const year = currentCalDate.getFullYear();
+    const month = currentCalDate.getMonth();
+    monthTitle.innerText = currentCalDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    let startingDay = firstDay.getDay(); 
+    if(startingDay === 0) startingDay = 7; // Fix Sunday to 7
+    startingDay -= 1; // Make Monday 0
+
+    // Headers
+    ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => {
+        grid.innerHTML += `<div class="cal-day-header">${d}</div>`;
+    });
+
+    // Empty Slots
+    for(let i=0; i<startingDay; i++){ grid.innerHTML += `<div></div>`; }
+
+    // Days
+    for(let d=1; d<=daysInMonth; d++){
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dayDiv = document.createElement("div");
+        dayDiv.className = "cal-day";
+        if(dateStr === dateKey) dayDiv.classList.add("today");
+
+        let dotClass = "";
+        
+        // Status Logic
+        const isHoliday = getHolidayForDate(dateStr);
+        const dayOfWeek = new Date(dateStr).getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        
+        if (isHoliday || isWeekend) {
+            dotClass = "dot-purple";
+        } else if (data.history[dateStr]) {
+            const hist = data.history[dateStr];
+            const hasAbsent = hist.some(h => h.status === 'Absent');
+            const hasPresent = hist.some(h => h.status === 'Present');
+            
+            if (hasAbsent) dotClass = "dot-red";
+            else if (hasPresent) dotClass = "dot-green";
+            else dotClass = "dot-gray"; // Cancelled or empty
+        }
+
+        if(dotClass) dayDiv.innerHTML = `${d}<div class="cal-dot ${dotClass}"></div>`;
+        else dayDiv.innerHTML = `${d}`;
+
+        dayDiv.onclick = () => showCalendarDetails(dateStr);
+        grid.appendChild(dayDiv);
+    }
+}
+
+function changeMonth(delta) {
+    currentCalDate.setMonth(currentCalDate.getMonth() + delta);
+    renderCalendar();
+}
+
+function showCalendarDetails(dateStr) {
+    const detailBox = document.getElementById('calSelectedDate');
+    const title = document.getElementById('calDateTitle');
+    const content = document.getElementById('calDateDetails');
+    
+    // Highlight selected day
+    document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('selected'));
+    // Find clicked element (simple text match for demo) -> In real app, better ID tracking
+    
+    detailBox.style.display = 'block';
+    const niceDate = new Date(dateStr).toLocaleDateString("en-US", { weekday: 'long', month: 'short', day: 'numeric' });
+    title.innerText = niceDate;
+    content.innerHTML = "";
+
+    const holiday = getHolidayForDate(dateStr);
+    if(holiday) {
+        content.innerHTML = `<div style="color:#c084fc;">🎉 ${holiday.name}</div>`;
+        return;
+    }
+    const dayOfWeek = new Date(dateStr).getDay();
+    if(dayOfWeek === 0 || dayOfWeek === 6) {
+        content.innerHTML = `<div style="color:#94a3b8;">☕ Weekend</div>`;
+        // Check if there were extra classes on weekend
+        if(!data.history[dateStr]) return;
+    }
+
+    if(data.history[dateStr]) {
+        data.history[dateStr].forEach(h => {
+            let color = h.status === 'Present' ? 'var(--green)' : (h.status === 'Absent' ? 'var(--red)' : 'var(--text-muted)');
+            content.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px;">
+                <span>${h.subject}</span>
+                <span style="color:${color}; font-weight:600;">${h.status}</span>
+            </div>`;
+        });
+    } else {
+        content.innerHTML = `<div style="color:var(--text-muted); font-size:12px;">No records found.</div>`;
+    }
+}
+
 function render(){
   showWeekendMessage(day);
   document.getElementById("today").innerText = `${day}, ${formatDateDDMMYYYY(dateKey)}`;
-  loadLectures(); renderSummary(); renderTasks(); renderChart(); 
+  loadLectures(); renderSummary(); renderTasks(); renderChart(); renderCalendar();
   const noExtraKey = dateKey + "_NO_EXTRA";
   if(data.locks[noExtraKey]){
     document.getElementById("extraSubject").disabled = true;
