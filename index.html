@@ -458,9 +458,20 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 <div id="eventModal" class="confirm-overlay">
     <div class="confirm-box">
         <div class="confirm-title" id="eventTitle">Add Event</div>
-        <div class="confirm-desc" id="eventDateDisplay"></div>
-        <input type="text" id="eventNameInput" placeholder="Event Name (e.g. Math Exam, Diwali)" style="margin-bottom:15px;">
         
+        <input type="text" id="eventNameInput" placeholder="Event Name (e.g. Winter Break)" style="margin-bottom:15px;">
+        
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <div style="flex:1;">
+                <label style="font-size:10px; color:#94a3b8; display:block; text-align:left; margin-bottom:4px;">Start Date</label>
+                <input type="date" id="eventStartDateInput" disabled style="opacity:0.7;">
+            </div>
+            <div style="flex:1;">
+                <label style="font-size:10px; color:#94a3b8; display:block; text-align:left; margin-bottom:4px;">End Date</label>
+                <input type="date" id="eventEndDateInput">
+            </div>
+        </div>
+
         <label style="font-size:12px; color:#94a3b8; display:block; text-align:left; margin-bottom:5px;">Category</label>
         <div style="display:flex; gap:8px; margin-bottom:20px;">
             <button class="btn-pill btn-secondary" id="typeFestival" onclick="setEventType('festival')">🎉 Festival</button>
@@ -620,6 +631,7 @@ function getHolidayForDate(dateStr) {
 let currentSetCalDate = new Date();
 let selectedEventDate = "";
 let selectedEventType = "festival";
+let editingHolidayId = null; // Track if we are editing
 
 function changeSetCalMonth(delta) {
     currentSetCalDate.setMonth(currentSetCalDate.getMonth() + delta);
@@ -659,13 +671,22 @@ function openEventModal(dateStr) {
     selectedEventDate = dateStr;
     const holiday = getHolidayForDate(dateStr);
     document.getElementById('eventModal').style.display = "flex";
-    document.getElementById('eventDateDisplay').innerText = formatDateDDMMYYYY(dateStr);
     
+    const startDateInput = document.getElementById('eventStartDateInput');
+    const endDateInput = document.getElementById('eventEndDateInput');
+    
+    startDateInput.value = dateStr;
+    editingHolidayId = null;
+
     if(holiday) {
         document.getElementById('eventNameInput').value = holiday.name;
+        // Autofill existing range
+        endDateInput.value = holiday.end;
         setEventType(holiday.type || 'festival');
+        editingHolidayId = holiday.id; // Mark as editing
     } else {
         document.getElementById('eventNameInput').value = "";
+        endDateInput.value = dateStr; // Default end date same as start
         setEventType('festival');
     }
 }
@@ -687,19 +708,25 @@ function closeEventModal() { document.getElementById('eventModal').style.display
 
 function saveEvent() {
     const name = document.getElementById('eventNameInput').value.trim();
+    const endDate = document.getElementById('eventEndDateInput').value;
+
     if(!name) return showToast("Enter Name", "error");
+    if(!endDate) return showToast("End date required", "error");
+    if(endDate < selectedEventDate) return showToast("End date cannot be before start", "error");
     
-    // Remove existing for this date if any (simple override)
-    data.holidays = data.holidays.filter(h => {
-        // Keep if it DOESN'T overlap. Simple check: if start==date
-        return h.start !== selectedEventDate; 
-    });
+    // If editing, remove the old one first
+    if(editingHolidayId) {
+        data.holidays = data.holidays.filter(h => h.id !== editingHolidayId);
+    } else {
+        // If creating new, remove any conflicts that start on the same day (simple cleanup)
+        data.holidays = data.holidays.filter(h => h.start !== selectedEventDate);
+    }
     
     data.holidays.push({
         id: Date.now(),
         name: name,
         start: selectedEventDate,
-        end: selectedEventDate, // Single day for now
+        end: endDate,
         type: selectedEventType
     });
     
@@ -730,11 +757,17 @@ function renderHolidays() {
         else if(h.type === 'off') typeBadge = `<span class="badge-type badge-off">OFF</span>`;
         else typeBadge = `<span class="badge-type badge-festival">HOLIDAY</span>`;
         
+        // Show range if multi-day
+        let dateDisplay = formatDateDDMMYYYY(h.start);
+        if(h.start !== h.end) {
+            dateDisplay += ` - ${formatDateDDMMYYYY(h.end)}`;
+        }
+
         list.innerHTML += `
         <div class="task-item" style="border-left: none; border-bottom: 1px solid #334155;">
             <div style="flex:1;">
                 <div style="font-size:13px; font-weight:600; display:flex; align-items:center;">${typeBadge} ${h.name}</div>
-                <div style="font-size:11px; color:#94a3b8; margin-top:2px;">${formatDateDDMMYYYY(h.start)}</div>
+                <div style="font-size:11px; color:#94a3b8; margin-top:2px;">${dateDisplay}</div>
             </div>
             <button class="del-task-btn" onclick="deleteHoliday(${h.id})">${ICONS.trash}</button>
         </div>`;
