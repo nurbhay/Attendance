@@ -15,6 +15,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
 <style>
 :root {
@@ -106,7 +108,7 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 .custom-option:last-child { border-bottom: none; }
 .custom-option:hover, .custom-option.selected { background: #334155; color: #fff; }
 
-.btn-block { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
+.btn-block { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; cursor: pointer; }
 .btn-primary { background: var(--accent); color: white; }
 .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); }
 .btn-secondary { background: #334155; color: white; }
@@ -347,6 +349,8 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
         <div class="card-header">
             <h3 class="card-title"><span class="icon-db"></span> Data & Backup</h3>
         </div>
+        <button class="btn-block btn-primary" style="margin-bottom: 12px; background: var(--purple);" onclick="generatePDFReport()">Download PDF Report</button>
+        
         <button class="btn-block btn-secondary" onclick="exportBackup()">Export Backup File</button>
         <input type="file" id="importFile" accept=".json" style="display:none">
         <button class="btn-block btn-secondary" onclick="document.getElementById('importFile').click()">Import Backup File</button>
@@ -954,7 +958,7 @@ function renderSummary(){
         if (percent >= MIN_ATTENDANCE) { const bunkable = Math.floor((p / target) - t); if(bunkable > 0){ statusMsg = `Safe to bunk <b>${bunkable}</b>`; statusColor = "text-green"; statusIcon = ICONS.check; } else { if(percent === 100){ statusMsg = `Perfect record`; statusColor = "text-green"; statusIcon = ICONS.check; } else { statusMsg = `Don't miss next`; statusColor = "text-yellow"; statusIcon = ICONS.x; } } } else { if (semEndDateExists && maxPossiblePercent < target) { statusMsg = `<b>Impossible</b> (Max: ${Math.round(maxPossiblePercent * 100)}%)`; statusColor = "text-red"; statusIcon = ICONS.x; } else { const needed = Math.ceil( (target * t - p) / (1 - target) ); statusMsg = `Attend next <b>${needed}</b>`; statusColor = "text-red"; statusIcon = ICONS.x; } }
     } else { statusMsg = "No data"; }
 
-   let titleHTML = `<div style="display:flex; align-items:center; flex:1; min-width:0; margin-right:10px;"><span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s}</span>`;
+    let titleHTML = `<div style="display:flex; align-items:center; flex:1; min-width:0; margin-right:10px;"><span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s}</span>`;
     if (predMissed > 0) { titleHTML += `<span class="predicted-badge" style="white-space:nowrap; flex-shrink:0;">-${predMissed} missed</span>`; }
     titleHTML += `</div>`;
     
@@ -1059,6 +1063,128 @@ function showCalendarDetail(key, dayNum) {
         data.history[key].forEach(h => { let color = h.status === 'Present' ? 'var(--green)' : (h.status === 'Absent' ? 'var(--red)' : 'var(--text-muted)'); content += `<div style="margin-top:4px; display:flex; justify-content:space-between;"><span>${h.subject}</span><span style="color:${color}; font-weight:600;">${h.status}</span></div>`; });
     } else { const dObj = new Date(key); if(dObj.getDay() === 0 || dObj.getDay() === 6) content += `<span style="color:var(--text-muted)">Weekend (No classes)</span>`; else content += `<span style="color:var(--text-muted)">No data recorded</span>`; }
     detail.innerHTML = content;
+}
+
+// --- PDF GENERATION LOGIC ---
+async function generatePDFReport() {
+    if (!window.jspdf) {
+        showToast("PDF Library loading, try again in a second", "error");
+        return;
+    }
+    
+    showToast("Generating PDF...");
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // --- Header Section ---
+    doc.setFontSize(22);
+    doc.setTextColor(15, 23, 42); // Dark App Theme Color
+    doc.text("Attendance Pro - Academic Report", 14, 20);
+
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    const generatedDate = new Date().toLocaleDateString();
+    let userNameText = "User: Student Profile";
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.displayName) {
+        userNameText = `User: ${currentUser.displayName}`;
+    }
+    
+    doc.text(userNameText, 14, 30);
+    doc.text(`Generated on: ${generatedDate}`, 14, 36);
+    doc.text(`Target Attendance: ${MIN_ATTENDANCE}%`, 14, 42);
+
+    // --- Summary Table ---
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.text("Subject Summary", 14, 55);
+
+    const summaryBody = [];
+    let tp = 0, tt = 0;
+    
+    // Calculate stats
+    for (let s in data.totals) {
+        const { p, t } = data.totals[s];
+        const percent = t ? Math.round((p / t) * 100) : 0;
+        tp += p; tt += t;
+        let status = percent >= MIN_ATTENDANCE ? "Safe" : "Low";
+        summaryBody.push([s, p.toString(), t.toString(), `${percent}%`, status]);
+    }
+    
+    // Overall Row
+    const overall = tt ? Math.round((tp / tt) * 100) : 0;
+    summaryBody.push(["OVERALL TOTAL", tp.toString(), tt.toString(), `${overall}%`, overall >= MIN_ATTENDANCE ? "Safe" : "Low"]);
+
+    doc.autoTable({
+        startY: 60,
+        head: [['Subject', 'Present', 'Total', 'Percentage', 'Status']],
+        body: summaryBody,
+        theme: 'striped',
+        headStyles: { fillColor: [15, 23, 42] },
+        alternateRowStyles: { fillColor: [241, 245, 249] },
+        willDrawCell: function (data) {
+            // Color code the status column
+            if (data.section === 'body' && data.column.index === 4) {
+                if (data.cell.raw === 'Safe') doc.setTextColor(16, 185, 129); // Green
+                else if (data.cell.raw === 'Low') doc.setTextColor(239, 68, 68); // Red
+                doc.setFont(undefined, 'bold');
+            }
+            // Bold the overall row
+            if (data.section === 'body' && data.row.index === summaryBody.length - 1) {
+                doc.setFont(undefined, 'bold');
+            }
+        }
+    });
+
+    // --- Detailed Log Table ---
+    let finalY = doc.lastAutoTable.finalY + 15;
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.text("Detailed Attendance Log", 14, finalY);
+
+    const logBody = [];
+    const dates = Object.keys(data.history).sort((a, b) => new Date(a) - new Date(b)); // Chronological
+    
+    dates.forEach(d => {
+        const dayName = getDayName(d);
+        const dateStr = formatDateDDMMYYYY(d);
+        data.history[d].forEach(entry => {
+            logBody.push([dateStr, dayName, entry.subject, entry.time, entry.status]);
+        });
+    });
+
+    if (logBody.length === 0) {
+        logBody.push(["No data recorded yet.", "", "", "", ""]);
+    }
+
+    doc.autoTable({
+        startY: finalY + 5,
+        head: [['Date', 'Day', 'Subject', 'Time', 'Status']],
+        body: logBody,
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246] }, // Accent Blue
+        styles: { fontSize: 10 },
+        willDrawCell: function (data) {
+            // Color code the status column in the detailed log
+            if (data.section === 'body' && data.column.index === 4) {
+                if (data.cell.raw === 'Present') doc.setTextColor(16, 185, 129);
+                else if (data.cell.raw === 'Absent') doc.setTextColor(239, 68, 68);
+                else doc.setTextColor(148, 163, 184); // Off/Cancelled
+                doc.setFont(undefined, 'bold');
+            }
+        }
+    });
+
+    // --- Footer & Save ---
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(9);
+        doc.setTextColor(150);
+        doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width / 2, doc.internal.pageSize.height - 10, { align: 'center' });
+    }
+
+    doc.save(`Attendance_Report_${dateKey}.pdf`);
+    showToast("PDF Downloaded!");
 }
 
 function render(){ showWeekendMessage(day); document.getElementById("today").innerText = `${day}, ${formatDateDDMMYYYY(dateKey)}`; loadLectures(); renderSummary(); renderTasks(); renderChart(); const noExtraKey = dateKey + "_NO_EXTRA"; if(data.locks[noExtraKey]){ document.getElementById("extraSubject").disabled = true; document.querySelectorAll(".card button").forEach(btn=>{ if(btn.innerText.includes("Present") || btn.innerText.includes("Absent") || btn.innerText.includes("Off")){ btn.disabled = true; } }); document.getElementById("extraInfo").innerText = "✔ No extra lectures today"; } }
