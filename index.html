@@ -954,10 +954,11 @@ function renderSummary(){
         if (percent >= MIN_ATTENDANCE) { const bunkable = Math.floor((p / target) - t); if(bunkable > 0){ statusMsg = `Safe to bunk <b>${bunkable}</b>`; statusColor = "text-green"; statusIcon = ICONS.check; } else { if(percent === 100){ statusMsg = `Perfect record`; statusColor = "text-green"; statusIcon = ICONS.check; } else { statusMsg = `Don't miss next`; statusColor = "text-yellow"; statusIcon = ICONS.x; } } } else { if (semEndDateExists && maxPossiblePercent < target) { statusMsg = `<b>Impossible</b> (Max: ${Math.round(maxPossiblePercent * 100)}%)`; statusColor = "text-red"; statusIcon = ICONS.x; } else { const needed = Math.ceil( (target * t - p) / (1 - target) ); statusMsg = `Attend next <b>${needed}</b>`; statusColor = "text-red"; statusIcon = ICONS.x; } }
     } else { statusMsg = "No data"; }
 
-    let titleHTML = s;
-    if (predMissed > 0) { titleHTML += ` <span class="predicted-badge">-${predMissed} missed</span>`; }
+   let titleHTML = `<div style="display:flex; align-items:center; flex:1; min-width:0; margin-right:10px;"><span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s}</span>`;
+    if (predMissed > 0) { titleHTML += `<span class="predicted-badge" style="white-space:nowrap; flex-shrink:0;">-${predMissed} missed</span>`; }
+    titleHTML += `</div>`;
     
-    div.innerHTML += `<div class="summary-item" onclick="openSubjectDetail('${s}')"><div class="summary-header"><span>${titleHTML}</span><span style="color:#94a3b8">${p}/${t} (${percent}%)</span></div><div class="progress-track"><div class="progress-fill" style="width:${percent}%; background:${gradient}; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div></div><div class="status-msg ${statusColor}"><span class="icon-sm" style="display:inline-block; vertical-align:middle;">${statusIcon}</span>${statusMsg}</div></div>`;
+    div.innerHTML += `<div class="summary-item" onclick="openSubjectDetail('${s}')"><div class="summary-header" style="align-items:center;">${titleHTML}<span style="color:#94a3b8; flex-shrink:0;">${p}/${t} (${percent}%)</span></div><div class="progress-track"><div class="progress-fill" style="width:${percent}%; background:${gradient}; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div></div><div class="status-msg ${statusColor}"><span class="icon-sm" style="display:inline-block; vertical-align:middle;">${statusIcon}</span>${statusMsg}</div></div>`;
   }
   
   const overall = tt ? Math.round((tp / tt) * 100) : 0; let overallColor = "text-green"; if(overall < MIN_ATTENDANCE) overallColor = "text-red"; else if(overall < MIN_ATTENDANCE + 10) overallColor = "text-yellow";
