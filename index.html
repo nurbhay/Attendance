@@ -177,6 +177,13 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 .badge-exam { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
 .badge-off { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
 
+/* CRYSTAL BALL CSS */
+.crystal-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.crystal-btn.active { color: #c084fc; background: rgba(168, 85, 247, 0.1); box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
+.prediction-panel { display: none; background: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(168, 85, 247, 0.3); animation: fadeIn 0.2s ease-out; }
+.prediction-panel.active { display: block; }
+.predicted-badge { font-size: 10px; background: rgba(168, 85, 247, 0.2); color: #c084fc; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; border: 1px solid rgba(168, 85, 247, 0.3); }
+
 </style>
 </head>
 <body>
@@ -192,10 +199,7 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 <header class="app-header">
     <div class="app-title">Attendance Pro</div>
     <button class="settings-btn" onclick="openSettings()" id="headerSettingsBtn">
-        <svg class="icon icon-lg" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0 .33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-        </svg>
+        <span class="icon-gear"></span>
     </button>
 </header>
 
@@ -238,8 +242,16 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 <div id="tab-stats" class="tab-content">
     
     <div class="card">
-        <div class="card-header">
+        <div class="card-header" style="margin-bottom: 8px;">
             <h3 class="card-title"><span class="icon-chart"></span> Subject Summary</h3>
+            <button id="crystalBallBtn" class="crystal-btn" onclick="togglePredictiveMode()" title="Predict Future Attendance">
+                <span class="icon-crystal"></span>
+            </button>
+        </div>
+        <div id="predictionPanel" class="prediction-panel">
+            <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">If I miss all classes until:</label>
+            <input type="date" id="predictUntilDateInput" style="margin-bottom: 12px;">
+            <button class="btn-block btn-primary" style="background: var(--purple); color: white;" onclick="applyPrediction()">Predict Future</button>
         </div>
         <div id="summary"></div>
     </div>
@@ -537,7 +549,8 @@ const ICONS = {
     db: '<svg class="icon icon-lg" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>',
     task: '<svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
     slot: '<svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>',
-    gear: '<svg class="icon icon-lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0 .33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>'
+    gear: '<svg class="icon icon-lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0 .33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>',
+    crystal: '<svg class="icon icon-lg" viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M12 2a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"></path><path d="M12 6a4 4 0 0 0-4 4"></path><path d="M8 18h8"></path><path d="M10 22h4"></path></svg>'
 };
 
 document.getElementById('navHome').innerHTML = ICONS.home;
@@ -553,6 +566,7 @@ document.querySelectorAll('.icon-undo').forEach(e => e.innerHTML = ICONS.undo);
 document.querySelectorAll('.icon-db').forEach(e => e.innerHTML = ICONS.db);
 document.querySelectorAll('.icon-close').forEach(e => e.innerHTML = ICONS.close);
 document.querySelectorAll('.icon-gear').forEach(e => e.innerHTML = ICONS.gear);
+document.querySelectorAll('.icon-crystal').forEach(e => e.innerHTML = ICONS.crystal);
 
 // --- FIREBASE SETUP ---
 const firebaseConfig = { apiKey: "AIzaSyD_3PoAWTKc9yrNuW37MFBg2nhtFV3v4xM", authDomain: "attendancepro-f5017.firebaseapp.com", projectId: "attendancepro-f5017", storageBucket: "attendancepro-f5017.firebasestorage.app", messagingSenderId: "116879034772", appId: "1:116879034772:web:f20c9dc9dad7e7a2796781", measurementId: "G-Z3H01YF20Z" };
@@ -631,7 +645,7 @@ function getHolidayForDate(dateStr) {
 let currentSetCalDate = new Date();
 let selectedEventDate = "";
 let selectedEventType = "festival";
-let editingHolidayId = null; // Track if we are editing
+let editingHolidayId = null; 
 
 function changeSetCalMonth(delta) {
     currentSetCalDate.setMonth(currentSetCalDate.getMonth() + delta);
@@ -658,8 +672,8 @@ function renderSettingsCalendar() {
         
         if(holiday) {
             if(holiday.type === 'exam') dotClass = "orange";
-            else if(holiday.type === 'off') dotClass = "green"; // Using green for 'off' just to distinguish
-            else dotClass = "purple"; // Festival
+            else if(holiday.type === 'off') dotClass = "green"; 
+            else dotClass = "purple"; 
         }
         
         const dotHTML = dotClass ? `<div class="dot ${dotClass}"></div>` : '';
@@ -680,28 +694,25 @@ function openEventModal(dateStr) {
 
     if(holiday) {
         document.getElementById('eventNameInput').value = holiday.name;
-        // Autofill existing range
         endDateInput.value = holiday.end;
         setEventType(holiday.type || 'festival');
-        editingHolidayId = holiday.id; // Mark as editing
+        editingHolidayId = holiday.id; 
     } else {
         document.getElementById('eventNameInput').value = "";
-        endDateInput.value = dateStr; // Default end date same as start
+        endDateInput.value = dateStr; 
         setEventType('festival');
     }
 }
 
 function setEventType(type) {
     selectedEventType = type;
-    // Reset buttons
     document.getElementById('typeFestival').className = 'btn-pill btn-secondary';
     document.getElementById('typeExam').className = 'btn-pill btn-secondary';
     document.getElementById('typeOff').className = 'btn-pill btn-secondary';
     
-    // Highlight selected
-    if(type === 'festival') document.getElementById('typeFestival').className = 'btn-pill present'; // Reuse green style
-    if(type === 'exam') document.getElementById('typeExam').className = 'btn-pill absent'; // Reuse red/orange style
-    if(type === 'off') document.getElementById('typeOff').className = 'btn-pill cancelled'; // Reuse dark style
+    if(type === 'festival') document.getElementById('typeFestival').className = 'btn-pill present'; 
+    if(type === 'exam') document.getElementById('typeExam').className = 'btn-pill absent'; 
+    if(type === 'off') document.getElementById('typeOff').className = 'btn-pill cancelled'; 
 }
 
 function closeEventModal() { document.getElementById('eventModal').style.display = "none"; }
@@ -714,21 +725,13 @@ function saveEvent() {
     if(!endDate) return showToast("End date required", "error");
     if(endDate < selectedEventDate) return showToast("End date cannot be before start", "error");
     
-    // If editing, remove the old one first
     if(editingHolidayId) {
         data.holidays = data.holidays.filter(h => h.id !== editingHolidayId);
     } else {
-        // If creating new, remove any conflicts that start on the same day (simple cleanup)
         data.holidays = data.holidays.filter(h => h.start !== selectedEventDate);
     }
     
-    data.holidays.push({
-        id: Date.now(),
-        name: name,
-        start: selectedEventDate,
-        end: endDate,
-        type: selectedEventType
-    });
+    data.holidays.push({ id: Date.now(), name: name, start: selectedEventDate, end: endDate, type: selectedEventType });
     
     save();
     renderSettingsCalendar();
@@ -757,7 +760,6 @@ function renderHolidays() {
         else if(h.type === 'off') typeBadge = `<span class="badge-type badge-off">OFF</span>`;
         else typeBadge = `<span class="badge-type badge-festival">HOLIDAY</span>`;
         
-        // Show range if multi-day
         let dateDisplay = formatDateDDMMYYYY(h.start);
         if(h.start !== h.end) {
             dateDisplay += ` - ${formatDateDDMMYYYY(h.end)}`;
@@ -782,21 +784,9 @@ function loadLectures(){
   
   if (activeHoliday) {
       if(activeHoliday.type === 'exam') {
-          container.innerHTML = `
-          <div class="exam-card">
-            <div class="weekend-icon">📝</div>
-            <div class="weekend-title">Exam Day</div>
-            <div style="font-size:16px; font-weight:700; color:#fbbf24; margin:10px 0;">${activeHoliday.name}</div>
-            <div style="font-size:13px; opacity:0.8;">Good luck! No attendance tracking today.</div>
-          </div>`;
+          container.innerHTML = `<div class="exam-card"><div class="weekend-icon">📝</div><div class="weekend-title">Exam Day</div><div style="font-size:16px; font-weight:700; color:#fbbf24; margin:10px 0;">${activeHoliday.name}</div><div style="font-size:13px; opacity:0.8;">Good luck! No attendance tracking today.</div></div>`;
       } else {
-          // Festival or Off
-          container.innerHTML = `
-          <div class="holiday-card">
-            <div class="weekend-icon">🎉</div>
-            <div class="weekend-title">${activeHoliday.name}</div>
-            <div style="font-size:13px; opacity:0.8;">No classes today. Enjoy!</div>
-          </div>`;
+          container.innerHTML = `<div class="holiday-card"><div class="weekend-icon">🎉</div><div class="weekend-title">${activeHoliday.name}</div><div style="font-size:13px; opacity:0.8;">No classes today. Enjoy!</div></div>`;
       }
       return;
   }
@@ -829,7 +819,6 @@ function loadLectures(){
   });
 }
 
-// --- NEW NOTE LOGIC ---
 let currentNoteSubject = "";
 function addNote(subject) { currentNoteSubject = subject; document.getElementById('noteSubjectDisplay').innerText = subject; document.getElementById('noteInput').value = ""; document.getElementById('noteModal').style.display = 'flex'; document.getElementById('noteInput').focus(); }
 function closeNoteModal() { document.getElementById('noteModal').style.display = 'none'; }
@@ -849,6 +838,66 @@ function deleteTask(e, index) { e.stopPropagation(); showConfirm("Delete Note?",
 function markAttendance(subject,time,status){ const key = dateKey+"_"+subject+"_"+time; if(data.locks[key]) return; data.locks[key] = true; data.history[dateKey] ??= []; data.history[dateKey].push({subject,time,status}); if(status !== "Cancelled"){ data.totals[subject] ??= {p:0,t:0}; data.totals[subject].t++; if(status==="Present") data.totals[subject].p++; } save(); render(); showToast(`Marked ${status}`); }
 function markExtra(status){ const noExtraKey = dateKey + "_NO_EXTRA"; if(data.locks[noExtraKey]){ showToast("Locked for today", "error"); return; } const subject = document.getElementById("extraSubject").value; if(!subject) return; const key = dateKey+"_EXTRA_"+subject; if(data.locks[key]) return showToast("Already added", "error"); data.locks[key]=true; data.history[dateKey] ??= []; data.history[dateKey].push({subject,time:"Extra",status}); data.totals[subject] ??= {p:0,t:0}; data.totals[subject].t++; if(status==="Present") data.totals[subject].p++; save(); render(); showToast("Extra Class Added"); }
 
+// --- CRYSTAL BALL LOGIC ---
+let isPredictiveModeOn = false;
+let predictUntilDate = "";
+
+function togglePredictiveMode() {
+    isPredictiveModeOn = !isPredictiveModeOn;
+    const btn = document.getElementById('crystalBallBtn');
+    const panel = document.getElementById('predictionPanel');
+    if (isPredictiveModeOn) {
+        btn.classList.add('active');
+        panel.classList.add('active');
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const input = document.getElementById('predictUntilDateInput');
+        input.min = tomorrow.toISOString().split('T')[0];
+        const semEnd = localStorage.getItem("sem_end_date");
+        if (semEnd) input.max = semEnd;
+    } else {
+        btn.classList.remove('active');
+        panel.classList.remove('active');
+        predictUntilDate = "";
+        document.getElementById('predictUntilDateInput').value = "";
+        renderSummary(); 
+    }
+}
+
+function applyPrediction() {
+    const inputDate = document.getElementById('predictUntilDateInput').value;
+    if (!inputDate) return showToast("Please select a date", "error");
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (inputDate <= todayStr) return showToast("Date must be in the future", "error");
+    
+    predictUntilDate = inputDate;
+    renderSummary();
+    showToast("Prediction Applied", "success");
+}
+
+function getPredictedAbsences() {
+    if (!isPredictiveModeOn || !predictUntilDate) return {};
+    const endDate = new Date(predictUntilDate);
+    const cursor = new Date();
+    cursor.setDate(cursor.getDate() + 1); 
+
+    const predicted = {};
+    while (cursor <= endDate) {
+        const dStr = getStorageDateKey(cursor);
+        if (!getHolidayForDate(dStr)) {
+            const dayName = cursor.toLocaleDateString("en-US", { weekday: "long" });
+            const lectures = timetable[dayName] || [];
+            lectures.forEach(lec => {
+                const sub = lec[1];
+                predicted[sub] = (predicted[sub] || 0) + 1;
+            });
+        }
+        cursor.setDate(cursor.getDate() + 1);
+    }
+    return predicted;
+}
+// ----------------------------
+
 function getRemainingFutureSlots() {
     const semEndStr = localStorage.getItem("sem_end_date");
     if (!semEndStr) return {}; 
@@ -858,7 +907,6 @@ function getRemainingFutureSlots() {
     const subjectCounts = {};
     while (cursor <= end) {
         const dStr = getStorageDateKey(cursor);
-        // CRITICAL: Exclude holidays AND exams from stats
         if (!getHolidayForDate(dStr)) {
             const dayName = cursor.toLocaleDateString("en-US", { weekday: "long" });
             const lectures = timetable[dayName] || [];
@@ -875,22 +923,52 @@ function getRemainingFutureSlots() {
 
 function renderSummary(){
   const div = document.getElementById("summary"); div.innerHTML = "";
-  let tp = 0, tt = 0; const target = MIN_ATTENDANCE / 100; const futureSlots = getRemainingFutureSlots(); let totalRemaining = 0; Object.values(futureSlots).forEach(count => totalRemaining += count); const semEndDateExists = !!localStorage.getItem("sem_end_date");
-  for(let s in data.totals){
-    const { p, t } = data.totals[s]; const percent = t ? Math.round((p / t) * 100) : 0; tp += p; tt += t;
+  let tp = 0, tt = 0; const target = MIN_ATTENDANCE / 100; 
+  const futureSlots = getRemainingFutureSlots(); 
+  let totalRemaining = 0; Object.values(futureSlots).forEach(count => totalRemaining += count); 
+  const semEndDateExists = !!localStorage.getItem("sem_end_date");
+  
+  // Predict logic injection
+  const predictedAbsences = getPredictedAbsences();
+  let totalPredictedAbsences = 0;
+  Object.values(predictedAbsences).forEach(v => totalPredictedAbsences += v);
+  const allSubjectsSet = new Set([...Object.keys(data.totals), ...Object.keys(predictedAbsences)]);
+
+  for(let s of allSubjectsSet){
+    const orig = data.totals[s] || {p:0, t:0};
+    const predMissed = predictedAbsences[s] || 0;
+    const p = orig.p; 
+    const t = orig.t + predMissed; // Add predicted misses to Total
+    
+    const percent = t ? Math.round((p / t) * 100) : 0; tp += p; tt += t;
     let gradient = "";
     if(percent >= MIN_ATTENDANCE) { gradient = "linear-gradient(90deg, #10b981 0%, #34d399 100%)"; } else if (percent >= (MIN_ATTENDANCE - 15)) { gradient = "linear-gradient(90deg, #84cc16 0%, #a3e635 100%)"; } else if (percent >= (MIN_ATTENDANCE - 25)) { gradient = "linear-gradient(90deg, #f97316 0%, #fb923c 100%)"; } else { gradient = "linear-gradient(90deg, #ef4444 0%, #f87171 100%)"; }
+    
     let statusMsg = "", statusColor = "text-muted", statusIcon = "";
-    const remaining = futureSlots[s] || 0; const maxPossibleP = p + remaining; const maxPossibleT = t + remaining; const maxPossiblePercent = maxPossibleT ? (maxPossibleP / maxPossibleT) : 0;
+    let remaining = futureSlots[s] || 0; 
+    remaining = Math.max(0, remaining - predMissed); // deduct from future
+
+    const maxPossibleP = p + remaining; const maxPossibleT = t + remaining; const maxPossiblePercent = maxPossibleT ? (maxPossibleP / maxPossibleT) : 0;
+    
     if (t > 0) {
         if (percent >= MIN_ATTENDANCE) { const bunkable = Math.floor((p / target) - t); if(bunkable > 0){ statusMsg = `Safe to bunk <b>${bunkable}</b>`; statusColor = "text-green"; statusIcon = ICONS.check; } else { if(percent === 100){ statusMsg = `Perfect record`; statusColor = "text-green"; statusIcon = ICONS.check; } else { statusMsg = `Don't miss next`; statusColor = "text-yellow"; statusIcon = ICONS.x; } } } else { if (semEndDateExists && maxPossiblePercent < target) { statusMsg = `<b>Impossible</b> (Max: ${Math.round(maxPossiblePercent * 100)}%)`; statusColor = "text-red"; statusIcon = ICONS.x; } else { const needed = Math.ceil( (target * t - p) / (1 - target) ); statusMsg = `Attend next <b>${needed}</b>`; statusColor = "text-red"; statusIcon = ICONS.x; } }
     } else { statusMsg = "No data"; }
-    div.innerHTML += `<div class="summary-item" onclick="openSubjectDetail('${s}')"><div class="summary-header"><span>${s}</span><span style="color:#94a3b8">${p}/${t} (${percent}%)</span></div><div class="progress-track"><div class="progress-fill" style="width:${percent}%; background:${gradient}; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div></div><div class="status-msg ${statusColor}"><span class="icon-sm" style="display:inline-block; vertical-align:middle;">${statusIcon}</span>${statusMsg}</div></div>`;
+
+    let titleHTML = s;
+    if (predMissed > 0) { titleHTML += ` <span class="predicted-badge">-${predMissed} missed</span>`; }
+    
+    div.innerHTML += `<div class="summary-item" onclick="openSubjectDetail('${s}')"><div class="summary-header"><span>${titleHTML}</span><span style="color:#94a3b8">${p}/${t} (${percent}%)</span></div><div class="progress-track"><div class="progress-fill" style="width:${percent}%; background:${gradient}; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div></div><div class="status-msg ${statusColor}"><span class="icon-sm" style="display:inline-block; vertical-align:middle;">${statusIcon}</span>${statusMsg}</div></div>`;
   }
+  
   const overall = tt ? Math.round((tp / tt) * 100) : 0; let overallColor = "text-green"; if(overall < MIN_ATTENDANCE) overallColor = "text-red"; else if(overall < MIN_ATTENDANCE + 10) overallColor = "text-yellow";
   let overallMsg = "";
+  totalRemaining = Math.max(0, totalRemaining - totalPredictedAbsences);
+
   if(tt > 0) { if (overall < MIN_ATTENDANCE) { const overallMaxPossibleP = tp + totalRemaining; const overallMaxPossibleT = tt + totalRemaining; const overallMaxPercent = overallMaxPossibleT ? (overallMaxPossibleP / overallMaxPossibleT) : 0; if(semEndDateExists && overallMaxPercent < target) { overallMsg = `Impossible to reach ${MIN_ATTENDANCE}% (Max possible: ${Math.round(overallMaxPercent * 100)}%)`; } else { const overallNeeded = Math.ceil( (target * tt - tp) / (1 - target) ); overallMsg = `Attend next ${overallNeeded} classes to hit ${MIN_ATTENDANCE}%`; } } else { const overallBunk = Math.floor((tp / target) - tt); if(overallBunk > 0) overallMsg = `Can bunk ${overallBunk} classes in total`; else overallMsg = "Don't miss any upcoming classes"; } }
-  div.innerHTML = `<div class="overall-card card"><div style="font-size:12px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Overall Attendance</div><div class="overall-percent ${overallColor}">${overall}%</div><div style="font-size:13px; color:#94a3b8;">${overallMsg}</div></div>` + div.innerHTML;
+  
+  let predictWarning = (isPredictiveModeOn && predictUntilDate) ? `<div style="font-size:11px; color:#c084fc; margin-top:10px; font-weight:700; background: rgba(168, 85, 247, 0.1); padding: 6px; border-radius: 6px; border: 1px dashed rgba(168, 85, 247, 0.4);">🔮 PREDICTING FUTURE ABSENCES</div>` : "";
+  
+  div.innerHTML = `<div class="overall-card card"><div style="font-size:12px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Overall Attendance</div><div class="overall-percent ${overallColor}">${overall}%</div><div style="font-size:13px; color:#94a3b8;">${overallMsg}</div>${predictWarning}</div>` + div.innerHTML;
 }
 
 function openSubjectDetail(subject) { const modal = document.getElementById('subjectDetailModal'); const title = document.getElementById('subjectDetailTitle'); const list = document.getElementById('subjectDetailList'); title.innerText = subject; list.innerHTML = ""; const dates = Object.keys(data.history).sort().reverse(); let found = false; dates.forEach(d => { data.history[d].forEach(entry => { if(entry.subject === subject) { found = true; let colorClass = entry.status === 'Present' ? 'text-green' : (entry.status === 'Cancelled' ? 'text-muted' : 'text-red'); list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #334155;"><div><div style="font-size:14px; font-weight:600;">${formatDateDDMMYYYY(d)}</div><div style="font-size:12px; color:var(--text-muted);">${getDayName(d)}</div></div><div class="${colorClass}" style="font-weight:700; font-size:14px;">${entry.status}</div></div>`; } }); }); if(!found) list.innerHTML = "<div style='text-align:center; color:#94a3b8; margin-top:20px;'>No history found.</div>"; modal.style.display = "flex"; }
@@ -929,7 +1007,6 @@ function saveSettings() {
 function openSettings() { 
     modal.style.display = "flex"; document.getElementById("targetInput").value = MIN_ATTENDANCE; document.getElementById("semStartInput").value = localStorage.getItem("sem_start_date") || ""; document.getElementById("semEndInput").value = localStorage.getItem("sem_end_date") || ""; document.getElementById("editDaySelect").value = day; 
     const renameSelect = document.getElementById("renameOldSubject"); if (renameSelect.parentNode.classList.contains("custom-select-wrapper")) { const wrapper = renameSelect.parentNode; wrapper.parentNode.insertBefore(renameSelect, wrapper); wrapper.remove(); } const subjectList = getAllSubjects(); renameSelect.innerHTML = subjectList.map(s => `<option value="${s}">${s}</option>`).join("");
-    // NEW RENDER
     renderSettingsCalendar(); renderHolidays(); renderEditRows(); setupCustomSelects(); 
 }
 function closeSettings() { modal.style.display = "none"; }
@@ -939,11 +1016,6 @@ function renderEditRows() { const selectedDay = document.getElementById("editDay
 function addEditRow() { const selectedDay = document.getElementById("editDaySelect").value; timetable[selectedDay] ??= []; timetable[selectedDay].push(["00:00-00:00", "New Subject"]); renderEditRows(); }
 function delEditRow(index) { const selectedDay = document.getElementById("editDaySelect").value; timetable[selectedDay].splice(index, 1); renderEditRows(); }
 function saveNewTimetable() { const selectedDay = document.getElementById("editDaySelect").value; const container = document.getElementById("editContainer"); const rows = container.querySelectorAll(".edit-row"); const newDaySchedule = []; rows.forEach((row, index) => { const t = document.getElementById(`time_${index}`).value; const s = document.getElementById(`sub_${index}`).value.trim(); if(t && s) newDaySchedule.push([t, s]); }); timetable[selectedDay] = newDaySchedule; localStorage.setItem("custom_timetable", JSON.stringify(timetable)); showToast(`Saved ${selectedDay}`); setTimeout(() => location.reload(), 500); }
-function shareTimetable() { try { const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]; const compressed = days.map(d => timetable[d] || []); const str = JSON.stringify(compressed); const code = btoa(str); navigator.clipboard.writeText(code).then(() => { showToast("Schedule Code Copied"); }).catch(() => showToast("Failed to Copy", "error")); } catch(e) { showToast("Error generating code", "error"); } }
-function openImportModal() { document.getElementById('importInput').value = ""; document.getElementById('importModal').style.display = 'flex'; document.getElementById('importInput').focus(); }
-function closeImportModal() { document.getElementById('importModal').style.display = 'none'; }
-function processImport() { const code = document.getElementById('importInput').value.trim(); if (!code) return; try { const decoded = atob(code); const arrayData = JSON.parse(decoded); if (!Array.isArray(arrayData) || arrayData.length !== 7) throw new Error(); const newTimetable = {}; const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]; days.forEach((day, index) => { newTimetable[day] = arrayData[index] || []; }); timetable = newTimetable; localStorage.setItem("custom_timetable", JSON.stringify(timetable)); showToast("Schedule Imported"); setTimeout(() => location.reload(), 500); } catch(e) { showToast("Invalid Code", "error"); } }
-function triggerRestore() { showConfirm("Reset Timetable?", "This reverts all schedule edits.", () => { localStorage.removeItem("custom_timetable"); timetable = JSON.parse(JSON.stringify(defaultTimetable)); showToast("Restored Default"); location.reload(); }); }
 
 let chartInstance = null;
 function renderChart() {
