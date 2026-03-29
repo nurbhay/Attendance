@@ -147,7 +147,16 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 .custom-select-trigger:after { content: ''; display: block; width: 6px; height: 6px; border-bottom: 2px solid var(--text-muted); border-right: 2px solid var(--text-muted); transform: rotate(45deg); transition: all 0.2s; margin-left: 10px; margin-top: -3px; }
 .custom-select-wrapper.open .custom-select-trigger:after { transform: rotate(-135deg); margin-top: 3px; }
 .custom-select-wrapper.open .custom-select-trigger { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-.custom-options { position: absolute; display: block; top: 100%; left: 0; right: 0; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background: var(--surface); z-index: 200; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); max-height: 250px; overflow-y: auto; margin-top: 8px; padding: 8px; }
+.custom-options { 
+    position: absolute; display: block; top: 100%; left: 0; right: 0; 
+    border: 1px solid var(--border-color); border-radius: 16px; 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.8); 
+    background: rgba(11, 15, 25, 0.95); /* FIX: Deep slate background */
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); /* FIX: Heavy glass blur */
+    z-index: 200; opacity: 0; visibility: hidden; transform: translateY(-10px); 
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); 
+    max-height: 250px; overflow-y: auto; margin-top: 8px; padding: 8px; 
+}
 .custom-select-wrapper.open .custom-options { opacity: 1; visibility: visible; transform: translateY(0); }
 .custom-option { padding: 12px 14px; font-size: 14px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: 0.2s; border-radius: 10px; margin-bottom: 4px; }
 .custom-option:last-child { margin-bottom: 0; }
