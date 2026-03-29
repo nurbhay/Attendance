@@ -81,13 +81,28 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 .icon-lg { width: 26px; height: 26px; }
 
 /* Floating Glass Header */
-.app-header { position: fixed; top: 0; left: 0; right: 0; height: 70px; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); display: flex; justify-content: space-between; align-items: center; padding: 0 24px; z-index: 100; padding-top: env(safe-area-inset-top); box-shadow: inset 0 -1px 0 rgba(255,255,255,0.05); }
+.app-header { 
+    position: fixed; top: 0; left: 0; right: 0; height: 70px; 
+    background: rgba(11, 15, 25, 0.75); /* Updated to match new theme */
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); 
+    display: flex; justify-content: space-between; align-items: center; 
+    padding: 0 24px; z-index: 100; padding-top: env(safe-area-inset-top); 
+    box-shadow: inset 0 -1px 0 rgba(255,255,255,0.05); 
+}
 .app-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(90deg, #ffffff, #a1a1aa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .settings-btn { background: var(--surface); border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; transition: all 0.2s; }
 .settings-btn:active { transform: scale(0.92); background: rgba(255,255,255,0.1); }
 
 /* Floating Bottom Navigation */
-.bottom-nav { position: fixed; bottom: 20px; left: 20px; right: 20px; height: var(--nav-height); background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); display: flex; justify-content: space-around; align-items: center; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.5); z-index: 100; padding: 0 10px; padding-bottom: env(safe-area-inset-bottom); }
+.bottom-nav { 
+    position: fixed; bottom: 20px; left: 20px; right: 20px; height: var(--nav-height); 
+    background: rgba(255, 255, 255, 0.04); /* Updated for unified glass effect */
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); 
+    display: flex; justify-content: space-around; align-items: center; 
+    border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5); z-index: 100; 
+    padding: 0 10px; padding-bottom: env(safe-area-inset-bottom); 
+}
 .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--text-muted); background: none; border: none; cursor: pointer; width: 33%; height: 80%; border-radius: 16px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
 .nav-item.active { color: var(--text-main); background: rgba(255,255,255,0.05); }
 .nav-item.active svg { color: var(--accent); transform: translateY(-2px); }
@@ -147,9 +162,22 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 
 /* Enhanced Toast */
 #toastBox { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); z-index: 3000; display: flex; flex-direction: column; gap: 10px; align-items: center; width: 90%; max-width: 380px; pointer-events: none; }
-.toast { background: rgba(24, 24, 27, 0.95); backdrop-filter: blur(10px); color: white; padding: 14px 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600; animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); border: 1px solid rgba(255,255,255,0.1); pointer-events: auto; }
-.toast.success { background: linear-gradient(to right, rgba(16,185,129,0.1), rgba(24,24,27,0.95)); border-left: 4px solid var(--green); }
-.toast.error { background: linear-gradient(to right, rgba(244,63,94,0.1), rgba(24,24,27,0.95)); border-left: 4px solid var(--red); }
+.toast { 
+    background: rgba(11, 15, 25, 0.95); /* Updated to Deep Slate */
+    backdrop-filter: blur(10px); color: white; padding: 14px 20px; 
+    border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+    display: flex; align-items: center; gap: 12px; font-size: 14px; 
+    font-weight: 600; animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+    border: 1px solid rgba(255,255,255,0.1); pointer-events: auto; 
+}
+.toast.success { 
+    background: linear-gradient(to right, rgba(16,185,129,0.1), rgba(11, 15, 25, 0.95)); 
+    border-left: 4px solid var(--green); 
+}
+.toast.error { 
+    background: linear-gradient(to right, rgba(244,63,94,0.1), rgba(11, 15, 25, 0.95)); 
+    border-left: 4px solid var(--red); 
+}
 @keyframes slideIn { from { opacity: 0; transform: translateY(-30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 /* Modals */
@@ -169,7 +197,12 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 .status-msg { font-size: 12px; margin-top: 10px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 
 /* Hero Circular Progress Card */
-.overall-card { background: linear-gradient(145deg, var(--card-bg), #09090b); border: 1px solid var(--border-color); padding: 30px 20px; border-radius: 30px; display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden; }
+.overall-card { 
+    background: linear-gradient(145deg, var(--card-bg), #05070A); /* Updated gradient */
+    border: 1px solid var(--border-color); padding: 30px 20px; 
+    border-radius: 30px; display: flex; flex-direction: column; 
+    align-items: center; position: relative; overflow: hidden; 
+}
 .overall-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(59,130,246,0.05) 0%, transparent 70%); pointer-events: none; }
 .circular-progress-container { position: relative; width: 160px; height: 160px; margin: 10px 0 20px 0; }
 .circular-progress-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -198,7 +231,13 @@ img, a { -webkit-touch-callout: none; -webkit-user-drag: none; pointer-events: n
 
 /* Settings Modal Fullscreen */
 #settingsModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); z-index: 5000; flex-direction: column; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-.settings-header { height: 70px; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; padding: 0 20px; gap: 15px; flex-shrink: 0; padding-top: env(safe-area-inset-top); }
+.settings-header { 
+    height: 70px; 
+    background: rgba(11, 15, 25, 0.85); /* Updated */
+    backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color); 
+    display: flex; align-items: center; padding: 0 20px; gap: 15px; 
+    flex-shrink: 0; padding-top: env(safe-area-inset-top); 
+}
 .settings-body { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 100px; }
 .settings-section-title { font-size: 13px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin: 24px 0 12px 4px; }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -961,7 +1000,16 @@ function renderChart() {
           }, 
           plugins: { 
               legend: { display: false },
-              tooltip: { backgroundColor: '#18181b', titleColor: '#f4f4f5', bodyColor: '#3b82f6', titleFont: { family: "'Plus Jakarta Sans'", size: 13 }, bodyFont: { family: "'Plus Jakarta Sans'", size: 14, weight: 'bold' }, padding: 12, cornerRadius: 12, displayColors: false, borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1 }
+             // Inside the renderChart() function options:
+          tooltip: { 
+               backgroundColor: 'rgba(11, 15, 25, 0.95)', /* Updated to Deep Slate */
+               titleColor: '#f4f4f5', 
+               bodyColor: '#3b82f6', 
+               titleFont: { family: "'Plus Jakarta Sans'", size: 13 }, 
+               bodyFont: { family: "'Plus Jakarta Sans'", size: 14, weight: 'bold' }, 
+               padding: 12, cornerRadius: 12, displayColors: false, 
+               borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1 
+               }
           } 
       } 
   });
